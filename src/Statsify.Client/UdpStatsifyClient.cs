@@ -10,13 +10,17 @@ namespace Statsify.Client
     {
         private static readonly Random Sampler = new Random();
 
+        private readonly string host;
+        private readonly int port;
         private readonly string @namespace;
         private readonly UdpClient udpClient;
 
         public UdpStatsifyClient(string host = "127.0.0.1", int port = 8125, string @namespace = "")
         {
+            this.host = host;
+            this.port = port;
             this.@namespace = @namespace;
-            udpClient = new UdpClient(host, port);
+            udpClient = new UdpClient();
         }
 
         public void Increment(string metric, double sample = 1)
@@ -64,13 +68,20 @@ namespace Statsify.Client
             
             var metricName = GetMetricName(metric);
 
-            var format = explicitlySigned ? "{0}:{1:+#.####;-#.####}|{2}" : "{0}:{1}|{2}";
-            var datagram = string.Format(CultureInfo.InvariantCulture, format, metricName, (float)value, type);
+            var metricValueFormat = explicitlySigned ? "{0:+#.####;-#.####;#}" : "{0}";
+            var metricValue =
+                value == 0 ?
+                    (explicitlySigned ?
+                        "+0" :
+                        "0") :
+                    string.Format(CultureInfo.InvariantCulture, metricValueFormat, (float)value);
+
+            var datagram = string.Format(CultureInfo.InvariantCulture, "{0}:{1}|{2}", metricName, metricValue, type);
                 
             if(sample < 1)
                 datagram += string.Format(CultureInfo.InvariantCulture, "|@{0:N3}", (float)sample);
 
-            PublishDatagram(udpClient, datagram);
+            PublishDatagram(datagram);
         }
 
         private string GetMetricName(string name)
@@ -78,10 +89,10 @@ namespace Statsify.Client
             return MetricNameBuilder.BuildMetricName(@namespace, name);
         }
 
-        private static void PublishDatagram(UdpClient udpClient, string datagram)
+        private void PublishDatagram(string datagram)
         {
             var buffer = Encoding.UTF8.GetBytes(datagram);
-            udpClient.Send(buffer, buffer.Length);
+            udpClient.Send(buffer, buffer.Length, host, port);
         }
 
         public void Dispose()

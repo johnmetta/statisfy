@@ -12,54 +12,57 @@ namespace Statsify.Tests.Client
     [TestFixture]
     public class UdpStatsifyClientTests
     {
-        private const int AggregationPort = 8125;
+        private const int Port = 8126;
 
         [Test]
         public void Increment()
         {
-            using(var stats = new UdpStatsifyClient())
-                AssertDatagram(AggregationPort, "sample_counter:1|c", () => stats.Increment("sample_counter"));
+            using(var stats = new UdpStatsifyClient(port: Port))
+            {
+                stats.Increment("sample_counter");
+                AssertDatagram(Port, "sample_counter:1|c", () => stats.Increment("sample_counter"));
+            }
         }
 
         [Test]
         public void Decrement()
         {
-            using(var stats = new UdpStatsifyClient())
-                AssertDatagram(AggregationPort, "sample_counter:-1|c", () => stats.Decrement("sample_counter"));
+            using(var stats = new UdpStatsifyClient(port: Port))
+                AssertDatagram(Port, "sample_counter:-1|c", () => stats.Decrement("sample_counter"));
         }
 
         [Test]
         public void Gauge()
         {
-            using(var stats = new UdpStatsifyClient("127.0.0.1", @namespace: "Telemetry.tests."))
+            using(var stats = new UdpStatsifyClient("127.0.0.1", Port, "Telemetry.tests."))
             {
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_gauge:300.05|g", () => stats.Gauge("sample_gauge", 300.05));
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_gauge:1|g", () => stats.Gauge(".sample_gauge.", 1));
+                AssertDatagram(Port, "Telemetry.tests.sample_gauge:300.05|g", () => stats.Gauge("sample_gauge", 300.05));
+                AssertDatagram(Port, "Telemetry.tests.sample_gauge:1|g", () => stats.Gauge(".sample_gauge.", 1));
             } // using
         }
 
         [Test]
         public void GaugeDiff()
         {
-            using(var stats = new UdpStatsifyClient("127.0.0.1", @namespace: "Telemetry.tests."))
+            using(var stats = new UdpStatsifyClient("127.0.0.1", Port, "Telemetry.tests."))
             {
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_gauge:+3.0055|g", () => stats.GaugeDiff("sample_gauge", 3.0055));
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_gauge:-3.0055|g", () => stats.GaugeDiff("sample_gauge", -3.0055));
+                AssertDatagram(Port, "Telemetry.tests.sample_gauge:+3.0055|g", () => stats.GaugeDiff("sample_gauge", 3.0055));
+                AssertDatagram(Port, "Telemetry.tests.sample_gauge:-3.0055|g", () => stats.GaugeDiff("sample_gauge", -3.0055));
 
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_gauge:+1|g", () => stats.GaugeDiff(".sample_gauge.", 1));
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_gauge:-1|g", () => stats.GaugeDiff(".sample_gauge.", -1));
+                AssertDatagram(Port, "Telemetry.tests.sample_gauge:+1|g", () => stats.GaugeDiff(".sample_gauge.", 1));
+                AssertDatagram(Port, "Telemetry.tests.sample_gauge:-1|g", () => stats.GaugeDiff(".sample_gauge.", -1));
 
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_gauge:+0|g", () => stats.GaugeDiff(".sample_gauge.", 0));
+                AssertDatagram(Port, "Telemetry.tests.sample_gauge:+0|g", () => stats.GaugeDiff(".sample_gauge.", 0));
             } // using
         }
 
         [Test]
         public void Timer()
         {
-            using(var stats = new UdpStatsifyClient("127.0.0.1", @namespace: "Telemetry.tests."))
+            using(var stats = new UdpStatsifyClient("127.0.0.1", Port, "Telemetry.tests."))
             {
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_timer:3.5|ms", () => stats.Time("sample_timer", 3.5));
-                AssertDatagram(AggregationPort, "Telemetry.tests.sample_timer:1|ms", () => stats.Time(".sample_timer.", 1));
+                AssertDatagram(Port, "Telemetry.tests.sample_timer:3.5|ms", () => stats.Time("sample_timer", 3.5));
+                AssertDatagram(Port, "Telemetry.tests.sample_timer:1|ms", () => stats.Time(".sample_timer.", 1));
             } // using
         }
 
@@ -68,8 +71,8 @@ namespace Statsify.Tests.Client
             var completionEvent = new ManualResetEvent(false);
             var actualDatagram = "";
 
-            var ipEndpoint = new IPEndPoint(IPAddress.Loopback, port);
-            using(var udpClient = new UdpClient(ipEndpoint))
+            var ipEndpoint = new IPEndPoint(IPAddress.Any, port);
+            using(var udpClient = new UdpClient(port))
             {
                 udpClient.BeginReceive(ar => {
                     var buffer = udpClient.EndReceive(ar, ref ipEndpoint);
