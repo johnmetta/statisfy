@@ -180,12 +180,10 @@ namespace Statsify.Core.Storage
 
                 if(baseInterval == 0)
                 {
-                    
                     var pts = (untilInterval - fromInterval) / step;
-                    var seriesInfo = new SeriesInfo(fromInterval, untilInterval, step);
                     var valueList = new double?[pts];
 
-                    return new Series(seriesInfo, valueList);
+                    return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), valueList);
                 } // if
 
 
@@ -232,7 +230,7 @@ namespace Statsify.Core.Storage
                     } // for
                 } // using
 
-                return new Series(new SeriesInfo(fromInterval, untilInterval, step), values);
+                return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), values);
             } // using
         }
 
@@ -442,36 +440,15 @@ namespace Statsify.Core.Storage
             return (long)elapsedTime.TotalSeconds;
         }
 
+        private static DateTime ConvertFromTimestamp(long timestamp)
+        {
+            return Epoch.AddSeconds(timestamp);
+        }
+
         private static void EnsureValidRetentionPolicy(RetentionPolicy retentionPolicy)
         {
             RetentionPolicyValidator.EnsureRetentionPolicyValid(retentionPolicy);        
         }
 
-    }
-
-    public class Series
-    {
-        public double?[] Values { get; set; }
-        public SeriesInfo SeriesInfo { get; set; }
-
-        public Series(SeriesInfo seriesInfo, double?[] values)
-        {
-            SeriesInfo = seriesInfo;
-            Values = values;
-        }
-    }
-
-    public class SeriesInfo
-    {
-        public long FromInterval { get; set; }
-        public long UntilInterval { get; set; }
-        public int Step { get; set; }
-
-        public SeriesInfo(long fromInterval, long untilInterval, int step)
-        {
-            FromInterval = fromInterval;
-            UntilInterval = untilInterval;
-            Step = step;
-        }
     }
 }
