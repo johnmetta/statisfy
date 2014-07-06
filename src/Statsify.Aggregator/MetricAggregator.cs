@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-
+using NLog;
 using Statsify.Aggregator.Configuration;
 using Statsify.Core.Storage;
 
@@ -15,6 +15,7 @@ namespace Statsify.Aggregator
 {
     public class MetricAggregator
     {
+        private readonly Logger log = LogManager.GetCurrentClassLogger();
         private readonly StatsifyAggregatorConfigurationSection configuration;
         private readonly ManualResetEvent stopEvent;
         private readonly float flushInterval;
@@ -44,7 +45,7 @@ namespace Statsify.Aggregator
         {
             if(!Directory.Exists(configuration.Storage.Path))
             {
-                Console.WriteLine("creating '{0}'", configuration.Storage.Path);
+                log.Info("creating '{0}'", configuration.Storage.Path);
                 Directory.CreateDirectory(configuration.Storage.Path);
             }
 
@@ -52,7 +53,7 @@ namespace Statsify.Aggregator
             {
                 var n = 0;
                 var count = flushQueue.Count;
-                Console.WriteLine("about to flush {0} entries", count);
+                log.Trace("started flushing {0} entries", count);
                 var sw = Stopwatch.StartNew();
 
                 Tuple<string, DateTime, float> datapoint;
@@ -64,7 +65,7 @@ namespace Statsify.Aggregator
                         db.WriteDatapoint(datapoint.Item2, datapoint.Item3);
                 } // while
 
-                Console.WriteLine("flushed {0} entries in {1} ({2:N2} per second)", n, sw.Elapsed, count / sw.Elapsed.TotalSeconds);
+                Console.WriteLine("completed flushing {0} entries in {1} ({2:N2} per second); {3} items in backlog queue", n, sw.Elapsed, count / sw.Elapsed.TotalSeconds, flushQueue.Count);
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
         }

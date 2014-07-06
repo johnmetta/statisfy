@@ -1,12 +1,17 @@
-﻿using Statsify.Agent.Configuration;
+﻿using NLog;
+using Statsify.Agent.Configuration;
 using Topshelf;
 
 namespace Statsify.Agent
 {
     class Program
     {
+        private static Logger log = LogManager.GetLogger("Statsify.Agent");
+
         static int Main(string[] args)
         {
+            log.Info("starting up");
+
             var configurationManager = new ConfigurationManager();
 
             var host =

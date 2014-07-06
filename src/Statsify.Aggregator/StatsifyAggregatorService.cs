@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using NLog;
 using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Network;
 using Topshelf;
@@ -18,6 +19,8 @@ namespace Statsify.Aggregator
         private readonly MetricAggregator metricAggregator;
         private Timer publisherTimer;
         private ManualResetEvent stopEvent;
+
+        private readonly Logger log = LogManager.GetCurrentClassLogger();
         //private HttpServer httpServer;
         
         private UdpDatagramReader udpDatagramReader;
@@ -52,7 +55,10 @@ namespace Statsify.Aggregator
         private void UdpDatagramReaderDatagramHandler(object sender, UdpDatagramEventArgs args)
         {
             foreach(var metric in metricParser.ParseMetrics(args.Buffer))
+            {
+                log.Trace("received metric '{0}' ({1}) with value {2}", metric.Name, metric.Type, metric.Value);
                 metricAggregator.Aggregate(metric);
+            } // foreach
         }
 
         public bool Stop(HostControl hostControl)
