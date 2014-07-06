@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace Statsify.Core.Storage
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private static readonly byte[] Signature = Encoding.ASCII.GetBytes("STFY");
-        private static readonly byte[] Version = BitConverter.GetBytes((ushort)(1 << 8));
+        private static readonly byte[] Version = { 1, 0 };
         
         private const int ArchiveHeaderSize = sizeof(int) * 3;
         private const int DatapointSize = sizeof(long) + sizeof(double);
@@ -22,6 +23,21 @@ namespace Statsify.Core.Storage
         private readonly int maxRetention;
         private readonly IList<Archive> archives;
         private readonly Func<DateTime> currentTimeProvider;
+
+        public ReadOnlyCollection<Archive> Archives
+        {
+            get { return new ReadOnlyCollection<Archive>(archives); }
+        }
+
+        public float DownsamplingFactor
+        {
+            get { return downsamplingFactor; }
+        }
+
+        public DownsamplingMethod DownsamplingMethod
+        {
+            get { return downsamplingMethod; }
+        }
 
         private Database(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, int maxRetention, IList<Archive> archives, Func<DateTime> currentTimeProvider)
         {
@@ -72,7 +88,9 @@ namespace Statsify.Core.Storage
                 if(!signature.SequenceEqual(Signature)) 
                     throw new DataException("Incompatible Statsify Database format");
 
-                var version = new Version(binaryReader.ReadByte(), binaryReader.ReadByte());
+                var major = binaryReader.ReadByte();
+                var minor = binaryReader.ReadByte();
+                var version = new Version(major, minor);
                 if(version != new Version(1, 0))
                     throw new DatabaseException("Incompatible Statsify Database version");
 
@@ -85,11 +103,11 @@ namespace Statsify.Core.Storage
                 
                 for(var i = 0; i < archivesLength; ++i)
                 {
-                    var archiveOffsetPointer = binaryReader.ReadInt64();
-                    var secondsPerPoint = binaryReader.ReadInt32();
-                    var points = binaryReader.ReadInt32();
+                    var offset = binaryReader.ReadInt32();
+                    var precision = binaryReader.ReadInt32();
+                    var history = binaryReader.ReadInt32();
 
-                    archives.Add(new Archive(archiveOffsetPointer, secondsPerPoint, points, secondsPerPoint * points, points * DatapointSize));
+                    archives.Add(new Archive(offset, history * DatapointSize, new Retention(TimeSpan.FromSeconds(precision), history)));
                 } // for
 
                 return new Database(path, downsamplingFactor, dowsamplingMethod, maxRetention, archives, currentTimeProvider);
@@ -99,7 +117,7 @@ namespace Statsify.Core.Storage
 
         private static Database Create(string path, FileStream stream, float downsamplingFactor, DownsamplingMethod downsamplingMethod, RetentionPolicy retentionPolicy, Func<DateTime> currentTimeProvider = null)
         {
-            var maxRetention = retentionPolicy.Select(h => h.SecondsPerPoint * h.Points).Max();
+            var maxRetention = retentionPolicy.Select(h => h.Precision * h.History).Max();
 
             var headerSize =
                 sizeof(byte) * Signature.Length +
@@ -122,21 +140,20 @@ namespace Statsify.Core.Storage
                 binaryWriter.Write((int)maxRetention);
                 binaryWriter.Write((int)retentionPolicy.Count);
 
-                var archiveOffsetPointer = headerSize;
+                var offset = headerSize;
 
                 foreach(var retention in retentionPolicy)
                 {
-                    binaryWriter.Write(archiveOffsetPointer);
-                    binaryWriter.Write(retention.SecondsPerPoint);
-                    binaryWriter.Write(retention.Points);
+                    binaryWriter.Write((int)offset);
+                    binaryWriter.Write((int)retention.Precision);
+                    binaryWriter.Write((int)retention.History);
 
-                    archives.Add(new Archive(archiveOffsetPointer, retention.SecondsPerPoint, retention.Points, retention.SecondsPerPoint * retention.Points,
-                        retention.Points * DatapointSize));
+                    archives.Add(new Archive(offset, retention.History * DatapointSize, retention));
 
-                    archiveOffsetPointer += retention.Points * DatapointSize;
+                    offset += retention.History * DatapointSize;
                 } // foreach
 
-                stream.SetLength(archiveOffsetPointer);
+                stream.SetLength(offset);
             } // using
 
             return new Database(path, downsamplingFactor, downsamplingMethod, maxRetention, archives, currentTimeProvider);
@@ -166,17 +183,17 @@ namespace Statsify.Core.Storage
 
                 var diff = now - fromTime;
 
-                var archive = archives.First(a => a.Retention >= diff && (precision == null || a.SecondsPerPoint >= precision.Value.TotalSeconds));
+                var archive = archives.First(a => ((TimeSpan)a.Retention.History).TotalSeconds >= diff && (precision == null || a.Retention.Precision >= precision.Value));
 
-                var fromInterval = (fromTime - (fromTime % archive.SecondsPerPoint)) + archive.SecondsPerPoint;
-                var untilInterval = (untilTime - (untilTime % archive.SecondsPerPoint)) + archive.SecondsPerPoint;
+                var fromInterval = (fromTime - (fromTime % archive.Retention.Precision)) + archive.Retention.Precision;
+                var untilInterval = (untilTime - (untilTime % archive.Retention.Precision)) + archive.Retention.Precision;
 
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
 
                 var baseInterval = binaryReader.ReadInt64();
                 var baseValue = binaryReader.ReadDouble();
 
-                var step = archive.SecondsPerPoint;
+                var step = archive.Retention.Precision;
 
                 if(baseInterval == 0)
                 {
@@ -237,7 +254,7 @@ namespace Statsify.Core.Storage
         private static long GetOffset(long fromInterval, long baseInterval, Archive archive)
         {
             var timeDistance = fromInterval - baseInterval;
-            var pointDistance = timeDistance / archive.SecondsPerPoint;
+            var pointDistance = timeDistance / archive.Retention.Precision;
             var byteDistance = (pointDistance * DatapointSize) % archive.Size;
             var fromOffset = archive.Offset +
                              (byteDistance > 0
@@ -265,13 +282,13 @@ namespace Statsify.Core.Storage
 
                 foreach(var i in archives.Select((a, i) => Tuple.Create(i, a)))
                 {
-                    if(i.Item2.Retention < diff) continue;
+                    if(i.Item2.Retention.History < diff) continue;
                     archive = i.Item2;
                     lowerArchives = new List<Archive>(archives.Skip(i.Item1 + 1));
                     break;
                 } // foreach
 
-                var myInterval = timestamp - (timestamp % archive.SecondsPerPoint);
+                var myInterval = timestamp - (timestamp % archive.Retention.Precision);
 
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
                 var baseInterval = binaryReader.ReadInt64();
@@ -289,7 +306,7 @@ namespace Statsify.Core.Storage
                 else
                 {
                     var timeDistance = myInterval - baseInterval;
-                    var pointDistance = timeDistance / archive.SecondsPerPoint;
+                    var pointDistance = timeDistance / archive.Retention.Precision;
                     var byteDistance = pointDistance * DatapointSize;
                     var myOffset = archive.Offset + (byteDistance % archive.Size);
 
@@ -314,8 +331,8 @@ namespace Statsify.Core.Storage
 
         private bool Propagate(FileStream fileStream, BinaryReader binaryReader, BinaryWriter binaryWriter, long timestamp, Archive higher, Archive lower)
         {
-            var lowerIntervalStart = (timestamp - (timestamp % lower.SecondsPerPoint));
-            var lowerIntervalEnd = (lowerIntervalStart + lower.SecondsPerPoint);
+            var lowerIntervalStart = (timestamp - (timestamp % lower.Retention.Precision));
+            var lowerIntervalEnd = (lowerIntervalStart + lower.Retention.Precision);
 
             fileStream.Seek(higher.Offset, SeekOrigin.Begin);
             var higherBaseInterval = binaryReader.ReadInt64();
@@ -330,12 +347,12 @@ namespace Statsify.Core.Storage
             else
             {
                 var timeDistance = (lowerIntervalStart - higherBaseInterval);
-                var pointDistance = timeDistance / higher.SecondsPerPoint;
+                var pointDistance = timeDistance / higher.Retention.Precision;
                 var byteDistance = pointDistance * DatapointSize;
                 higherFirstOffset = higher.Offset + (byteDistance % higher.Size);
             } // else
 
-            var higherPoints = lower.SecondsPerPoint / higher.SecondsPerPoint;
+            var higherPoints = lower.Retention.Precision / higher.Retention.Precision;
             var higherSize = higherPoints * DatapointSize;
             var relativeFirstOffset = higherFirstOffset - higher.Offset;
             var relativeLastOffset = (relativeFirstOffset + higherSize) % higher.Size;
@@ -366,7 +383,7 @@ namespace Statsify.Core.Storage
 
             var neighborValues = new double[points];
             var currentInterval = lowerIntervalStart;
-            var step = higher.SecondsPerPoint;
+            var step = higher.Retention.Precision;
             var knownValues = 0;
 
             using(var memoryStream = new MemoryStream(seriesString))
@@ -400,7 +417,7 @@ namespace Statsify.Core.Storage
             else
             {
                 var timeDistance = lowerIntervalStart - lowerBaseInterval;
-                var pointDistance = timeDistance / lower.SecondsPerPoint;
+                var pointDistance = timeDistance / lower.Retention.Precision;
                 var byteDistance = pointDistance * DatapointSize;
                 var lowerOffset = lower.Offset + (byteDistance % lower.Size);
 

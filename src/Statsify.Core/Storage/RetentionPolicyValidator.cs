@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace Statsify.Core.Storage
 {
@@ -19,20 +20,19 @@ namespace Statsify.Core.Storage
                     throw new RetentionPolicyValidationException(
                         string.Format("A Statsify database may not be created having two Retentions (#{0}, #{1}) with the same precision", i - 1, i));
                 
-                if((long)retention.Precision.TotalSeconds % (long)previousRetention.Precision.TotalSeconds != 0)
+                if(retention.Precision % previousRetention.Precision != 0)
                     throw new RetentionPolicyValidationException(
                         string.Format("Higher precision Retention (#{0}, {1}) must evenly divide lower precision Retention (#{2}, {3})",
                             i - 1, previousRetention.Precision, i, retention.Precision));
 
-                if(retention.History < previousRetention.History)
+                if((TimeSpan)retention.History < previousRetention.History)
                     throw new RetentionPolicyValidationException(
                         string.Format("Lower precision Retention (#{0}, {1}) must cover larger time intervals than higher precision Retention (#{2}, {3})",
                             i, retention.History, i - 1, previousRetention.History));
 
-                var previousDatapoints = (long)previousRetention.History.TotalSeconds / (long)previousRetention.Precision.TotalSeconds;
-                var pointsPerDownsample = (long)retention.Precision.TotalSeconds / (long)previousRetention.Precision.TotalSeconds;
+                var pointsPerDownsample = (long)retention.Precision / previousRetention.Precision;
 
-                if(previousDatapoints < pointsPerDownsample)
+                if(previousRetention.History < pointsPerDownsample)
                     throw new RetentionPolicyValidationException(
                         string.Format("Retention (#{0}) must have at least enough points to consolidate to the next Retention", i - 1));
             } // for

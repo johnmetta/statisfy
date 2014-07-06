@@ -6,21 +6,20 @@ namespace Statsify.Core.Storage
     [DebuggerDisplay("{Precision}:{History}")]
     public class Retention
     {
-        public TimeSpan Precision { get; private set; }
+        public Precision Precision { get; private set; }
 
-        public TimeSpan History { get; private set; }
-
-        public int SecondsPerPoint { get; private set; }
-
-        public int Points { get; private set; }
+        public History History { get; private set; }
 
         public Retention(TimeSpan precision, TimeSpan history)
         {
-            Precision = precision;
-            History = history;
+            Precision = new Precision(precision);
+            History = new History(history, precision);
+        }
 
-            SecondsPerPoint = (int)precision.TotalSeconds;
-            Points = (int)(history.TotalSeconds / precision.TotalSeconds);
+        public Retention(TimeSpan precision, int history)
+        {
+            Precision = new Precision(precision);
+            History = new History(TimeSpan.FromSeconds(Precision * history), precision);
         }
     }
 }
