@@ -46,7 +46,7 @@ namespace Statsify.Core.Storage
             this.downsamplingMethod = downsamplingMethod;
             this.maxRetention = maxRetention;
             this.archives = archives;
-            this.currentTimeProvider = currentTimeProvider;
+            this.currentTimeProvider = currentTimeProvider ?? (() => DateTime.UtcNow);
         }
 
         public static bool Exists(string path)

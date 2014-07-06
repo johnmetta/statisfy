@@ -12,7 +12,7 @@ namespace Statsify.Tests.Client
     [TestFixture]
     public class UdpStatsifyClientTests
     {
-        private const int Port = 8126;
+        private const int Port = 8125;
 
         [Test]
         public void Increment()

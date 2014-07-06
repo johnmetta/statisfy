@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Tests", "Statsify.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Client", "Statsify.Client\Statsify.Client.csproj", "{106B9B44-F0D9-43FC-923E-562BEDCD7D06}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Agent", "Statsify.Agent\Statsify.Agent.csproj", "{42A19738-EC3C-4ED2-9516-B164138DD23D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Aggregator", "Statsify.Aggregator\Statsify.Aggregator.csproj", "{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +29,14 @@ Global
 		{106B9B44-F0D9-43FC-923E-562BEDCD7D06}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{106B9B44-F0D9-43FC-923E-562BEDCD7D06}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{106B9B44-F0D9-43FC-923E-562BEDCD7D06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42A19738-EC3C-4ED2-9516-B164138DD23D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42A19738-EC3C-4ED2-9516-B164138DD23D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42A19738-EC3C-4ED2-9516-B164138DD23D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42A19738-EC3C-4ED2-9516-B164138DD23D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
