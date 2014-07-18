@@ -44,6 +44,7 @@ namespace Statsify.Tests.Core.Storage
             var n = 0;
             var date = new DateTime(1971, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+            // ReSharper disable once AccessToModifiedClosure
             Func<DateTime> currentTimeProvider = () => date.AddSeconds(n);
 
             var database = 
