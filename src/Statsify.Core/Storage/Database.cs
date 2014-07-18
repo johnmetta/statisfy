@@ -210,26 +210,7 @@ namespace Statsify.Core.Storage
                 var fromOffset = GetOffset(fromInterval, baseInterval, archive);
                 var untilOffset = GetOffset(untilInterval, baseInterval, archive);
 
-                fileStream.Seek(fromOffset, SeekOrigin.Begin);
-
-                byte[] buffer = null;
-                if(fromOffset < untilOffset)
-                {
-                    buffer = new byte[untilOffset - fromOffset];
-                    binaryReader.Read(buffer, 0, buffer.Length);
-                } // if
-                else
-                {
-                    var archiveEnd = archive.Offset + archive.Size;
-                
-                    var n1 = (int)(archiveEnd - fromOffset);
-                    var n2 = (int)(untilOffset - archive.Offset);
-                
-                    buffer = new byte[n1 + n2];
-                    binaryReader.Read(buffer, 0, n1);
-                    fileStream.Seek(archive.Offset, SeekOrigin.Begin);
-                    binaryReader.Read(buffer, n1, n2);
-                } // else
+                var buffer = ReadBuffer(fileStream, fromOffset, untilOffset, binaryReader, archive);
 
                 var points = buffer.Length / DatapointSize;
                 var values = new double?[points];
@@ -252,6 +233,32 @@ namespace Statsify.Core.Storage
 
                 return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), values);
             } // using
+        }
+
+        private static byte[] ReadBuffer(FileStream fileStream, long fromOffset, long untilOffset, BinaryReader binaryReader, Archive archive)
+        {
+            fileStream.Seek(fromOffset, SeekOrigin.Begin);
+
+            byte[] buffer;
+            if(fromOffset < untilOffset)
+            {
+                buffer = new byte[untilOffset - fromOffset];
+                binaryReader.Read(buffer, 0, buffer.Length);
+            } // if
+            else
+            {
+                var archiveEnd = archive.Offset + archive.Size;
+
+                var n1 = (int)(archiveEnd - fromOffset);
+                var n2 = (int)(untilOffset - archive.Offset);
+
+                buffer = new byte[n1 + n2];
+                binaryReader.Read(buffer, 0, n1);
+                fileStream.Seek(archive.Offset, SeekOrigin.Begin);
+                binaryReader.Read(buffer, n1, n2);
+            } // else
+
+            return buffer;
         }
 
         private static long GetOffset(long fromInterval, long baseInterval, Archive archive)
@@ -339,7 +346,7 @@ namespace Statsify.Core.Storage
             fileStream.Seek(higher.Offset, SeekOrigin.Begin);
             var higherBaseInterval = binaryReader.ReadInt64();
 
-            var higherFirstOffset = 0L;
+            long higherFirstOffset;
 
             if(higherBaseInterval == 0)
             {
@@ -359,26 +366,7 @@ namespace Statsify.Core.Storage
             var relativeLastOffset = (relativeFirstOffset + higherSize) % higher.Size;
             var higherLastOffset = relativeLastOffset + higher.Offset;
 
-            fileStream.Seek(higherFirstOffset, SeekOrigin.Begin);
-
-            byte[] buffer = null;
-            if(higherFirstOffset < higherLastOffset)
-            {
-                buffer = new byte[higherLastOffset - higherFirstOffset];
-                binaryReader.Read(buffer, 0, buffer.Length);
-            } // if
-            else
-            {
-                var higherEnd = higher.Offset + higher.Size;
-                
-                var n1 = (int)(higherEnd - higherFirstOffset);
-                var n2 = (int)(higherLastOffset - higher.Offset);
-                
-                buffer = new byte[n1 + n2];
-                binaryReader.Read(buffer, 0, n1);
-                fileStream.Seek(higher.Offset, SeekOrigin.Begin);
-                binaryReader.Read(buffer, n1, n2);
-            } // else
+            var buffer = ReadBuffer(fileStream, higherFirstOffset, higherLastOffset, binaryReader, higher);
 
             var points = buffer.Length / DatapointSize;
 
