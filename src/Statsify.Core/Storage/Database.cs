@@ -212,24 +212,10 @@ namespace Statsify.Core.Storage
 
                 var buffer = ReadBuffer(fileStream, fromOffset, untilOffset, binaryReader, archive);
 
-                var points = buffer.Length / DatapointSize;
-                var values = new double?[points];
-                var currentInterval = fromInterval;
+                double?[] values;
+                int knownValues;
 
-                using(var memoryStream = new MemoryStream(buffer))
-                using(var br = new BinaryReader(memoryStream))
-                {
-                    for(var i = 0; i < points; ++i)
-                    {
-                        var unpackedInterval = br.ReadInt64();
-                        var unpackedValue = br.ReadDouble();
-
-                        if(unpackedInterval == currentInterval)
-                            values[i] = unpackedValue;
-
-                        currentInterval += step;
-                    } // for
-                } // using
+                UnpackDatapoints(archive, buffer, fromInterval, out values, out knownValues);
 
                 return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), values);
             } // using
@@ -368,31 +354,14 @@ namespace Statsify.Core.Storage
 
             var buffer = ReadBuffer(fileStream, higherFirstOffset, higherLastOffset, binaryReader, higher);
 
-            var points = buffer.Length / DatapointSize;
+            double?[] values;
+            int knownValues;
 
-            var neighborValues = new double[points];
-            var currentInterval = lowerIntervalStart;
-            var step = higher.Retention.Precision;
-            var knownValues = 0;
-
-            using(var memoryStream = new MemoryStream(buffer))
-            using(var br = new BinaryReader(memoryStream))
-            {
-                for(var i = 0; i < points; ++i)
-                {
-                    var unpackedInterval = br.ReadInt64();
-                    var unpackedValue = br.ReadDouble();
-
-                    if(unpackedInterval == currentInterval)
-                        neighborValues[knownValues++] = unpackedValue;
-
-                    currentInterval += step;
-                } // for
-            } // using
+            var points = UnpackDatapoints(higher, buffer, lowerIntervalStart, out values, out knownValues);
 
             if((float)knownValues / points < downsamplingFactor) return false;
 
-            var aggregateValue = Aggregate(neighborValues, knownValues);
+            var aggregateValue = Aggregate(values.Where(v => v.HasValue).Select(v => v.Value), downsamplingMethod);
 
             fileStream.Seek(lower.Offset, SeekOrigin.Begin);
 
@@ -420,10 +389,39 @@ namespace Statsify.Core.Storage
             return true;
         }
 
-        private double Aggregate(IEnumerable<double> neighborValues, int knownValues)
+        private static int UnpackDatapoints(Archive archive, byte[] buffer, long startInterval, out double?[] values, out int knownValues)
         {
-            var values = neighborValues.Take(knownValues);
+            var points = buffer.Length / DatapointSize;
+            values = new double?[points];
 
+            var currentTimestamp = startInterval;
+            var step = archive.Retention.Precision;
+            
+            knownValues = 0;
+
+            using(var memoryStream = new MemoryStream(buffer))
+            using(var binaryReader = new BinaryReader(memoryStream))
+            {
+                for(var i = 0; i < points; ++i)
+                {
+                    var timestamp = binaryReader.ReadInt64();
+                    var value = binaryReader.ReadDouble();
+
+                    if(timestamp == currentTimestamp)
+                    {
+                        values[i] = value;
+                        knownValues++;
+                    } // if
+
+                    currentTimestamp += step;
+                } // for
+            } // using
+
+            return points;
+        }
+
+        private static double Aggregate(IEnumerable<double> values, DownsamplingMethod downsamplingMethod)
+        {
             switch(downsamplingMethod)
             {
                 case DownsamplingMethod.Average:
@@ -437,7 +435,7 @@ namespace Statsify.Core.Storage
                 case DownsamplingMethod.Min:
                     return values.Min();
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException("downsamplingMethod");
             }
         }
 
@@ -456,6 +454,5 @@ namespace Statsify.Core.Storage
         {
             RetentionPolicyValidator.EnsureRetentionPolicyValid(retentionPolicy);        
         }
-
     }
 }
