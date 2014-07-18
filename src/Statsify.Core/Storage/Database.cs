@@ -277,16 +277,11 @@ namespace Statsify.Core.Storage
                 if(diff < 0) throw new Exception(); // TODO
                 if(diff >= maxRetention) throw new Exception(); // TODO
 
-                Archive archive = null;
-                IList<Archive> lowerArchives = null;
+                var archive = archives.FirstOrDefault(a => a.Retention.History >= diff);
+                if(archive == null)
+                    throw new Exception(); // TODO: Exception
 
-                foreach(var i in archives.Select((a, i) => Tuple.Create(i, a)))
-                {
-                    if(i.Item2.Retention.History < diff) continue;
-                    archive = i.Item2;
-                    lowerArchives = new List<Archive>(archives.Skip(i.Item1 + 1));
-                    break;
-                } // foreach
+                var lowerArchives = archives.Skip(archives.IndexOf(archive) + 1);
 
                 var myInterval = timestamp - (timestamp % archive.Retention.Precision);
 
