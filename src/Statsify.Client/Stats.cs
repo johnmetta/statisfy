@@ -9,26 +9,24 @@ namespace Statsify.Client
     /// </summary>
     public static class Stats
     {
-        private static IStatsifyClient statsify;
-        private static object syncRoot = new object();
+        private static volatile IStatsifyClient statsify;
+        private static readonly object SyncRoot = new object();
 
         private static IStatsifyClient Statsify
         {
             get
             {
-                if(statsify == null)
+                if(statsify != null) return statsify;
+                
+                lock(SyncRoot)
                 {
-                    lock(syncRoot)
-                    {
-                        if(statsify == null)
-                        {
-                            var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
-                            if(configuration == null) throw new ConfigurationErrorsException();
+                    if(statsify != null) return statsify;
+                    
+                    var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
+                    if(configuration == null) throw new ConfigurationErrorsException();
 
-                            statsify = new UdpStatsifyClient(configuration.Host, configuration.Port, configuration.Namespace);
-                        } // if
-                    } // lock
-                } // if
+                    statsify = new UdpStatsifyClient(configuration.Host, configuration.Port, configuration.Namespace);
+                } // lock
 
                 return statsify;
             }
