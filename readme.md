@@ -8,7 +8,7 @@ Statsify draws inspiration from [Graphite](https://github.com/graphite-project),
 
 #### Statsify.Agent
 
-Statsify Agent collects machine-level metrics and sends them off to Statsify Aggregator or any StatsD-compatible server.
+Statsify Agent collects server-level metrics (i.e. from Windows Performance Counters) and sends them off to Statsify Aggregator or any StatsD-compatible server.
 
 #### Statsify.Aggregator
 
