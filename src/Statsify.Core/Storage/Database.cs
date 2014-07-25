@@ -165,7 +165,7 @@ namespace Statsify.Core.Storage
 
         public Series ReadSeries(DateTime from, DateTime until, TimeSpan? precision = null)
         {
-            using(var fileStream = File.OpenRead(path))
+            using(var fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using(var binaryReader = new BinaryReader(fileStream, Encoding.UTF8, true))
             {
                 var fromTimestamp = ConvertToTimestamp(from);
