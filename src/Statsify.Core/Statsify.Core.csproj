@@ -39,6 +39,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\Datapoint.cs" />
+    <Compile Include="Model\Metric.cs" />
+    <Compile Include="Model\Sample.cs" />
+    <Compile Include="Model\Series.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\Archive.cs" />
     <Compile Include="Storage\Database.cs" />
@@ -50,7 +54,6 @@
     <Compile Include="Storage\RetentionPolicy.cs" />
     <Compile Include="Storage\RetentionPolicyValidationException.cs" />
     <Compile Include="Storage\RetentionPolicyValidator.cs" />
-    <Compile Include="Storage\Series.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
