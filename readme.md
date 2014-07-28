@@ -22,3 +22,11 @@ StatsD-compatible client for talking to Statsify Aggregator or any StatsD-compat
 
 Statsify Database implementation.
 
+### Glossary
+
+_Datapoint_ is a tuple which consists of a _Timestamp_ and a _Value_.
+
+_Series_ is an ordered collection of _Datapoints_
+
+_Metric_ is a _Series_ with a name.
+
