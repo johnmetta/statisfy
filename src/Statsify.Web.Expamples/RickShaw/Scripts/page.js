@@ -161,6 +161,6 @@ function initChart($container) {
 
 $(document).ready(function () {
     $('.chart_container').each(function() {
-        initChart($(this), 'CPU');
+        initChart($(this));
     });
 });
