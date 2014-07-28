@@ -1,4 +1,6 @@
-﻿namespace Statsify.Web.Api
+﻿using Nancy.Bootstrapper;
+
+namespace Statsify.Web.Api
 {
     using Autofac;
     using Nancy;
@@ -19,6 +21,13 @@
             builder.Register(c => new ConfigurationManager().Configuration).As<StatsifyConfigurationSection>().SingleInstance();
 
             builder.Update(container.ComponentRegistry);            
+        }
+
+        protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines, NancyContext context)
+        {
+            pipelines.AfterRequest.AddItemToEndOfPipeline((ctx) => ctx.Response.WithHeader("Access-Control-Allow-Origin", "*")
+                .WithHeader("Access-Control-Allow-Methods", "POST,GET")
+                .WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-type"));
         }
     }
 }
