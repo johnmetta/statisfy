@@ -7,22 +7,23 @@
     using Nancy;
 
     public class ApiModule : NancyModule
-    {        
+    {
         public ApiModule(IMetricService metricService, ISeriesService seriesService)
         {
 
             Get["/api/find/{query}"] = x =>
             {
-                MetricInfo[] metrics = metricService.Find(x.query);
-               
+                string query = x.query;
+                var metrics = metricService.Find(query);
+
                 return Response.AsJson(metrics);
             };
 
             Get["/api/series"] = x =>
-            {                           
+            {
                 try
                 {
-                    JsonSettings.MaxJsonLength = int.MaxValue;  
+                    JsonSettings.MaxJsonLength = int.MaxValue;
 
                     string expression = Request.Query.expression;
 
@@ -33,18 +34,18 @@
                     if (String.IsNullOrWhiteSpace(expression))// ReSharper disable once NotResolvedInText                           
                         throw new ArgumentNullException("expression");
 
-                    var now = DateTime.Now;
+                    var now = DateTime.UtcNow;
 
                     var series = seriesService.GetSeries(expression,
-                        start.GetValueOrDefault(now.AddHours(-1)).ToUniversalTime(),
-                        stop.GetValueOrDefault(now).ToUniversalTime());
+                        start.GetValueOrDefault(now.AddHours(-1)),
+                        stop.GetValueOrDefault(now));
 
                     return Response.AsJson(series);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     return Response.AsJson(new { e.Message, e.StackTrace });
-                }                                                
+                }
             };
         }
     }
