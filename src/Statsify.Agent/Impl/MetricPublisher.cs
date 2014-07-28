@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Timers;
 using NLog;
 using Statsify.Agent.Configuration;
 using Statsify.Client;
@@ -12,12 +13,10 @@ namespace Statsify.Agent.Impl
         private readonly MetricCollector metricCollector;
         private readonly IStatsifyClient statsifyClient;
         private readonly TimeSpan collectionInterval;
+
         private ManualResetEvent stopEvent;
         private ManualResetEvent stoppedEvent;
-
-        private Timer publisherTimer;
-
-        private volatile bool publishing;
+        private System.Timers.Timer publisherTimer;
 
         public MetricPublisher(MetricCollector metricCollector, IStatsifyClient statsifyClient, TimeSpan collectionInterval)
         {
@@ -31,28 +30,28 @@ namespace Statsify.Agent.Impl
             stopEvent = new ManualResetEvent(false);
             stoppedEvent = new ManualResetEvent(false);
 
-            publisherTimer = new Timer(PublisherTimerCallback, null, collectionInterval, collectionInterval);
-            publishing = false;
+            publisherTimer = new System.Timers.Timer(collectionInterval.TotalMilliseconds) { AutoReset = false };
+            publisherTimer.Elapsed += PublisherTimerCallback;
+
+            publisherTimer.Start();
         }
 
         public void Stop()
         {
             if(publisherTimer == null) return;
 
-            publisherTimer.Dispose(stoppedEvent);
-            stopEvent.WaitOne();
+            stopEvent.Set();
+            publisherTimer.Stop();
 
-            publisherTimer = null;
+            publisherTimer.Dispose();
             stopEvent.Dispose();
             stoppedEvent.Dispose();
+
+            publisherTimer = null;
         }
 
-        private void PublisherTimerCallback(object state)
+        private void PublisherTimerCallback(object state, ElapsedEventArgs args)
         {
-            if(publishing) return;
-
-            publishing = true;
-
             foreach(var metric in metricCollector.GetCollectedMetrics())
             {
                 log.Trace("publishing metric '{0}' with value '{1}'", metric.Name, metric.Value);
@@ -70,7 +69,8 @@ namespace Statsify.Agent.Impl
                 } // switch
             } // foreach
 
-            publishing = false;
+            if(!stopEvent.WaitOne(0))
+                publisherTimer.Start();
         }
     }
 }
