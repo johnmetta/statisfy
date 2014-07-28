@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link type="text/css" rel="stylesheet" href="./Styles/rickshaw.css">
+    <link type="text/css" rel="stylesheet" href="./Styles/page.css">    
+    <script src="../Scripts/moment-with-langs.js"></script>    
+    <script src="../Scripts/d3.v3.js"></script>
+    <script src="../Scripts/jquery-1.10.2.js"></script>    
+    <script src="./Scripts/rickshaw.js"></script>    
+</head>
+<body>
+    <div id="content">               
+        <div class="chart_container" data-renderer="bar" data-expression="AliasByNode(List('servers.*.system.processor.*'),1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Processor" data-update-interval="10000"></div>
+        <br />        
+        <div class="chart_container" data-expression="AliasByNode(List('servers.*.system.physical_disk.*'),1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Physical Disk" data-update-interval="10000"></div>
+        <br />
+        <div class="chart_container" data-expression="AliasByNode(List('servers.*.system.memory.*'),1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Memory" data-update-interval="10000"></div>
+        <br />
+        <div class="chart_container" data-expression="AliasByNode(List('servers.*.system.asp_net.*'),1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="ASP.NET" data-update-interval="10000"></div>
+    </div>
+
+    <script src="./Scripts/page.js"></script>
+</body>
+</html>

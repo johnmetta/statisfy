@@ -1,0 +1,53 @@
+.chart_container {    
+    background: none repeat scroll 0 0 #1f1f1f;
+    display: none;
+    padding:5px 20px 20px 20px;
+    margin:20px;
+}
+.chart_container table, .chart_container table td{
+    border:none;
+    padding:0;
+}
+.chart { background-color: #1f1f1f;}
+.legend {
+    padding: 0;
+    padding-left: 10px;    
+     -ms-border-radius: 0;
+    border-radius: 0;   
+    background: none;
+}
+
+.chart-header {
+    text-align: center;
+    font-family: Arial;
+    font-size: 12px;    
+    color: white;
+    padding-top: 5px;
+}
+li.line {
+    padding: 1px !important;
+}
+.clear{
+    clear:both;
+}
+
+body {
+    background-color: #161616;
+    background: none repeat scroll 0 0 #161616;
+    color: #bbbfc2;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    margin: 0;
+      min-height: 100%;
+}
+
+.rickshaw_graph .x_tick.glow .title, .rickshaw_graph .y_ticks.glow text
+{
+    color:white!important;
+    opacity: 1; 
+}
+.tick .major{
+    color:white!important;
+    opacity: 1; 
+}
