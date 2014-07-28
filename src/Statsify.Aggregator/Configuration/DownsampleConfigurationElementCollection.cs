@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 
@@ -41,7 +42,13 @@ namespace Statsify.Aggregator.Configuration
 
         IEnumerator<DownsampleConfigurationElement> IEnumerable<DownsampleConfigurationElement>.GetEnumerator()
         {
-            return this.Cast<DownsampleConfigurationElement>().Where(element => element != null).GetEnumerator();
+            // ReSharper disable once LoopCanBeConvertedToQuery
+            foreach (var value in ((IEnumerable)this))
+            {
+                var element = (DownsampleConfigurationElement)value;
+                if (element != null)
+                    yield return element;
+            }           
         }
     }
 }
