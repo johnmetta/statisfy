@@ -38,10 +38,6 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Topshelf">
       <HintPath>..\..\lib\topshelf\bin\Topshelf.dll</HintPath>
@@ -58,6 +54,7 @@
     <Compile Include="Configuration\StatsifyAggregatorConfigurationSection.cs" />
     <Compile Include="Configuration\StorageConfigurationElement.cs" />
     <Compile Include="Configuration\StorageConfigurationElementCollection.cs" />
+    <Compile Include="Extensions\Enumerable.cs" />
     <Compile Include="Metric.cs" />
     <Compile Include="MetricAggregator.cs" />
     <Compile Include="MetricParser.cs" />
@@ -67,7 +64,7 @@
     <Compile Include="Network\UdpDatagramReader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RegexExtensions.cs" />
+    <Compile Include="Extensions\RegexExtensions.cs" />
     <Compile Include="StatsifyAggregatorService.cs" />
   </ItemGroup>
   <ItemGroup>

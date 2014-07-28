@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -13,6 +12,7 @@ namespace Statsify.Aggregator.Configuration
         public string Path
         {
             get { return (string)this["path"]; }
+
             set { this["path"] = value; }
         }
 
@@ -20,12 +20,14 @@ namespace Statsify.Aggregator.Configuration
         public TimeSpan FlushInterval
         {
             get { return (TimeSpan)this["flush-interval"]; }
+
             set { this["flush-interval"] = value; }
         }
 
         public StorageConfigurationElement this[int index]
         {
             get { return (StorageConfigurationElement)BaseGet(index); }
+
             set
             {
                 if(BaseGet(index) != null)
@@ -57,12 +59,7 @@ namespace Statsify.Aggregator.Configuration
 
         IEnumerator<StorageConfigurationElement> IEnumerable<StorageConfigurationElement>.GetEnumerator()
         {
-            foreach(var value in ((IEnumerable)this))
-            {
-                var element = (StorageConfigurationElement)value;
-                if(element != null)
-                    yield return element;
-            } // foreach
+            return this.Cast<StorageConfigurationElement>().Where(element => element != null).GetEnumerator();
         }
     }
 }

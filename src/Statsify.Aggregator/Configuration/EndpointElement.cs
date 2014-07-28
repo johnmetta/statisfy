@@ -1,5 +1,4 @@
 ﻿using System.Configuration;
-using System.Net;
 
 namespace Statsify.Aggregator.Configuration
 {

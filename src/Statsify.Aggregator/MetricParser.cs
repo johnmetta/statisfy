@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Statsify.Aggregator.Extensions;
 
 namespace Statsify.Aggregator
 {
@@ -12,9 +13,9 @@ namespace Statsify.Aggregator
         {
             var datagram = Encoding.UTF8.GetString(buffer);
 
-            var metrics = datagram.Contains("\n") ?
-                datagram.Split('\n') :
-                new[] { datagram };
+            var metrics = datagram.Contains("\n")
+                ? datagram.Split('\n')
+                : new[] { datagram };
 
             return metrics.Select(ParseMetric).Where(m => m != null);
         }
@@ -24,20 +25,24 @@ namespace Statsify.Aggregator
             if(string.IsNullOrWhiteSpace(metric)) return null;
 
             var bits = metric.Split(':');
-            var name = bits[0].RegexReplace(@"\s+", "_").RegexReplace(@"\/", "-").RegexReplace(@"\\", "-").RegexReplace(@"[^a-zA-Z_\-0-9\.]", "").Trim('.');
+
+            var name = bits[0].RegexReplace(@"\s+", "_").RegexReplace(@"\/", "-").RegexReplace(@"\\", "-").RegexReplace(@"[^a-zA-Z_\-0-9\.]", String.Empty).Trim('.');
 
             var fields = bits[1].Split('|');
 
             float value;
+
             if(!float.TryParse(fields[0], NumberStyles.Any, CultureInfo.InvariantCulture, out value))
             {
                 Console.WriteLine("couldn't parse '{0}'", metric);
+
                 return null;
             }
             
             var type = GetMetricType(fields[1]);
 
             var explicitlySigned = fields[0].StartsWith("-") || fields[0].StartsWith("+");
+
             float sample = 1;
 
             if(fields.Length == 3)
@@ -60,7 +65,7 @@ namespace Statsify.Aggregator
                     return MetricType.Set;
                 default:
                     throw new ArgumentOutOfRangeException("metricType");
-            } // switch
+            }
         }
     }
 }

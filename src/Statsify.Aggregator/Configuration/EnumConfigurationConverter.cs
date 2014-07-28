@@ -9,9 +9,9 @@ namespace Statsify.Aggregator.Configuration
     {
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
-            return value == null ? 
-                null :
-                Enum.Parse(typeof(T), value.ToString(), true);
+            return value == null
+                 ? null
+                 : Enum.Parse(typeof(T), value.ToString(), true);
         }
 
         public override bool CanConvertFrom(ITypeDescriptorContext ctx, Type type)

@@ -9,10 +9,15 @@ namespace Statsify.Agent.Impl
     public class MetricPublisher
     {
         private readonly Logger log = LogManager.GetCurrentClassLogger();
+
         private readonly MetricCollector metricCollector;
+
         private readonly IStatsifyClient statsifyClient;
+
         private readonly TimeSpan collectionInterval;
+
         private ManualResetEvent stopEvent;
+
         private ManualResetEvent stoppedEvent;
 
         private Timer publisherTimer;
@@ -22,16 +27,20 @@ namespace Statsify.Agent.Impl
         public MetricPublisher(MetricCollector metricCollector, IStatsifyClient statsifyClient, TimeSpan collectionInterval)
         {
             this.metricCollector = metricCollector;
+
             this.statsifyClient = statsifyClient;
+
             this.collectionInterval = collectionInterval;
         }
 
         public void Start()
         {
             stopEvent = new ManualResetEvent(false);
+
             stoppedEvent = new ManualResetEvent(false);
 
             publisherTimer = new Timer(PublisherTimerCallback, null, collectionInterval, collectionInterval);
+
             publishing = false;
         }
 
@@ -40,10 +49,13 @@ namespace Statsify.Agent.Impl
             if(publisherTimer == null) return;
 
             publisherTimer.Dispose(stoppedEvent);
+
             stopEvent.WaitOne();
 
             publisherTimer = null;
+
             stopEvent.Dispose();
+
             stoppedEvent.Dispose();
         }
 
@@ -62,13 +74,15 @@ namespace Statsify.Agent.Impl
                     case AggregationStrategy.Gauge:
                         statsifyClient.Gauge(metric.Name, metric.Value);
                         break;
+
                     case AggregationStrategy.Counter:
                         statsifyClient.Counter(metric.Name, metric.Value);
                         break;
+
                     default:
                         throw new ArgumentOutOfRangeException();
-                } // switch
-            } // foreach
+                }
+            }
 
             publishing = false;
         }

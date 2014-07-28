@@ -14,6 +14,7 @@ namespace Statsify.Agent.Impl
         public MetricDefinition(string name, Func<double> nextValueProvider, AggregationStrategy aggregationStrategy)
         {
             Name = name;
+
             AggregationStrategy = aggregationStrategy;
 
             this.nextValueProvider = nextValueProvider;

@@ -10,14 +10,14 @@
     <script src="./Scripts/rickshaw.js"></script>    
 </head>
 <body>
-    <div id="content">        
-        <div class="chart_container" data-expression="AliasByNode(List('servers.n46-msk.system.processor.*'),4)" data-url="http://localhost/Statsify/api/series" data-title="Processor" data-update-interval="10000"></div>
+    <div id="content">               
+        <div class="chart_container" data-renderer="bar" data-expression="AliasByNode(List('servers.*.system.processor.*'),1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Processor" data-update-interval="10000"></div>
         <br />        
-        <div class="chart_container" data-expression="AliasByNode(List('servers.n46-msk.system.physical_disk.*'),4)" data-url="http://localhost/Statsify/api/series" data-title="Physical Disk" data-update-interval="10000"></div>
+        <div class="chart_container" data-expression="AliasByNode(List('servers.*.system.physical_disk.*'),1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Physical Disk" data-update-interval="10000"></div>
         <br />
-        <div class="chart_container" data-expression="AliasByNode(List('servers.n46-msk.system.memory.*'),4)" data-url="http://localhost/Statsify/api/series" data-title="Memory" data-update-interval="10000"></div>
+        <div class="chart_container" data-expression="AliasByNode(List('servers.*.system.memory.*'),1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Memory" data-update-interval="10000"></div>
         <br />
-        <div class="chart_container" data-expression="AliasByNode(List('servers.n46-msk.system.asp_net.*'),4)" data-url="http://localhost/Statsify/api/series" data-title="ASP.NET" data-update-interval="10000"></div>
+        <div class="chart_container" data-expression="AliasByNode(List('servers.*.system.asp_net.*'),1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="ASP.NET" data-update-interval="10000"></div>
     </div>
 
     <script src="./Scripts/page.js"></script>

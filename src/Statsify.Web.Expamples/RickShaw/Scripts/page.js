@@ -57,6 +57,10 @@ function initChart($container) {
     var expression = $container.attr('data-expression');
     var url = $container.attr('data-url');
     var interval = $container.attr('data-update-interval');
+    var renderer = $container.attr('data-renderer');
+
+    if (!renderer)
+        renderer = 'area';
 
     var series = [
         {
@@ -71,25 +75,27 @@ function initChart($container) {
     var highlighter;
 
     getData(function(d) {
-        series.shift();
-
+        if(d.length)
+			series.shift();
+			
         $container.empty();
-
-        var $chart = $('<div class="chart"></div>')
-        var $chartHeader = $('<div class="chart-header"></div>')
+        $container.append('<div class="chart-header"></div><table width="100%"><tr><td><div class="chart"></div></td><td><div class="legend"></div></td></tr></table>');
+        var $chart = $container.find('.chart');
+        var $chartHeader = $container.find('.chart-header');
         $chartHeader.text(title);
-        var $legend = $('<div class="legend"></div>');
-        $container.append($chart).append($chartHeader).append($legend).append($('<div class="clear"></div>'));
+        var $legend = $container.find('.legend');        
 
         for (var i = 0; i < d.length; i++) {
-            series[i] = d[i];
+            series[i] = d[i];			
         }
-
+        var width = $('body').width()-80;
+        $container.css({ width: width + 'px' });
+        
         graph = new Rickshaw.Graph({
             element: $chart[0],
-            width: $container.width()-200,
-            height: 200,
-            renderer: 'area',
+            width: width - 200,
+            height: 250,
+            renderer: renderer,
             stroke: true,
             preserve: true,
             series: series
@@ -97,7 +103,8 @@ function initChart($container) {
         
         graph.render();
 
-        $container.fadeIn();
+		if(d.length)
+			$container.fadeIn();
 
         var hoverDetail = new Rickshaw.Graph.HoverDetail({
             graph: graph,

@@ -3,7 +3,7 @@ using System.Xml;
 
 namespace Statsify.Agent.Configuration
 {
-    public class StatsifyAgentConfigurationSection : ConfigurationSection
+    public sealed class StatsifyAgentConfigurationSection : ConfigurationSection
     {
         [ConfigurationProperty("statsify", IsRequired = true)]
         public StatsifyConfigurationElement Statsify

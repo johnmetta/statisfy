@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using NLog;
 using Statsify.Agent.Configuration;
 using Statsify.Agent.Impl;
@@ -13,11 +12,13 @@ namespace Statsify.Agent
     {
         private readonly StatsifyAgentConfigurationSection configuration;
 
-        private MetricCollector metricCollector;
-        private MetricPublisher metricPublisher;
-        private IStatsifyClient statsifyClient;
-
         private readonly Logger log = LogManager.GetCurrentClassLogger();
+
+        private MetricCollector metricCollector;
+
+        private MetricPublisher metricPublisher;
+
+        private IStatsifyClient statsifyClient;        
 
         public StatsifyAgentService(ConfigurationManager configurationManager)
         {
@@ -29,6 +30,7 @@ namespace Statsify.Agent
             log.Info("starting up");
 
             var @namespace = configuration.Statsify.Namespace;
+
             if(!string.IsNullOrWhiteSpace(@namespace))
                 @namespace += ".";
 
@@ -38,7 +40,8 @@ namespace Statsify.Agent
 
             statsifyClient = new UdpStatsifyClient(configuration.Statsify.Host, configuration.Statsify.Port, @namespace);
 
-            metricCollector = new MetricCollector(configuration.Metrics.OfType<MetricConfigurationElement>());
+            metricCollector = new MetricCollector(configuration.Metrics);
+
             metricPublisher = new MetricPublisher(metricCollector, statsifyClient, configuration.Metrics.CollectionInterval);
 
             metricPublisher.Start();

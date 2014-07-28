@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Net.Sockets;
+﻿using System.Net;
 using System.Threading;
 using NLog;
 using Statsify.Aggregator.Configuration;
@@ -12,21 +10,19 @@ namespace Statsify.Aggregator
 {
     public class StatsifyAggregatorService : ServiceControl
     {
-        private static readonly DateTime Epoch = DateTime.SpecifyKind(new DateTime(1970, 1, 1), DateTimeKind.Utc);
-
         private readonly StatsifyAggregatorConfigurationSection configuration;
-        private readonly MetricParser metricParser;
-        private readonly MetricAggregator metricAggregator;
-        private Timer publisherTimer;
-        private ManualResetEvent stopEvent;
 
-        private readonly Logger log = LogManager.GetCurrentClassLogger();
-        //private HttpServer httpServer;
+        private readonly MetricParser metricParser;
+
+        private readonly MetricAggregator metricAggregator;
+
+        private Timer publisherTimer;
+
+        private readonly ManualResetEvent stopEvent;
+
+        private readonly Logger log = LogManager.GetCurrentClassLogger();        
         
         private UdpDatagramReader udpDatagramReader;
-
-        private UdpClient udpClient;
-        private IPEndPoint ipEndpoint;
 
         public StatsifyAggregatorService(HostSettings hostSettings, ConfigurationManager configurationManager)
         {
@@ -35,6 +31,7 @@ namespace Statsify.Aggregator
             configuration = configurationManager.Configuration;
 
             metricAggregator = new MetricAggregator(configuration, stopEvent);
+
             metricParser = new MetricParser();
         }
 
@@ -43,11 +40,10 @@ namespace Statsify.Aggregator
             stopEvent.Reset();
 
             udpDatagramReader = new UdpDatagramReader(IPAddress.Parse(configuration.Endpoint.Address), configuration.Endpoint.Port);
+
             udpDatagramReader.DatagramHandler += UdpDatagramReaderDatagramHandler;
 
-            publisherTimer = new Timer(PublisherTimerCallback, null, configuration.Storage.FlushInterval, configuration.Storage.FlushInterval);
-            
-            //httpServer = new HttpServer();
+            publisherTimer = new Timer(PublisherTimerCallback, null, configuration.Storage.FlushInterval, configuration.Storage.FlushInterval);                       
 
             return true;
         }
@@ -57,8 +53,9 @@ namespace Statsify.Aggregator
             foreach(var metric in metricParser.ParseMetrics(args.Buffer))
             {
                 log.Trace("received metric '{0}' ({1}) with value {2}", metric.Name, metric.Type, metric.Value);
+
                 metricAggregator.Aggregate(metric);
-            } // foreach
+            }
         }
 
         public bool Stop(HostControl hostControl)
@@ -75,6 +72,7 @@ namespace Statsify.Aggregator
                 httpServer.Dispose();*/
 
             hostControl.Stop();
+
             return true;
         }
 

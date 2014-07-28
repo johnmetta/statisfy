@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using NLog;
 using Statsify.Aggregator.Configuration;
+using Statsify.Aggregator.Extensions;
 using Statsify.Core.Storage;
 
 namespace Statsify.Aggregator
@@ -16,26 +17,33 @@ namespace Statsify.Aggregator
     public class MetricAggregator
     {
         private readonly Logger log = LogManager.GetCurrentClassLogger();
+
         private readonly StatsifyAggregatorConfigurationSection configuration;
+
         private readonly ManualResetEvent stopEvent;
+
         private readonly float flushInterval;
 
-        private IDictionary<string, IList<float>> timers = new Dictionary<string, IList<float>>();
-        private IDictionary<string, float> timerCounters = new Dictionary<string, float>();
-        private IDictionary<string, float> gauges = new Dictionary<string, float>();
-        private IDictionary<string, float> counters = new Dictionary<string, float>();
-        private ConcurrentQueue<Tuple<string, DateTime, float>> flushQueue = new ConcurrentQueue<Tuple<string, DateTime, float>>();
+        private readonly IDictionary<string, IList<float>> timers = new Dictionary<string, IList<float>>();
+
+        private readonly IDictionary<string, float> timerCounters = new Dictionary<string, float>();
+
+        private readonly IDictionary<string, float> gauges = new Dictionary<string, float>();
+
+        private readonly IDictionary<string, float> counters = new Dictionary<string, float>();
+
+        private readonly ConcurrentQueue<Tuple<string, DateTime, float>> flushQueue = new ConcurrentQueue<Tuple<string, DateTime, float>>();
 
         private readonly object sync = new object();
-
-        private Thread flushThread;
 
         public MetricAggregator(StatsifyAggregatorConfigurationSection configuration, ManualResetEvent stopEvent)
         {
             this.configuration = configuration;
+
             this.stopEvent = stopEvent;
 
-            flushThread = new Thread(FlushCallback);
+            var flushThread = new Thread(FlushCallback);
+
             flushThread.Start();
 
             flushInterval = (float)configuration.Storage.FlushInterval.TotalMilliseconds;
@@ -46,26 +54,34 @@ namespace Statsify.Aggregator
             if(!Directory.Exists(configuration.Storage.Path))
             {
                 log.Info("creating '{0}'", configuration.Storage.Path);
+
                 Directory.CreateDirectory(configuration.Storage.Path);
             }
 
             while(!stopEvent.WaitOne(TimeSpan.FromMilliseconds(100)))
             {
                 var n = 0;
+
                 var count = flushQueue.Count;
+
                 log.Trace("started flushing {0} entries", count);
+
                 var sw = Stopwatch.StartNew();
 
                 Tuple<string, DateTime, float> datapoint;
+
                 while (flushQueue.TryDequeue(out datapoint))
                 {
                     n++;
+
                     var db = GetDb(configuration.Storage.Path, datapoint.Item1);
+
                     if(db != null)
                         db.WriteDatapoint(datapoint.Item2, datapoint.Item3);
-                } // while
+                }
 
-                Console.WriteLine("completed flushing {0} entries in {1} ({2:N2} per second); {3} items in backlog queue", n, sw.Elapsed, count / sw.Elapsed.TotalSeconds, flushQueue.Count);
+                log.Trace("completed flushing {0} entries in {1} ({2:N2} per second); {3} items in backlog queue", n, sw.Elapsed, count / sw.Elapsed.TotalSeconds, flushQueue.Count);               
+
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
         }
@@ -82,11 +98,15 @@ namespace Statsify.Aggregator
                         if(!timers.ContainsKey(key))
                         {
                             timers[key] = new List<float>();
+
                             timerCounters[key] = 0;
                         }
+
                         timers[key].Add(metric.Value);
+
                         timerCounters[key] += (1 / metric.Sample);
                         break;
+
                     case MetricType.Gauge:
                         if(metric.ExplicitlySigned)
                         {
@@ -94,14 +114,16 @@ namespace Statsify.Aggregator
                                 gauges[key] = 0;
 
                             gauges[key] += metric.Value;
-                        } // if
+                        }
                         else
                         {
                             gauges[key] = metric.Value;
-                        } // else
+                        }
                         break;
+
                     case MetricType.Set:
                         break;
+
                     case MetricType.Counter:
                         if(!counters.ContainsKey(key))
                             counters[key] = 0;
@@ -125,24 +147,29 @@ namespace Statsify.Aggregator
                     timerData[key] = new Dictionary<string, float>();
 
                     var values = timers[key].OrderBy(v => v).ToList();
+
                     var count = values.Count;
+
                     var min = values[0];
+
                     var max = values[count - 1];
 
                     var cumulativeValues = values.Accumulate().ToList();
 
                     var sum = min;
+
                     var mean = min;
+
                     var thresholdBoundary = max;
 
                     var pctThreshold = new[] { 85.0, 90, 95, 99 };
 
                     foreach(var pct in pctThreshold)
-                    {
-                        //var pct = pctThreshold[key2];
+                    {                        
                         if(count > 1)
                         {
                             var numInThreshold = (int)Math.Round(Math.Abs(pct) / 100 * count);
+
                             if(numInThreshold == 0)
                             {
                                 continue;
@@ -151,43 +178,58 @@ namespace Statsify.Aggregator
                             if(pct > 0)
                             {
                                 thresholdBoundary = values[numInThreshold - 1];
+
                                 sum = cumulativeValues[numInThreshold - 1];
                             }
                             else
                             {
                                 thresholdBoundary = values[count - numInThreshold];
+
                                 sum = cumulativeValues[count - 1] - cumulativeValues[count - numInThreshold - 1];
                             }
                             mean = sum / numInThreshold;
                         }
 
-                        var clean_pct = pct.ToString(CultureInfo.InvariantCulture);
-                        clean_pct = clean_pct.Replace('.', '_').Replace(',', '_').Replace("-", "top");
-                        timerData[key]["mean_" + clean_pct] = mean;
-                        timerData[key][(pct > 0 ? "upper_" : "lower_") + clean_pct] = thresholdBoundary;
-                        timerData[key]["sum_" + clean_pct] = sum;
+                        var cleanPct = pct.ToString(CultureInfo.InvariantCulture);
+
+                        cleanPct = cleanPct.Replace('.', '_').Replace(',', '_').Replace("-", "top");
+
+                        timerData[key]["mean_" + cleanPct] = mean;
+
+                        timerData[key][(pct > 0 ? "upper_" : "lower_") + cleanPct] = thresholdBoundary;
+
+                        timerData[key]["sum_" + cleanPct] = sum;
                     }
 
                     sum = cumulativeValues[count - 1];
+
                     mean = sum / count;
 
                     float sumOfDiffs = 0;
-                    for (var i = 0; i < count; i++)
-                    {
-                        sumOfDiffs += (values[i] - mean) * (values[i] - mean);
-                    }
+
+                    for (var i = 0; i < count; i++)                    
+                        sumOfDiffs += (values[i] - mean) * (values[i] - mean);                    
 
                     var mid = (int)Math.Floor(count / 2.0);
+
                     var median = (count % 2 != 0) ? values[mid] : (values[mid - 1] + values[mid]) / 2;
 
                     var stddev = (float)Math.Sqrt(sumOfDiffs / count);
+
                     timerData[key]["std"] = stddev;
+
                     timerData[key]["upper"] = max;
+
                     timerData[key]["lower"] = min;
+
                     timerData[key]["count"] = timerCounters[key];
+
                     timerData[key]["count_ps"] = timerCounters[key] / (flushInterval / 1000);
+
                     timerData[key]["sum"] = sum;
+
                     timerData[key]["mean"] = mean;
+
                     timerData[key]["median"] = median;
 
                     // note: values bigger than the upper limit of the last bin are ignored, by design
@@ -219,6 +261,7 @@ namespace Statsify.Aggregator
                 foreach(var counter in counters.Keys.ToList())
                 {
                     flushQueue.Enqueue(Tuple.Create(counter, ts, counters[counter]));
+
                     counters[counter] = 0;
                 }
 
@@ -235,6 +278,7 @@ namespace Statsify.Aggregator
                     }
 
                     timers[t] = new List<float>();
+
                     timerCounters[t] = 0;
                 }
 
@@ -245,41 +289,25 @@ namespace Statsify.Aggregator
         private Database GetDb(string root, string metric)
         {
             var fullPath = Path.Combine(root, metric.Replace(".", @"\") + ".db");
+
             var directory = Path.GetDirectoryName(fullPath);
-            if(!Directory.Exists(directory))
+
+            if(directory != null && !Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
             var downsampling = configuration.Downsampling.FirstOrDefault(d => Regex.IsMatch(metric, d.Pattern));
+
             if(downsampling == null) return null;
 
             var storage = configuration.Storage.FirstOrDefault(a => Regex.IsMatch(metric, a.Pattern));
+
             if(storage == null) return null;
 
             var retentonPolicy = RetentionPolicy.Parse(storage.Retention);
 
             var db = Database.OpenOrCreate(fullPath, downsampling.Factor, downsampling.Method, retentonPolicy);
+
             return db;
-        }
-    }
-
-    public static class EnumerableExtensions
-    {
-        public static IEnumerable<float> Accumulate(this IEnumerable<float> src)
-        {
-            using (var e = src.GetEnumerator())
-            {
-                e.MoveNext();
-
-                var v = e.Current;
-                yield return v;
-
-                while (e.MoveNext())
-                {
-                    v += e.Current;
-                    yield return v;
-                }
-
-            }
         }
     }
 }

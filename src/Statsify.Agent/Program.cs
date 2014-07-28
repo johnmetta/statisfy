@@ -6,11 +6,11 @@ namespace Statsify.Agent
 {
     class Program
     {
-        private static Logger log = LogManager.GetLogger("Statsify.Agent");
+        private static readonly Logger Log = LogManager.GetLogger("Statsify.Agent");
 
         static int Main(string[] args)
         {
-            log.Info("starting up");
+            Log.Info("starting up");
 
             var configurationManager = new ConfigurationManager();
 

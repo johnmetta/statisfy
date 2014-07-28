@@ -9,8 +9,8 @@ namespace Statsify.Agent.Impl
     public class MetricDefinitionFactory
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static readonly Regex PerformanceCounterParser = 
-            new Regex(@"(\\\\(?<computer>([^\\]+)))?(\\(?<object>([^\\]+)))\\(?<counter>(.+))", RegexOptions.Compiled | RegexOptions.Singleline);
+
+        private static readonly Regex PerformanceCounterParser =  new Regex(@"(\\\\(?<computer>([^\\]+)))?(\\(?<object>([^\\]+)))\\(?<counter>(.+))", RegexOptions.Compiled | RegexOptions.Singleline);
 
         public MetricDefinition CreateInstance(MetricConfigurationElement metric)
         {
@@ -26,7 +26,7 @@ namespace Statsify.Agent.Impl
                     return CreatePerformanceCounterMetricDefinition(metric);
                 default:
                     throw new ArgumentOutOfRangeException("type");
-            } // switch
+            }
         }
 
         private MetricDefinition CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
@@ -44,6 +44,7 @@ namespace Statsify.Agent.Impl
             var match = PerformanceCounterParser.Match(s);
 
             var machineName = match.Groups["computer"].Value;
+
             if(!string.IsNullOrWhiteSpace(machineName))
                 performanceCounter.MachineName = machineName;
 
@@ -57,11 +58,11 @@ namespace Statsify.Agent.Impl
 
                 performanceCounter.CategoryName = categoryName;
                 performanceCounter.InstanceName = category.Substring(ix).Trim('(', ')');
-            } // if
+            }
             else
             {
                 performanceCounter.CategoryName = category;
-            } // else
+            }
 
             performanceCounter.CounterName = match.Groups["counter"].Value;
 
@@ -73,7 +74,7 @@ namespace Statsify.Agent.Impl
             {
                 Log.Error("could not create performance counter: {0}", e.Message);
                 return null;
-            } // catch
+            }
 
             return performanceCounter;
         }

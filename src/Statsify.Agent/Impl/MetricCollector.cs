@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Statsify.Agent.Configuration;
 
 namespace Statsify.Agent.Impl
@@ -11,21 +12,15 @@ namespace Statsify.Agent.Impl
         {
             var metricDefinitionFactory = new MetricDefinitionFactory();
 
-            foreach(var metric in metrics)
+            foreach(var metricDefinition in metrics.Select(metricDefinitionFactory.CreateInstance).Where(metricDefinition => metricDefinition != null))
             {
-                var metricDefinition = metricDefinitionFactory.CreateInstance(metric);
-                if(metricDefinition != null)
-                    metricDefinitions.Add(metricDefinition);
-            } // foreach
+                metricDefinitions.Add(metricDefinition);
+            }
         }
 
         public IEnumerable<Metric> GetCollectedMetrics()
         {
-            foreach(var metricDefinition in metricDefinitions)
-            {
-                var metric = new Metric(metricDefinition.Name, metricDefinition.AggregationStrategy, metricDefinition.GetNextValue());
-                yield return metric;
-            } // foreach
-        } 
+            return metricDefinitions.Select(metricDefinition => new Metric(metricDefinition.Name, metricDefinition.AggregationStrategy, metricDefinition.GetNextValue()));
+        }
     }
 }

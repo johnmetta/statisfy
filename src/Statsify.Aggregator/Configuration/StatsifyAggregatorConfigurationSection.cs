@@ -3,7 +3,7 @@ using System.Xml;
 
 namespace Statsify.Aggregator.Configuration
 {
-    public class StatsifyAggregatorConfigurationSection : ConfigurationSection
+    public sealed class StatsifyAggregatorConfigurationSection : ConfigurationSection
     {
         [ConfigurationProperty("endpoint", IsRequired = true)]
         public EndpointElement Endpoint
@@ -38,8 +38,6 @@ namespace Statsify.Aggregator.Configuration
             DeserializeSection(xmlReader);
         }
 
-        public StatsifyAggregatorConfigurationSection()
-        {
-        }
+        public StatsifyAggregatorConfigurationSection(){}
     }
 }

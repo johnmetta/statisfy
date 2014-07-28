@@ -12,14 +12,14 @@ namespace Statsify.Aggregator.Network
         public event UdpDatagramHandler DatagramHandler;
 
         public UdpDatagramReader(IPAddress ipAddress, int port) :
-            this(new IPEndPoint(ipAddress, port))
-        {
-        }
+            this(new IPEndPoint(ipAddress, port)){}
 
         public UdpDatagramReader(IPEndPoint ipEndpoint)
         {
             this.ipEndpoint = ipEndpoint;
+
             udpClient = new UdpClient(ipEndpoint);
+
             udpClient.BeginReceive(UdpClientBeginReceiveCallback, null);
         }
 
@@ -33,15 +33,15 @@ namespace Statsify.Aggregator.Network
 
                     if(DatagramHandler != null)
                         DatagramHandler(this, new UdpDatagramEventArgs(buffer));
-                } // if
+                }
 
                 if(udpClient != null)
                     udpClient.BeginReceive(UdpClientBeginReceiveCallback, null);
-            } // try
+            }
             catch(ObjectDisposedException e)
             {
                 Console.WriteLine(e);
-            } // catch
+            }
         }
 
         public void Dispose()
@@ -49,6 +49,7 @@ namespace Statsify.Aggregator.Network
             if(udpClient == null) return;
             
             ((IDisposable)udpClient).Dispose();
+
             udpClient = null;
         }
     }
