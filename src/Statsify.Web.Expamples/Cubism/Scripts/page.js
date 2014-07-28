@@ -37,7 +37,7 @@ d3.select("body").selectAll(".horizon")
     .data(metrics.map(getData))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
-    .call(context.horizon().extent([-10, 10]));
+    .call(context.horizon().extent([-100, 100]));
 
 context.on("focus", function (i) {
     d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
