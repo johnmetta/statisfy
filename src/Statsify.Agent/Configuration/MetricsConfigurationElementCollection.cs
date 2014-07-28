@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
 
 namespace Statsify.Agent.Configuration
 {
@@ -49,7 +49,13 @@ namespace Statsify.Agent.Configuration
 
         IEnumerator<MetricConfigurationElement> IEnumerable<MetricConfigurationElement>.GetEnumerator()
         {
-            return this.Cast<MetricConfigurationElement>().GetEnumerator();
+            // ReSharper disable once LoopCanBeConvertedToQuery
+            foreach (var value in ((IEnumerable)this))
+            {
+                var element = (MetricConfigurationElement)value;
+                if (element != null)
+                    yield return element;
+            }      
         }
     }
 }
