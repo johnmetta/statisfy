@@ -24,9 +24,11 @@ Statsify Database implementation.
 
 ### Glossary
 
-_Datapoint_ is a tuple which consists of a _Timestamp_ and a _Value_.
+_Datapoint_ is a tuple which consists of a _Timestamp_ and a (possibly undefined) _Value_.
 
-_Series_ is an ordered collection of _Datapoints_
+_Series_ is an ordered collection of _Datapoints_ spanning certain time range.
 
 _Metric_ is a _Series_ with a name.
+
+_Sample_ is a _Datapoint_ with a name and type.
 
