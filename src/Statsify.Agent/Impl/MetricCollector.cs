@@ -12,7 +12,7 @@ namespace Statsify.Agent.Impl
         {
             var metricDefinitionFactory = new MetricDefinitionFactory();
 
-            foreach(var metricDefinition in metrics.Select(metricDefinitionFactory.CreateInstance).Where(metricDefinition => metricDefinition != null))
+            foreach (var metricDefinition in metrics.Select(metricDefinitionFactory.CreateInstance).Where(metricDefinition => metricDefinition != null))
             {
                 metricDefinitions.Add(metricDefinition);
             }

@@ -16,6 +16,7 @@ namespace Statsify.Agent.Configuration
             using(var stream = File.OpenRead(configurationFilePath))
             {
                 var xmlDocument = new XmlDocument();
+
                 xmlDocument.Load(stream);
 
                 if(xmlDocument.DocumentElement == null) return;

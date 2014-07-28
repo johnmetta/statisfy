@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -59,7 +60,13 @@ namespace Statsify.Aggregator.Configuration
 
         IEnumerator<StorageConfigurationElement> IEnumerable<StorageConfigurationElement>.GetEnumerator()
         {
-            return this.Cast<StorageConfigurationElement>().Where(element => element != null).GetEnumerator();
+            // ReSharper disable once LoopCanBeConvertedToQuery
+            foreach (var value in ((IEnumerable)this))
+            {
+                var element = (StorageConfigurationElement)value;
+                if (element != null)
+                    yield return element;
+            }            
         }
     }
 }
