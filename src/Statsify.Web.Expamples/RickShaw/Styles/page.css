@@ -3,6 +3,7 @@
     background: none repeat scroll 0 0 #404040;
     height: 200px;
     border: 1px solid #AAA;
+    display: none;
 }
 .chart { float: left; background-color: white;}
 .legend {

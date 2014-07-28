@@ -74,6 +74,7 @@ function initChart($container) {
         series.shift();
 
         $container.empty();
+
         var $chart = $('<div class="chart"></div>')
         var $chartHeader = $('<div class="chart-header"></div>')
         $chartHeader.text(title);
@@ -93,9 +94,10 @@ function initChart($container) {
             preserve: true,
             series: series
         });
-
+        
         graph.render();
 
+        $container.fadeIn();
 
         var hoverDetail = new Rickshaw.Graph.HoverDetail({
             graph: graph,
