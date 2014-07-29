@@ -34,6 +34,33 @@
             return series;
         }
 
+        public Series[] AsPercent(Series[] series)
+        {
+            foreach(var metric in series)
+            {
+                var total = metric.DataPoints.Sum(p => p[0]);
+
+                if(total.HasValue)
+                    metric.DataPoints = metric.DataPoints.Select(p => new[] { p[0].HasValue ? (100 * p[0] / total) : (double?)null, p[1] }).ToList();
+            }
+                
+
+            return series;
+        }
+
+        public Series[] Limit(Series[] series,int n)
+        {
+            return series.Take(n).ToArray();
+        }
+
+        public Series[] AsPercent(Series[] series, double total)
+        {            
+            foreach(var metric in series)
+                metric.DataPoints = metric.DataPoints.Select(p => new[] { p[0].HasValue ? (100 * p[0] / total) : (double?)null, p[1] }).ToList();
+
+            return series;
+        }
+
         public Series[] AliasByMetric(Series[] series)
         {
             if (series == null)
@@ -61,6 +88,23 @@
             return series;
         }
 
+        public Series[] Sum(Series[] series)
+        {
+            if (series == null)
+                return null;
+
+            var sl = new Series
+            {
+                Target = String.Format("Sum(\"{0}\")", seriesListExpression),
+                DataPoints = series.SelectMany(s => s.DataPoints)
+                    .GroupBy(p => p[1])
+                    .Select(x => new[] { x.Sum(p => p[0]), x.Key })
+                    .ToList()
+            };
+
+            return new[] { sl };
+        }
+
         public Series[] List(string expression)
         {
             seriesListExpression = expression;
@@ -81,33 +125,33 @@
                     }).ToArray();
         }
 
-        public Series[] AverageSeries(Series[] seriesList)
+        public Series[] AverageSeries(Series[] series)
         {
-            if (seriesList == null)
+            if (series == null)
                 return null;
 
-            var series = new Series
+            var sl = new Series
             {
                 Target = seriesListExpression,
 
-                DataPoints = seriesList.SelectMany(s => s.DataPoints)
+                DataPoints = series.SelectMany(s => s.DataPoints)
                             .GroupBy(p => p[1])
                             .Select(x => new[] {x.Average(p => p[0]), x.Key})
                             .ToList()
-            };            
-            
-            return new[] {series};
+            };
+
+            return new[] { sl };
         }
 
-        public Series[] Absolute(Series[] seriesList)
+        public Series[] Absolute(Series[] series)
         {
-            if (seriesList == null)
+            if (series == null)
                 return null;
 
-            foreach (var metric in seriesList)            
-                metric.DataPoints = metric.DataPoints.Select(p => new[] {p[0].HasValue?Math.Abs(p[0].Value):(double?)null, p[1]}).ToList();            
+            foreach (var metric in series)            
+                metric.DataPoints = metric.DataPoints.Select(p => new[] {p[0].HasValue?Math.Abs(p[0].Value):(double?)null, p[1]}).ToList();
 
-            return seriesList;
+            return series;
         }
 
         public static ISeriesFunctionService GetSeriesFunctionService(DateTime start, DateTime stop,

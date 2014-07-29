@@ -25,7 +25,7 @@ var getData = function (callback,option) {
     },
         function (data) {
             var series = [];
-            var palette = new Rickshaw.Color.Palette({ scheme: 'classic9' });
+            var palette = new Rickshaw.Color.Palette({ scheme: 'spectrum14' });
             for (var i = 0; i < data.length; i++) {
 
                 var points = [];
@@ -79,12 +79,15 @@ function initChart($container) {
 			series.shift();
 			
         $container.empty();
-        $container.append('<div class="chart-header"></div><table width="100%"><tr><td><div class="chart"></div></td><td><div class="legend"></div></td></tr></table>');
+        $container.append('<div class="chart-header"></div><table width="100%"><tr><td class="control">' +            
+            '</td><td><div class="chart"></div></td><td><div class="legend"></div></td></tr></table>');
         var $chart = $container.find('.chart');
         var $chartHeader = $container.find('.chart-header');
         $chartHeader.text(title);
-        var $legend = $container.find('.legend');        
+        var $legend = $container.find('.legend');
+        $container.find('.control').append($('.panel_template').clone().children());
 
+       
         for (var i = 0; i < d.length; i++) {
             series[i] = d[i];			
         }
@@ -93,7 +96,7 @@ function initChart($container) {
         
         graph = new Rickshaw.Graph({
             element: $chart[0],
-            width: width - 200,
+            width: width - 500,
             height: 250,
             renderer: renderer,
             stroke: true,
@@ -120,6 +123,11 @@ function initChart($container) {
 
         });
 
+        var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+            graph: graph,
+            legend: legend
+        });
+
         highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
             graph: graph,
             legend: legend
@@ -136,12 +144,17 @@ function initChart($container) {
         xAxis.render();
 
         var yAxis = new Rickshaw.Graph.Axis.Y({
-            graph: graph,
+            graph: graph,            
             tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-            ticksTreatment: ticksTreatment
+            ticksTreatment: ticksTreatment            
         });
 
         yAxis.render();
+        
+        var controls = new RenderControls({
+            element: $container.find('.side_panel')[0],
+            graph: graph
+        });
 
     }, { url: url, expression: expression });    
 
@@ -170,4 +183,14 @@ $(document).ready(function () {
     $('.chart_container').each(function() {
         initChart($(this));
     });
+
+    $('body').on('click', '.js-find-target', function() {
+        var $self = $(this);
+
+        var $target = $self.parent().find('input.' + $self.attr('for'));
+        
+        $target.click();
+
+        return false;
+    })
 });

@@ -28,6 +28,29 @@
         /// <returns></returns>
         Series[] Alias(Series[] series, string alias);
 
+        /// <summary>
+        /// Calculates a percentage of the total of a wildcard series. If total is specified, each series will be calculated as a percentage of that total. If total is not specified, the sum of all points in the wildcard series will be used instead.
+        /// </summary>
+        /// <param name="series"></param>
+        /// <param name="total"></param>
+        /// <returns></returns>
+        Series[] AsPercent(Series[] series, double total);
+
+        /// <summary>
+        /// Calculates a percentage of the total of a wildcard series. If total is specified, each series will be calculated as a percentage of that total. If total is not specified, the sum of all points in the wildcard series will be used instead.
+        /// </summary>
+        /// <param name="series"></param>        
+        /// <returns></returns>
+        Series[] AsPercent(Series[] series);
+
+        /// <summary>
+        /// Takes one metric or a wildcard seriesList followed by an integer N. 
+        /// Only draw the first N metrics. Useful when testing a wildcard in a metric.
+        /// </summary>
+        /// <param name="series"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        Series[] Limit(Series[] series, int n);
 
         /// <summary>
         /// Takes a seriesList and applies an alias derived from the base metric name.
@@ -45,6 +68,14 @@
         /// <param name="nodes"></param>
         /// <returns></returns>
         Series[] AliasByNode(Series[] series, params int[] nodes);
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="series"></param>
+        /// <returns></returns>
+        Series[] Sum(Series[] series);
 
     }
 }
