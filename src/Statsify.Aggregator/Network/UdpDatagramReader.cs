@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using NLog;
 
 namespace Statsify.Aggregator.Network
 {
     public class UdpDatagramReader : IDisposable
     {
         private IPEndPoint ipEndpoint;
+
         private UdpClient udpClient;
         
         public event UdpDatagramHandler DatagramHandler;
+
+        private readonly Logger log = LogManager.GetCurrentClassLogger();      
 
         public UdpDatagramReader(IPAddress ipAddress, int port) :
             this(new IPEndPoint(ipAddress, port)){}
@@ -40,7 +44,7 @@ namespace Statsify.Aggregator.Network
             }
             catch(ObjectDisposedException e)
             {
-                Console.WriteLine(e);
+                log.TraceException("UdpClientBeginReceiveCallback ObjectDisposedException", e);
             }
         }
 

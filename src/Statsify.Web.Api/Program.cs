@@ -1,5 +1,4 @@
 ﻿using Nancy.Bootstrapper;
-using Nancy.Json;
 
 namespace Statsify.Web.Api
 {

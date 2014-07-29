@@ -6,8 +6,7 @@ namespace Statsify.Core.Storage
     {
         private readonly TimeSpan value;
 
-        public Precision(TimeSpan value) : 
-            this()
+        public Precision(TimeSpan value) : this()
         {
             this.value = value;
         }

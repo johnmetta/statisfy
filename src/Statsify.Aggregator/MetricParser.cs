@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using NLog;
 using Statsify.Aggregator.Extensions;
 
 namespace Statsify.Aggregator
 {
     public class MetricParser
     {
+        private readonly Logger log = LogManager.GetCurrentClassLogger();      
+
         public IEnumerable<Metric> ParseMetrics(byte[] buffer)
         {
             var datagram = Encoding.UTF8.GetString(buffer);
@@ -34,7 +37,7 @@ namespace Statsify.Aggregator
 
             if(!float.TryParse(fields[0], NumberStyles.Any, CultureInfo.InvariantCulture, out value))
             {
-                Console.WriteLine("couldn't parse '{0}'", metric);
+                log.Trace("couldn't parse '{0}'", metric);                                         
 
                 return null;
             }
