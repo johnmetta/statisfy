@@ -18,22 +18,9 @@ namespace Statsify.Client
         public UdpStatsifyClient(string host = "127.0.0.1", int port = 8125, string @namespace = "")
         {
             this.host = host;
-
             this.port = port;
-
             this.@namespace = @namespace;
-
             udpClient = new UdpClient();
-        }
-
-        public void Increment(string metric, double sample = 1)
-        {
-            PublishMetric(metric, "c", 1, sample);
-        }
-
-        public void Decrement(string metric, double sample = 1)
-        {
-            PublishMetric(metric, "c", -1, sample);
         }
 
         public void Counter(string metric, double value, double sample = 1)
@@ -58,11 +45,7 @@ namespace Statsify.Client
 
         public void Time(string metric, Action action, double sample = 1)
         {
-            var stopwatch = Stopwatch.StartNew();
-            action();
-            var value = stopwatch.ElapsedMilliseconds;
-
-            Time(metric, value, sample);
+            
         }
 
         private void PublishMetric(string metric, string type, double value, double sample, bool explicitlySigned = false)
