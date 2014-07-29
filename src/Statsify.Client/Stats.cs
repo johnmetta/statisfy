@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Threading;
 using Statsify.Client.Configuration;
 
 namespace Statsify.Client
@@ -9,30 +10,13 @@ namespace Statsify.Client
     /// </summary>
     public static class Stats
     {
-        private static volatile IStatsifyClient statsify;
-        private static readonly object SyncRoot = new object();
-
+        private static readonly ThreadLocal<IStatsifyClient> StatsifyClient = new ThreadLocal<IStatsifyClient>(GetStatsifyClient);
+        
         private static IStatsifyClient Statsify
         {
-            get
-            {
-                if(statsify != null) return statsify;
-                
-                lock(SyncRoot)
-                {
-                    if(statsify != null) return statsify;
-                    
-                    var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
-                    if(configuration == null) throw new ConfigurationErrorsException();
-
-                    statsify = new UdpStatsifyClient(configuration.Host, configuration.Port, configuration.Namespace);
-                } // lock
-
-                return statsify;
-            }
+            get { return StatsifyClient.Value; }
         }
-
-
+        
         public static void Increment(string metric, double sample = 1)
         {
             Statsify.Increment(metric, sample);
@@ -66,6 +50,15 @@ namespace Statsify.Client
         public static void Time(string metric, Action action, double sample = 1)
         {
             Statsify.Time(metric, action, sample);
+        }
+
+        private static IStatsifyClient GetStatsifyClient()
+        {
+            var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
+            if(configuration == null) throw new ConfigurationErrorsException();
+
+            var statsify = new UdpStatsifyClient(configuration.Host, configuration.Port, configuration.Namespace);
+            return statsify;
         }
     }
 }
