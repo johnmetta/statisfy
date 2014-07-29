@@ -55,6 +55,49 @@ Before using `IStatsifyClient` instance, you need to add the following entries t
 
 The `statsifyClient` object is not guaranteed to be thread-safe, so each thread must get its own instance.
 
+## Practical Guide
+
+> This is taken from http://matt.aimonetti.net/posts/2013/06/26/practical-guide-to-graphite-monitoring/
+
+### Namespacing
+
+Always namespace your collected data, even if you only have one app for now. If your app does two things at the same time like serving HTML and providing an API, you might want to create two clients which you would namespace differently.
+
+#### Naming metrics
+
+Properly naming your metrics is critical to avoid conflicts, confusing data and potentially wrong interpretation later on. 
+I like to organize metrics using the following schema:
+    
+    <namespace>.<instrumented section>.<target (noun)>.<action (past tense verb)>
+
+Example:
+
+    accounts.authentication.password.attempted
+    accounts.authentication.password.succeeded
+    accounts.authentication.password.failed
+
+I use nouns to define the target and past tense verbs to define the action. This becomes a useful convention when you need to nest metrics. In the above example, let’s say I want to monitor the reasons for the failed password authentications. Here is how I would organize the extra stats:
+
+    accounts.authentication.password.failure.no_email_found
+    accounts.authentication.password.failure.password_check_failed
+    accounts.authentication.password.failure.password_reset_required
+
+As you can see, I used `failure` instead of `failed` in the stat name. The main reason is to avoid conflicting data. `failed` is an action and already has a data series allocated, if I were to add nested data using `failed`, the data would be collected but the result would be confusing. The other reason is because when we will graph the data, we will often want to use a wildcard * to collect all nested data in a series.
+
+Graphite wild card usage example on counters:
+
+    accounts.authentication.password.failure.*
+
+This should give us the same value as `accounts.authentication.password.failed`, so really, we should just collect the more detailed version and get rid of accounts.authentication.password.failed.
+
+Following this naming convention should really help your data stay clean and easy to manage.
+
+### Counters and metrics
+
+Use counters for metrics when you don’t care about how long the code your are instrumenting takes to run. Usually counters are used for data that have more of a direct business value. Examples include sales, authentication, signups, etc.
+
+Timers are more powerful because they can be used to analyze the time spent in a piece of code but also be used as a counters. Most of my work involves timers because I want to detect system anomalies including performance changes and trends in the way code is being used.
+
 ## Glossary
 
 _Datapoint_ is a tuple which consists of a _Timestamp_ and a _Value_.
