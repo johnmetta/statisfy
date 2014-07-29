@@ -1,4 +1,6 @@
-﻿namespace Statsify.Core.Storage
+﻿using System;
+
+namespace Statsify.Core.Storage
 {
     public class Archive
     {
@@ -11,9 +13,7 @@
         public Archive(long offset, int size, Retention retention)
         {
             Offset = offset;
-
             Size = size;
-
             Retention = retention;
         }
     }

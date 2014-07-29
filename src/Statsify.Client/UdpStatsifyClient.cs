@@ -18,11 +18,8 @@ namespace Statsify.Client
         public UdpStatsifyClient(string host = "127.0.0.1", int port = 8125, string @namespace = "")
         {
             this.host = host;
-
             this.port = port;
-
             this.@namespace = @namespace;
-
             udpClient = new UdpClient();
         }
 
