@@ -21,5 +21,37 @@ namespace Statsify.Core.Model
             From = @from;
             Datapoints = new ReadOnlyCollection<Datapoint>(new List<Datapoint>(datapoints));
         }
+
+        public Series(Series series, IEnumerable<Datapoint> datapoints) :
+            this(series.From, series.Until, series.Interval, datapoints)
+        {
+        }
+
+        public Series Transform(Func<double?, double?> transformation)
+        {
+            return Transform(this, transformation);
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="Series"/> by applying a <paramref name="transformation"/> to all <see cref="Datapoint.Value"/> in <see cref="Datapoints"/> within <paramref name="series"/>.
+        /// </summary>
+        /// <param name="series"></param>
+        /// <param name="transformation"></param>
+        /// <returns></returns>
+        public static Series Transform(Series series, Func<double?, double?> transformation)
+        {
+            return new Series(series, Transform(series.Datapoints, transformation));
+        }
+
+        private static IEnumerable<Datapoint> Transform(IEnumerable<Datapoint> datapoints, Func<double?, double?> transformation)
+        {
+            foreach(var datapoint in datapoints)
+            {
+                var timestamp = datapoint.Timestamp;
+                var value = transformation(datapoint.Value);
+
+                yield return new Datapoint(timestamp, value);
+            } // foreach
+        }
     }
 }

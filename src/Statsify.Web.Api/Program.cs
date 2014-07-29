@@ -11,7 +11,7 @@ namespace Statsify.Web.Api
         static void Main(string[] args)
         {
             var uri =
-                new Uri("http://localhost/Statsify/");
+                new Uri("http://localhost:8081/Statsify/");
 
             NancyBootstrapperLocator.Bootstrapper = new Bootstrapper(); 
 

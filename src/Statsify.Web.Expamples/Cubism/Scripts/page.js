@@ -1,22 +1,7 @@
 var metrics = [
-    'servers.n46-msk.system.processor.total_privileged_time',
-    'servers.n46-msk.system.processor.total_time',
-    'servers.n46-msk.system.processor.total_user_time',
-
-
-    'servers.n46-msk.system.physical_disk.average_queue_length',
-    'servers.n46-msk.system.physical_disk.average_sec_read',
-    'servers.n46-msk.system.physical_disk.average_sec_write',
-    'servers.n46-msk.system.physical_disk.bytes_sec',
-    'servers.n46-msk.system.physical_disk.current_queue_length',
-    'servers.n46-msk.system.physical_disk.disk_time',
-    'servers.n46-msk.system.physical_disk.read_bytes_sec',
-    'servers.n46-msk.system.physical_disk.transfers_sec',
-    'servers.n46-msk.system.physical_disk.write_bytes_sec',
-
-    'servers.n46-msk.system.memory.available_mb',
-
-    'servers.n46-msk.system.asp_net.requests_sec'
+    'servers.mow1aps3.system.processor.total_time',
+    'servers.srv-aps11.system.processor.total_time',
+    'servers.srv-aps29.system.processor.total_time'
 ];
 
 var context = cubism.context()
@@ -37,7 +22,7 @@ d3.select("body").selectAll(".horizon")
     .data(metrics.map(getData))
   .enter().insert("div", ".bottom")
     .attr("class", "horizon")
-    .call(context.horizon().extent([-100, 100]));
+    .call(context.horizon().extent([0, 20]));
 
 context.on("focus", function (i) {
     d3.selectAll(".value").style("right", i == null ? null : context.size() - i + "px");
@@ -52,7 +37,7 @@ function getData(expression) {
 
     return context.metric(function (start, stop, step, callback) {
 
-        $.getJSON('http://localhost/Statsify/api/series', {
+        $.getJSON('http://mow1aps3:8081/Statsify/api/series', {
             start: start.toISOString(),
             stop: stop.toISOString(),
             expression: 'List("' + expression + '")'

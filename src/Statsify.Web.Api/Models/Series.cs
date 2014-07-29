@@ -4,15 +4,15 @@
 
     public class Series
     {
+        public string Target { get; set; }
+
+        public List<double?[]> Datapoints { get; set; }
+
+        internal MetricInfo Metric { get; set; }
+
         public Series()
         {
-            DataPoints = new List<double?[]>();
+            Datapoints = new List<double?[]>();
         }
-
-        public string Target { get; set; }        
-
-        public List<double?[]> DataPoints { get; set; }
-
-        internal MetricInfo Metric { get; set; }        
     }
 }
