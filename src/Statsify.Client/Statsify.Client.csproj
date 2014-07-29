@@ -40,6 +40,7 @@
     <Compile Include="MetricNameBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stats.cs" />
+    <Compile Include="StatsifyClientExtensions.cs" />
     <Compile Include="UdpStatsifyClient.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

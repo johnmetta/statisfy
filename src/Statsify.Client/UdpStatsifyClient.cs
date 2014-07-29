@@ -23,16 +23,6 @@ namespace Statsify.Client
             udpClient = new UdpClient();
         }
 
-        public void Increment(string metric, double sample = 1)
-        {
-            PublishMetric(metric, "c", 1, sample);
-        }
-
-        public void Decrement(string metric, double sample = 1)
-        {
-            PublishMetric(metric, "c", -1, sample);
-        }
-
         public void Counter(string metric, double value, double sample = 1)
         {
             PublishMetric(metric, "c", value, sample);
@@ -55,11 +45,7 @@ namespace Statsify.Client
 
         public void Time(string metric, Action action, double sample = 1)
         {
-            var stopwatch = Stopwatch.StartNew();
-            action();
-            var value = stopwatch.ElapsedMilliseconds;
-
-            Time(metric, value, sample);
+            
         }
 
         private void PublishMetric(string metric, string type, double value, double sample, bool explicitlySigned = false)
