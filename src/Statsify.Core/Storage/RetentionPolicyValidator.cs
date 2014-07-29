@@ -11,9 +11,11 @@ namespace Statsify.Core.Storage
                 throw new RetentionPolicyValidationException("A Statsify database requires at least one Retention");
 
             var retentions = retentionPolicy.OrderBy(r => r.Precision).ToList();
+
             for(var i = 1; i < retentions.Count; ++i)
             {
                 var previousRetention = retentions[i - 1];
+
                 var retention = retentions[i];
 
                 if(previousRetention.Precision == retention.Precision) 
@@ -35,7 +37,7 @@ namespace Statsify.Core.Storage
                 if(previousRetention.History < pointsPerDownsample)
                     throw new RetentionPolicyValidationException(
                         string.Format("Retention (#{0}) must have at least enough points to consolidate to the next Retention", i - 1));
-            } // for
+            }
         }
     }
 }

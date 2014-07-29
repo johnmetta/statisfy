@@ -11,17 +11,25 @@ namespace Statsify.Core.Storage
     public class Database
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         private static readonly byte[] Signature = Encoding.ASCII.GetBytes("STFY");
+
         private static readonly byte[] Version = { 1, 0 };
         
         private const int ArchiveHeaderSize = sizeof(int) * 3;
+
         private const int DatapointSize = sizeof(long) + sizeof(double);
 
         private readonly string path;
+
         private readonly float downsamplingFactor;
+
         private readonly DownsamplingMethod downsamplingMethod;
+
         private readonly int maxRetention;
+
         private readonly IList<Archive> archives;
+
         private readonly Func<DateTime> currentTimeProvider;
 
         public ReadOnlyCollection<Archive> Archives
@@ -42,10 +50,15 @@ namespace Statsify.Core.Storage
         private Database(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, int maxRetention, IList<Archive> archives, Func<DateTime> currentTimeProvider)
         {
             this.path = path;
+
             this.downsamplingFactor = downsamplingFactor;
+
             this.downsamplingMethod = downsamplingMethod;
+
             this.maxRetention = maxRetention;
+
             this.archives = archives;
+
             this.currentTimeProvider = currentTimeProvider ?? (() => DateTime.UtcNow);
         }
 
@@ -60,9 +73,9 @@ namespace Statsify.Core.Storage
 
             using(var fileStream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 8192, FileOptions.WriteThrough))
             {
-                return fileStream.Length == 0 ? 
-                    Create(path, fileStream, downsamplingFactor, downsamplingMethod, retentionPolicy, currentTimeProvider) : 
-                    Open(path, fileStream, currentTimeProvider);
+                return fileStream.Length == 0
+                     ? Create(path, fileStream, downsamplingFactor, downsamplingMethod, retentionPolicy, currentTimeProvider)
+                     : Open(path, fileStream, currentTimeProvider);
             } // using
         }
 
@@ -85,18 +98,25 @@ namespace Statsify.Core.Storage
             using(var binaryReader = new BinaryReader(stream, Encoding.UTF8, true))
             {
                 var signature = binaryReader.ReadBytes(Signature.Length);
+
                 if(!signature.SequenceEqual(Signature)) 
                     throw new DataException("Incompatible Statsify Database format");
 
                 var major = binaryReader.ReadByte();
+
                 var minor = binaryReader.ReadByte();
+
                 var version = new Version(major, minor);
+
                 if(version != new Version(1, 0))
                     throw new DatabaseException("Incompatible Statsify Database version");
 
                 var dowsamplingMethod = (DownsamplingMethod)binaryReader.ReadInt32();
+
                 var downsamplingFactor = binaryReader.ReadSingle();
+
                 var maxRetention = binaryReader.ReadInt32();
+
                 var archivesLength = binaryReader.ReadInt32();
                 
                 var archives = new List<Archive>();
@@ -104,14 +124,16 @@ namespace Statsify.Core.Storage
                 for(var i = 0; i < archivesLength; ++i)
                 {
                     var offset = binaryReader.ReadInt32();
+
                     var precision = binaryReader.ReadInt32();
+
                     var history = binaryReader.ReadInt32();
 
                     archives.Add(new Archive(offset, history * DatapointSize, new Retention(TimeSpan.FromSeconds(precision), history)));
-                } // for
+                }
 
                 return new Database(path, downsamplingFactor, dowsamplingMethod, maxRetention, archives, currentTimeProvider);
-            } // using
+            } 
         }
 
 
@@ -133,12 +155,16 @@ namespace Statsify.Core.Storage
             using(var binaryWriter = new BinaryWriter(stream))
             {
                 binaryWriter.Write(Signature);
+
                 binaryWriter.Write(Version);
             
                 // ReSharper disable RedundantCast
                 binaryWriter.Write((int)downsamplingMethod);
+
                 binaryWriter.Write((float)downsamplingFactor);
+
                 binaryWriter.Write((int)maxRetention);
+
                 binaryWriter.Write((int)retentionPolicy.Count);
                 // ReSharper restore RedundantCast
 
@@ -148,17 +174,19 @@ namespace Statsify.Core.Storage
                 {
                     // ReSharper disable RedundantCast
                     binaryWriter.Write((int)offset);
+
                     binaryWriter.Write((int)retention.Precision);
+
                     binaryWriter.Write((int)retention.History);
                     // ReSharper restore RedundantCast
 
                     archives.Add(new Archive(offset, retention.History * DatapointSize, retention));
 
                     offset += retention.History * DatapointSize;
-                } // foreach
+                } 
 
                 stream.SetLength(offset);
-            } // using
+            }
 
             return new Database(path, downsamplingFactor, downsamplingMethod, maxRetention, archives, currentTimeProvider);
         }
@@ -169,7 +197,9 @@ namespace Statsify.Core.Storage
             using(var binaryReader = new BinaryReader(fileStream, Encoding.UTF8, true))
             {
                 var fromTimestamp = ConvertToTimestamp(from);
+
                 var untilTimestamp = ConvertToTimestamp(until);
+
                 var nowTimestamp = ConvertToTimestamp(currentTimeProvider());
 
                 if(fromTimestamp > untilTimestamp) throw new Exception(); // TODO: Exception class
@@ -177,6 +207,7 @@ namespace Statsify.Core.Storage
                 var oldestTime = nowTimestamp - maxRetention;
 
                 if(fromTimestamp > nowTimestamp) return null;
+
                 if(untilTimestamp < oldestTime) return null;
 
                 if(fromTimestamp < oldestTime)
@@ -190,6 +221,7 @@ namespace Statsify.Core.Storage
                 var archive = archives.First(a => ((TimeSpan)a.Retention.History).TotalSeconds >= diff && (precision == null || a.Retention.Precision >= precision.Value));
 
                 var fromInterval = (fromTimestamp - (fromTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
+
                 var untilInterval = (untilTimestamp - (untilTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
 
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
@@ -201,24 +233,27 @@ namespace Statsify.Core.Storage
                 if(baseInterval == 0)
                 {
                     var pts = (untilInterval - fromInterval) / step;
+
                     var valueList = new double?[pts];
 
                     return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), valueList);
-                } // if
+                } 
 
 
                 var fromOffset = GetOffset(fromInterval, baseInterval, archive);
+
                 var untilOffset = GetOffset(untilInterval, baseInterval, archive);
 
                 var buffer = ReadBuffer(fileStream, fromOffset, untilOffset, binaryReader, archive);
 
                 double?[] values;
+
                 int knownValues;
 
                 UnpackDatapoints(archive, buffer, fromInterval, out values, out knownValues);
 
                 return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), values);
-            } // using
+            }
         }
 
         private static byte[] ReadBuffer(FileStream fileStream, long fromOffset, long untilOffset, BinaryReader binaryReader, Archive archive)
@@ -226,9 +261,11 @@ namespace Statsify.Core.Storage
             fileStream.Seek(fromOffset, SeekOrigin.Begin);
 
             byte[] buffer;
+
             if(fromOffset < untilOffset)
             {
                 buffer = new byte[untilOffset - fromOffset];
+
                 binaryReader.Read(buffer, 0, buffer.Length);
             } // if
             else
@@ -236,13 +273,17 @@ namespace Statsify.Core.Storage
                 var archiveEnd = archive.Offset + archive.Size;
 
                 var n1 = (int)(archiveEnd - fromOffset);
+
                 var n2 = (int)(untilOffset - archive.Offset);
 
                 buffer = new byte[n1 + n2];
+
                 binaryReader.Read(buffer, 0, n1);
+
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
+
                 binaryReader.Read(buffer, n1, n2);
-            } // else
+            }
 
             return buffer;
         }
@@ -250,13 +291,14 @@ namespace Statsify.Core.Storage
         private static long GetOffset(long fromInterval, long baseInterval, Archive archive)
         {
             var timeDistance = fromInterval - baseInterval;
+
             var pointDistance = timeDistance / archive.Retention.Precision;
+
             var byteDistance = (pointDistance * DatapointSize) % archive.Size;
-            
-            var increment = 
-                byteDistance > 0 ? 
-                    byteDistance : 
-                    archive.Size + byteDistance;
+
+            var increment = byteDistance > 0
+                            ? byteDistance
+                            : archive.Size + byteDistance;
             
             var fromOffset = archive.Offset + increment;
             
@@ -270,6 +312,7 @@ namespace Statsify.Core.Storage
             using(var binaryReader = new BinaryReader(fileStream, Encoding.UTF8, true))
             {
                 var timestamp = ConvertToTimestamp(dateTime.ToUniversalTime());
+
                 var now = ConvertToTimestamp(currentTimeProvider());
 
                 var diff = now - timestamp;
@@ -278,6 +321,7 @@ namespace Statsify.Core.Storage
                 if(diff >= maxRetention) throw new Exception(); // TODO
 
                 var archive = archives.FirstOrDefault(a => a.Retention.History >= diff);
+
                 if(archive == null)
                     throw new Exception(); // TODO: Exception
 
@@ -286,6 +330,7 @@ namespace Statsify.Core.Storage
                 var myInterval = timestamp - (timestamp % archive.Retention.Precision);
 
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
+
                 var baseInterval = binaryReader.ReadInt64();
 
                 if(baseInterval == 0)
@@ -295,29 +340,34 @@ namespace Statsify.Core.Storage
                 else
                 {
                     var timeDistance = myInterval - baseInterval;
+
                     var pointDistance = timeDistance / archive.Retention.Precision;
+
                     var byteDistance = pointDistance * DatapointSize;
+
                     var myOffset = archive.Offset + (byteDistance % archive.Size);
 
                     fileStream.Seek(myOffset, SeekOrigin.Begin);
-                } // else
+                }
 
                 // ReSharper disable RedundantCast
                 binaryWriter.Write((long)myInterval);
+
                 binaryWriter.Write((double)value);
                 // ReSharper restore RedundantCast
 
                 var higher = archive;
+
                 foreach(var lower in lowerArchives)
                 {
                     if(!Downsample(fileStream, binaryReader, binaryWriter, myInterval, higher, lower))
                         break;
 
                     higher = lower;
-                } // foreach
+                }
 
                 fileStream.Flush(true);
-            } // using
+            }
         }
 
         private bool Downsample(FileStream fileStream, BinaryReader binaryReader, BinaryWriter binaryWriter, long timestamp, Archive higher, Archive lower)
@@ -325,6 +375,7 @@ namespace Statsify.Core.Storage
             var lowerIntervalStart = (timestamp - (timestamp % lower.Retention.Precision));
 
             fileStream.Seek(higher.Offset, SeekOrigin.Begin);
+
             var higherBaseInterval = binaryReader.ReadInt64();
 
             long higherFirstOffset;
@@ -332,24 +383,32 @@ namespace Statsify.Core.Storage
             if(higherBaseInterval == 0)
             {
                 higherFirstOffset = higher.Offset;
-            } // if
+            }
             else
             {
                 var timeDistance = (lowerIntervalStart - higherBaseInterval);
+
                 var pointDistance = timeDistance / higher.Retention.Precision;
+
                 var byteDistance = pointDistance * DatapointSize;
+
                 higherFirstOffset = higher.Offset + (byteDistance % higher.Size);
-            } // else
+            }
 
             var higherPoints = lower.Retention.Precision / higher.Retention.Precision;
+
             var higherSize = higherPoints * DatapointSize;
+
             var relativeFirstOffset = higherFirstOffset - higher.Offset;
+
             var relativeLastOffset = (relativeFirstOffset + higherSize) % higher.Size;
+
             var higherLastOffset = relativeLastOffset + higher.Offset;
 
             var buffer = ReadBuffer(fileStream, higherFirstOffset, higherLastOffset, binaryReader, higher);
 
             double?[] values;
+
             int knownValues;
 
             var points = UnpackDatapoints(higher, buffer, lowerIntervalStart, out values, out knownValues);
@@ -365,19 +424,23 @@ namespace Statsify.Core.Storage
             if(lowerBaseInterval == 0)
             {
                 fileStream.Seek(lower.Offset, SeekOrigin.Begin);
-            } // if
+            }
             else
             {
                 var timeDistance = lowerIntervalStart - lowerBaseInterval;
+
                 var pointDistance = timeDistance / lower.Retention.Precision;
+
                 var byteDistance = pointDistance * DatapointSize;
+
                 var lowerOffset = lower.Offset + (byteDistance % lower.Size);
 
                 fileStream.Seek(lowerOffset, SeekOrigin.Begin);
-            } // else
+            }
 
             // ReSharper disable RedundantCast
             binaryWriter.Write((long)lowerIntervalStart);
+
             binaryWriter.Write((double)aggregateValue);
             // ReSharper restore RedundantCast
 
@@ -387,9 +450,11 @@ namespace Statsify.Core.Storage
         private static int UnpackDatapoints(Archive archive, byte[] buffer, long startInterval, out double?[] values, out int knownValues)
         {
             var points = buffer.Length / DatapointSize;
+
             values = new double?[points];
 
             var currentTimestamp = startInterval;
+
             var step = archive.Retention.Precision;
             
             knownValues = 0;
@@ -400,17 +465,18 @@ namespace Statsify.Core.Storage
                 for(var i = 0; i < points; ++i)
                 {
                     var timestamp = binaryReader.ReadInt64();
+
                     var value = binaryReader.ReadDouble();
 
                     if(timestamp == currentTimestamp)
                     {
                         values[i] = value;
                         knownValues++;
-                    } // if
+                    }
 
                     currentTimestamp += step;
-                } // for
-            } // using
+                }
+            }
 
             return points;
         }
@@ -421,14 +487,19 @@ namespace Statsify.Core.Storage
             {
                 case DownsamplingMethod.Average:
                     return values.Average();
+
                 case DownsamplingMethod.Sum:
                     return values.Sum();
+
                 case DownsamplingMethod.Last:
                     return values.Last();
+
                 case DownsamplingMethod.Max:
                     return values.Max();
+
                 case DownsamplingMethod.Min:
                     return values.Min();
+
                 default:
                     throw new ArgumentOutOfRangeException("downsamplingMethod");
             }
@@ -437,6 +508,7 @@ namespace Statsify.Core.Storage
         private static long ConvertToTimestamp(DateTime value)
         {
             var elapsedTime = value - Epoch;
+
             return (long)elapsedTime.TotalSeconds;
         }
 

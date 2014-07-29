@@ -5,11 +5,13 @@ namespace Statsify.Core.Storage
     public struct History
     {
         private readonly TimeSpan history;
+
         private readonly TimeSpan precision;
 
         public History(TimeSpan history, TimeSpan precision)
         {
             this.history = history;
+
             this.precision = precision;
         }
 

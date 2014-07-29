@@ -13,12 +13,14 @@ namespace Statsify.Core.Storage
         public Retention(TimeSpan precision, TimeSpan history)
         {
             Precision = new Precision(precision);
+
             History = new History(history, precision);
         }
 
         public Retention(TimeSpan precision, int history)
         {
             Precision = new Precision(precision);
+
             History = new History(TimeSpan.FromSeconds(Precision * history), precision);
         }
     }
