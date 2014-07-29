@@ -3,10 +3,13 @@ using System.Diagnostics;
 
 namespace Statsify.Client
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public static class StatsifyClientExtensions
     {
         /// <summary>
-        /// Increment a Counter <paramref name="metric"/> by <c>1</c>.
+        /// Increment a counter <paramref name="metric"/> by <c>1</c>.
         /// </summary>
         /// <param name="statsifyClient"></param>
         /// <param name="metric"></param>
@@ -15,10 +18,16 @@ namespace Statsify.Client
         {
             statsifyClient.Counter(metric, 1, sample);
         }
-
+        
+        /// <summary>
+        /// Decrement a counter <paramref name="metric"/> by <c>1</c>.
+        /// </summary>
+        /// <param name="statsifyClient"></param>
+        /// <param name="metric"></param>
+        /// <param name="sample"></param>
         public static void Decrement(this IStatsifyClient statsifyClient, string metric, double sample = 1)
         {
-            statsifyClient.Counter(metric, 1, sample);
+            statsifyClient.Counter(metric, -1, sample);
         }
 
         /// <summary>
