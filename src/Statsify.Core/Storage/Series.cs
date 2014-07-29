@@ -15,11 +15,8 @@ namespace Statsify.Core.Storage
         public Series(DateTime @from, DateTime until, TimeSpan interval, double?[] values)
         {
             From = @from;
-
             Until = until;
-
             Interval = interval;
-
             Values = values;
         }
     }
