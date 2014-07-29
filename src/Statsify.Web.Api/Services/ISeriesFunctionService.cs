@@ -1,17 +1,21 @@
-﻿namespace Statsify.Web.Api.Services
+﻿using Statsify.Core.Model;
+
+namespace Statsify.Web.Api.Services
 {
     using Models;
 
     public interface ISeriesFunctionService
     {
-        Series[] List(string expression);
+        Target[] List(string expression);
+
+        Target[] Coalesce(Target[] targets);
             
         /// <summary>
         /// Takes one metric or a wildcard seriesList and applies the mathematical abs function to each datapoint transforming it to its absolute value.
         /// </summary>
         /// <param name="series"></param>
         /// <returns></returns>
-        Series[] Absolute(Series[] series);
+        Metric[] Absolute(Metric[] series);
 
         /// <summary>
         /// Takes one metric or a wildcard seriesList. Draws the average value of all metrics passed at each time.
@@ -38,7 +42,7 @@
 
         /// <summary>
         /// Takes a seriesList and applies an alias derived from one or more “node” portion/s of the target name. Node indices are 0 indexed.
-        /// <example>&expression=AliasByNode(List("servers.*.system.processor.*"),1,4)        
+        /// <example>&amp;expression=AliasByNode(List("servers.*.system.processor.*"),1,4)        
         /// </example>        
         /// </summary>
         /// <param name="series"></param>

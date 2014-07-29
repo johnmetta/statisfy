@@ -89,7 +89,7 @@ function initChart($container) {
             element: $chart[0],
             width: $container.width()-200,
             height: 200,
-            renderer: 'area',
+            renderer: 'line',
             stroke: true,
             preserve: true,
             series: series

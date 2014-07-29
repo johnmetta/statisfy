@@ -76,6 +76,7 @@
     <Compile Include="Configuration\StatsifyConfigurationSection.cs" />
     <Compile Include="Configuration\StorageConfigurationElement.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Models\Metric.cs" />
     <Compile Include="Models\MetricInfo.cs" />
     <Compile Include="Models\Series.cs" />
     <Compile Include="Program.cs" />
