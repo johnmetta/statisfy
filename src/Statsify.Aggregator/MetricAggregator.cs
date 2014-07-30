@@ -54,36 +54,28 @@ namespace Statsify.Aggregator
             if(!Directory.Exists(configuration.Storage.Path))
             {
                 log.Info("creating '{0}'", configuration.Storage.Path);
-
                 Directory.CreateDirectory(configuration.Storage.Path);
-            }
+            } // if
 
-            while(!stopEvent.WaitOne(TimeSpan.FromMilliseconds(100)))
+            while(!stopEvent.WaitOne(0))
             {
                 var n = 0;
-
-                var count = flushQueue.Count;
-
-                log.Trace("started flushing {0} entries", count);
-
                 var sw = Stopwatch.StartNew();
 
                 Tuple<string, DateTime, float> datapoint;
 
-                while (flushQueue.TryDequeue(out datapoint))
+                while(flushQueue.TryDequeue(out datapoint))
                 {
                     n++;
 
                     var db = GetDb(configuration.Storage.Path, datapoint.Item1);
-
                     if(db != null)
                         db.WriteDatapoint(datapoint.Item2, datapoint.Item3);
-                }
+                } // while
 
-                log.Trace("completed flushing {0} entries in {1} ({2:N2} per second); {3} items in backlog queue", n, sw.Elapsed, count / sw.Elapsed.TotalSeconds, flushQueue.Count);               
-
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-            }
+                if(n > 0)
+                    log.Info("completed flushing {0} entries in {1} ({2:N2} per second)", n, sw.Elapsed, n / sw.Elapsed.TotalSeconds);               
+            } // while
         }
 
         public void Aggregate(Metric metric)
