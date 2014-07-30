@@ -2,162 +2,322 @@
 {
     using System;
     using System.Linq;
-    using Core.Storage;
-    using Extensions;
+    using System.Collections.Generic;
     using Series = Models.Series;
 
 
     internal sealed class SeriesFunctionService : ISeriesFunctionService
-    {
-        private readonly IMetricService metricService;
+    {        
         private readonly DateTime from;
-        private readonly DateTime until;        
-        private string seriesListExpression;
 
-        private SeriesFunctionService(DateTime start, DateTime stop, IMetricService metricService)
-        {
-            this.metricService = metricService;
+        private readonly DateTime until;  
+              
+        private readonly string seriesListExpression;
 
+        public SeriesFunctionService(DateTime start, DateTime stop, string seriesListExpression)
+        {            
             from = start;
 
-            until = stop;
-        }        
+            until = stop;            
 
-        public Series[] Alias(Series[] series, string alias)
-        {
-            if (series == null)
-                return null;
-
-            foreach (var s in series)            
-                s.Target = alias;
-
-            return series;
+            this.seriesListExpression = seriesListExpression;
         }
 
-        public Series[] AsPercent(Series[] series)
+        public Series[] Alias(Series[] seriesList, string alias)
         {
-            foreach(var metric in series)
+            if (seriesList == null)
+                return null;
+
+            foreach (var series in seriesList)
+                series.Target = alias;
+
+            return seriesList;
+        }
+
+        public Series[] AsPercent(Series[] seriesList)
+        {
+            if (seriesList == null)
+                return null;
+
+            foreach (var series in seriesList)
             {
-                var total = metric.DataPoints.Sum(p => p[0]);
+                var total = series.Values.Sum();
 
                 if(total.HasValue)
-                    metric.DataPoints = metric.DataPoints.Select(p => new[] { p[0].HasValue ? (100 * p[0] / total) : (double?)null, p[1] }).ToList();
+                    series.Values = series.Values.Select(value => value.HasValue ? (100 * value / total) : null).ToArray();
+
+                series.Target = String.Format("AsPercent({0})", series.Target);
             }
                 
 
-            return series;
+            return seriesList;
         }
 
-        public Series[] Limit(Series[] series,int n)
+        public Series[] AsPercent(Series[] seriesList, double total)
         {
-            return series.Take(n).ToArray();
-        }
-
-        public Series[] AsPercent(Series[] series, double total)
-        {            
-            foreach(var metric in series)
-                metric.DataPoints = metric.DataPoints.Select(p => new[] { p[0].HasValue ? (100 * p[0] / total) : (double?)null, p[1] }).ToList();
-
-            return series;
-        }
-
-        public Series[] AliasByMetric(Series[] series)
-        {
-            if (series == null)
+            if (seriesList == null)
                 return null;
 
-            foreach (var s in series)
-                s.Target = s.Metric.Name;
-
-            return series;
-        }
-
-        public Series[] AliasByNode(Series[] series, params int[] nodes)
-        {
-            if (series == null)
-                return null;
-
-            foreach (var s in series)
+            foreach(var series in seriesList)
             {
-                var parts = s.Metric.Path.Split('.');
+                series.Values = series.Values.Select(value => value.HasValue ? (100 * value / total) : null).ToArray();
+
+                series.Target = String.Format("AsPercent({0},{1})", series.Target, total);
+            }                
+
+            return seriesList;
+        }
+
+        public Series[] Limit(Series[] seriesList, int n)
+        {
+            if (seriesList == null)
+                return null;
+
+            return seriesList.Take(n).ToArray();
+        }
+
+        public Series[] AliasByMetric(Series[] seriesList)
+        {
+            if (seriesList == null)
+                return null;
+
+            foreach (var series in seriesList)
+                series.Target = series.Metric.Name;
+
+            return seriesList;
+        }
+
+        public Series[] AliasByNode(Series[] seriesList, params int[] nodes)
+        {
+            if (seriesList == null)
+                return null;
+
+            foreach (var series in seriesList)
+            {
+                var parts = series.Metric.Path.Split('.');
 
                 var alias = nodes.Where(n => n <= (parts.Length - 1)).Select(n => parts[n]).ToArray();
 
-                s.Target = String.Join(".", alias);
+                series.Target = String.Join(".", alias);
             }
-            return series;
+
+            return seriesList;
         }
 
-        public Series[] Sum(Series[] series)
+        public Series[] SumSeries(Series[] seriesList)
         {
-            if (series == null)
+            if (seriesList == null)
                 return null;
 
-            var sl = new Series
-            {
-                Target = String.Format("Sum(\"{0}\")", seriesListExpression),
-                DataPoints = series.SelectMany(s => s.DataPoints)
-                    .GroupBy(p => p[1])
-                    .Select(x => new[] { x.Sum(p => p[0]), x.Key })
-                    .ToList()
-            };
+            var series = seriesList.FirstOrDefault();
 
-            return new[] { sl };
+            var values = new List<double?>();
+
+            if (series == null)
+                return seriesList;
+
+            for (var i = 0; i < series.Values.Length; i++)
+            {
+                double? value = null;
+
+                foreach (var s in seriesList)
+                {
+                    if (s.Values[i].HasValue)
+                        value = value.GetValueOrDefault() + s.Values[i];
+                }
+
+                values.Add(value);
+            }
+
+            return new[]
+            {
+                new Series(series.From, series.Until, series.Interval, values.ToArray())
+                {
+                    Target = String.Format("Sum({0})", seriesListExpression)
+                }
+            };
         }
 
-        public Series[] List(string expression)
+        public Series[] Sum(Series[] seriesList)
         {
-            seriesListExpression = expression;
+            return SumSeries(seriesList);
+        }
 
-            var metrics = metricService.Find(expression);
+        public Series[] CountSeries(Series[] seriesList)
+        {
+            if (seriesList == null)
+                return null;
 
-            return (from metric in metrics.Where(m => m.IsLeaf)
-                    let databaseFilePath = metric.Info.FullName
-                    let db = Database.Open(databaseFilePath)
-                    let data = db.ReadSeries(@from, until)
-                    let s = data.From.ToUnixTimestamp()
-                    let interval = data.Interval.ToUnixTimestamp()
-                    select new Series
+            var count = seriesList.Length;
+
+            foreach (var series in seriesList)
+            {
+                series.Target = String.Format("CountSeries({0})", series.Target);
+
+                series.Values = series.Values.Select(value => (double?)count).ToArray();
+            }
+
+            return seriesList; 
+        }
+
+        public Series[] Integral(Series[] seriesList)
+        {
+            if (seriesList == null)
+                return null;
+
+            foreach (var series in seriesList)
+            {
+                double? current = 0.0;
+                var values = new List<double?>();
+
+                foreach (var value in series.Values)
+                {
+                    if (value.HasValue)
                     {
-                        Metric = metric,
-                        Target = metric.Path,
-                        DataPoints = data.Values.Select((v, i) => new[] { v, s + i * interval }).ToList()
-                    }).ToArray();
+                        current += value;
+                        values.Add(current);
+                    }
+                    else
+                    {
+                        values.Add(null);
+                    }
+                }
+
+                series.Target = String.Format("Integral({0})", series.Target);
+                series.Values = values.ToArray();
+            }
+
+            return seriesList;
         }
 
-        public Series[] AverageSeries(Series[] series)
+        public Series[] NonNegativeDerivative(Series[] seriesList)
         {
-            if (series == null)
+            return NonNegativeDerivative(seriesList, null);
+        }
+
+        public Series[] NonNegativeDerivative(Series[] seriesList, double? maxValue)
+        {
+            if (seriesList == null)
                 return null;
 
-            var sl = new Series
+            foreach (var series in seriesList)
+            {                
+                var values = new List<double?>();
+
+                double? prev = null;
+
+                foreach (var value in series.Values)
+                {
+                    if(!(prev ?? value).HasValue)
+                    {
+                        values.Add(null);
+                        prev = value;
+                        continue;
+                    }
+
+                    var diff = value - prev;
+
+                    if(diff >= 0)
+                    {
+                        values.Add(diff);
+                    }
+                    else
+                    {
+                        if(maxValue.HasValue && maxValue >= value)
+                        {
+                            values.Add((maxValue - prev) + value + 1);
+                        }
+                        else
+                        {
+                            values.Add(null);
+                        }
+                    }
+
+                    prev = value;
+                }
+
+                series.Target = String.Format("NonNegativeDerivative({0})", series.Target);
+
+                series.Values = values.ToArray();
+            }
+
+            return seriesList;
+        }
+
+        public Series[] MinimumAbove(Series[] seriesList, double n)
+        {
+            if (seriesList == null)
+                return null;
+
+            return seriesList.Where(s => s.Values.Min() > n).ToArray();
+        }
+
+        public Series[] MaximumBelow(Series[] seriesList, double n)
+        {
+            if (seriesList == null)
+                return null;
+
+            return seriesList.Where(s => s.Values.Max() <= n).ToArray();
+        }
+
+        public Series[] AverageSeries(Series[] seriesList)
+        {
+            if (seriesList == null)
+                return null;
+
+            var series = seriesList.FirstOrDefault();
+
+            var values = new List<double?>();
+
+            if (series == null)
+                return seriesList;
+
+            var length = seriesList.Length;
+
+            for (var i = 0; i < series.Values.Length; i++)
             {
-                Target = seriesListExpression,
+                double? value = null;
 
-                DataPoints = series.SelectMany(s => s.DataPoints)
-                            .GroupBy(p => p[1])
-                            .Select(x => new[] {x.Average(p => p[0]), x.Key})
-                            .ToList()
+                foreach (var s in seriesList)
+                {
+                    if (s.Values[i].HasValue)
+                        value = value.GetValueOrDefault() + s.Values[i];
+                }
+
+                value = value / length;
+
+                values.Add(value);
+            }
+
+            return new[]
+            {
+                new Series(series.From, series.Until, series.Interval, values.ToArray())
+                {
+                    Target = String.Format("AverageSeries({0})", seriesListExpression)
+                }
             };
-
-            return new[] { sl };
         }
 
-        public Series[] Absolute(Series[] series)
+        public Series[] Avg(Series[] seriesList)
         {
-            if (series == null)
+            return AverageSeries(seriesList);
+        }
+
+        public Series[] Absolute(Series[] seriesList)
+        {            
+            if (seriesList == null)
                 return null;
 
-            foreach (var metric in series)            
-                metric.DataPoints = metric.DataPoints.Select(p => new[] {p[0].HasValue?Math.Abs(p[0].Value):(double?)null, p[1]}).ToList();
+            foreach (var series in seriesList)
+                series.Values = series.Values.Select(value => value.HasValue ? Math.Abs(value.Value) : (double?)null).ToArray();
 
-            return series;
+            return seriesList;
         }
 
-        public static ISeriesFunctionService GetSeriesFunctionService(DateTime start, DateTime stop,
-            IMetricService metricService)
+        public Series[] Abs(Series[] seriesList)
         {
-            return new SeriesFunctionService(start, stop, metricService);
+            return Absolute(seriesList);
         }
+
     }
 }
