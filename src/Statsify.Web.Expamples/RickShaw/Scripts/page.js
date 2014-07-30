@@ -79,8 +79,8 @@ function initChart($container) {
 			series.shift();
 			
         $container.empty();
-        $container.append('<div class="chart-header"></div><table width="100%"><tr><td class="control">' +            
-            '</td><td><div class="chart"></div></td><td><div class="legend"></div></td></tr></table>');
+        var template = '<div class="chart-header"></div><table width="100%"><tr><td class="control"></td><td><div class="chart"></div></td><td><div class="legend"></div></td></tr></table>';
+        $container.append(template);
         var $chart = $container.find('.chart');
         var $chartHeader = $container.find('.chart-header');
         $chartHeader.text(title);

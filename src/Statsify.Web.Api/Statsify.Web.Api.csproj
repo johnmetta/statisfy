@@ -76,8 +76,10 @@
     <Compile Include="Configuration\StatsifyConfigurationSection.cs" />
     <Compile Include="Configuration\StorageConfigurationElement.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
+    <Compile Include="Helpers\SeriesQueryHelper.cs" />
     <Compile Include="Models\MetricInfo.cs" />
     <Compile Include="Models\Series.cs" />
+    <Compile Include="Models\SeriesView.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ISeriesFunctionService.cs" />

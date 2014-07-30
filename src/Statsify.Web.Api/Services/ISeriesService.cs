@@ -5,6 +5,6 @@
 
     public interface ISeriesService
     {
-        Series[] GetSeries(string expression, DateTime start, DateTime stop);
+        Series[] GetSeries(string query, DateTime start, DateTime stop);
     }
 }

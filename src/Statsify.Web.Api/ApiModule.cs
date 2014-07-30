@@ -1,4 +1,7 @@
-﻿namespace Statsify.Web.Api
+﻿using System.Linq;
+using Statsify.Web.Api.Extensions;
+
+namespace Statsify.Web.Api
 {
     using System;
     using Nancy.Json;
@@ -35,11 +38,24 @@
 
                     var now = DateTime.Now;
 
-                    var series = seriesService.GetSeries(expression,
+                    var seriesList = seriesService.GetSeries(expression,
                         start.GetValueOrDefault(now.AddHours(-1)).ToUniversalTime(),
                         stop.GetValueOrDefault(now).ToUniversalTime());
 
-                    return Response.AsJson(series);
+                    if(seriesList == null)
+                        return null;
+
+                    var seriesViewList = (from series in seriesList
+                        let @from = series.From.ToUnixTimestamp()
+                        let interval = series.Interval.ToUnixTimestamp()
+                        select new SeriesView
+                        {
+                            Target = series.Target,
+                            DataPoints = series.Values.Select((v, i) => new[] { v, @from + i * interval }).ToArray()
+                        }
+                        ).ToArray();
+
+                    return Response.AsJson(seriesViewList);
                 }
                 catch(Exception e)
                 {
