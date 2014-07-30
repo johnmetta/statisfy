@@ -327,19 +327,7 @@ namespace Statsify.Core.Storage
             fileStream.Seek(higher.Offset, SeekOrigin.Begin);
             var higherBaseInterval = binaryReader.ReadInt64();
 
-            long higherFirstOffset;
-
-            if(higherBaseInterval == 0)
-            {
-                higherFirstOffset = higher.Offset;
-            } // if
-            else
-            {
-                var timeDistance = (lowerIntervalStart - higherBaseInterval);
-                var pointDistance = timeDistance / higher.Retention.Precision;
-                var byteDistance = pointDistance * DatapointSize;
-                higherFirstOffset = higher.Offset + (byteDistance % higher.Size);
-            } // else
+            var higherFirstOffset = GetOffset(lowerIntervalStart, higherBaseInterval, higher);
 
             var higherPoints = lower.Retention.Precision / higher.Retention.Precision;
             var higherSize = higherPoints * DatapointSize;
