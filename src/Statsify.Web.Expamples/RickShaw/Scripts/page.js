@@ -109,19 +109,7 @@
 
             setInterval(function() {
                
-                this.getSeries(function (series) {
-
-                    for (var i = 0; i < series.length; i++) {
-                        var s = this.findSeries(this.series, series[i].name);
-
-                        if (s) {
-                            s.data = series[i].data;
-                        }                        
-                    }
-                    
-                    this.graph.update();                    
-
-                }.bind(this));
+                this.getSeries(this.updateSeries.bind(this));
 
             }.bind(this), this.options.updateInterval);
 
@@ -155,6 +143,20 @@
             }
 
             return points;
+        },
+
+        updateSeries:function (series) {
+
+            for (var i = 0; i < series.length; i++) {
+                var s = this.findSeries(this.series, series[i].name);
+
+                if (s) {
+                    s.data = series[i].data;
+                }                        
+            }
+                    
+            this.graph.update();                    
+
         },
 
         initElements: function () {
@@ -291,17 +293,7 @@
             }
 
             return result;
-        },
-
-        client_updateannotations: function () {
-                     
-            if (this.options.annotations) {
-                var stop = new Date();
-                var start = new Date(stop - parseInt(this.options.updateInterval));
-                
-                this.getAnnotations(this.addAnnotations.bind(this), start.toISOString(), stop.toISOString());
-            }            
-        }
+        }       
 
     };
 
@@ -356,8 +348,7 @@ $(document).ready(function () {
         $.post(url, { message: $a.val() }, function (data) {
             
             if (data.success) {
-                $a.val('');
-                $charts.chart('updateannotations');
+                $a.val('');                
             } else {
                 alert(data.message);
             }
