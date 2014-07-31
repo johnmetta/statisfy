@@ -14,8 +14,9 @@
             this.$element = $(element);
             this.type = type;
             this.options = this.getOptions(options);
-            this.palette = new Rickshaw.Color.Palette({ scheme: this.options.colorscheme });
-            this.getSeries(this.initChart.bind(this));            
+            this.palette = new Rickshaw.Color.Palette({ scheme: this.options.colorscheme });          
+
+            this.getSeries(this.initChart.bind(this));
         },
 
         initChart:function(newSeries) {
@@ -61,7 +62,12 @@
                     element: this.$timeline[0]
                 });
 
-                this.getAnnotations(this.addAnnotations.bind(this));                
+                var start = new Date();
+                start = new Date(start.setHours(start.getHours() - 1)).toISOString();
+
+                var stop = new Date().toISOString();
+
+                this.getAnnotations(this.addAnnotations.bind(this), start, stop);
             }
 
             this.legend = new Rickshaw.Graph.Legend({
@@ -102,31 +108,53 @@
             });
 
             setInterval(function() {
-
+               
                 this.getSeries(function (series) {
-                   
+
                     for (var i = 0; i < series.length; i++) {
-                        if (this.series[i] && this.series[i].data)
-                            this.series[i].data = series[i].data;
-                        else {
-                            this.series[i] = series[i];
-                        }
+                        var s = this.findSeries(this.series, series[i].name);
+
+                        if (s) {
+                            s.data = series[i].data;
+                        }                        
                     }
                     
-                    this.graph.update();
-                    
+                    this.graph.update();                    
+
                 }.bind(this));
 
             }.bind(this), this.options.updateInterval);
 
             if (this.options.annotations) {
-
+               
                 setInterval(function () {
-                    this.getAnnotations(this.addAnnotations.bind(this));
+                    var stop = new Date();
+                    var start = new Date(stop - parseInt(this.options.updateInterval));
+
+                    this.getAnnotations(this.addAnnotations.bind(this), start.toISOString(), stop.toISOString());
+
                 }.bind(this), this.options.updateInterval);
 
             }
 
+        },
+        
+        findSeries:function(series, target) {
+
+            for (var i = 0; i < series.length; i++) {                
+                if (series[i].name == target)
+                    return series[i];
+            }
+
+            return null;
+        },
+
+        mergePoints: function (points, newpoints) {
+            for (var i = 0; i < newpoints.length; i++) {
+                points.push(newpoints[i]);                
+            }
+
+            return points;
         },
 
         initElements: function () {
@@ -143,18 +171,35 @@
 
             $el.find('.control').append(options.controlTemplate);
 
+            $el.find('.js-find-target').click(function() {
+                var $self = $(this);
+
+                var $target = $self.parent().find('input.' + $self.attr('for'));
+
+                $target.click();
+
+                return false;
+            });
+
             if (options.annotations) {
                 this.$timeline = $('<div class="timeline"></div>').insertAfter(this.$chart);
             }
         },
 
         getSeries: function (callback) {
+
             var start = new Date();
             start = new Date(start.setHours(start.getHours() - 1)).toISOString();
 
             var stop = new Date().toISOString();
 
-            $.getJSON(this.options.url, { start: start, stop: stop, expression: this.options.expression }, function(series) {
+            var url = this.options.url + '?start=' + start + '&stop=' + stop;
+
+            for (var i = 0; i < this.options.expression.length; i++) {
+                url = url + '&expression=' + encodeURIComponent(this.options.expression[i]);
+            }
+
+            $.getJSON(url, function (series) {
 
                 series = this.seriesListConverter(series);
                 
@@ -163,12 +208,7 @@
             }.bind(this));
         },
 
-        getAnnotations: function(callback) {
-            var start = new Date();
-            start = new Date(start.setHours(start.getHours() - 1)).toISOString();
-
-            var stop = new Date().toISOString();
-
+        getAnnotations: function(callback, start, stop) {          
             $.getJSON(this.options.annotationUrl, { start: start, stop: stop }, callback.bind(this));
         },
 
@@ -182,8 +222,6 @@
 
                     this.annotator.add(parseInt(time), message);
                 }
-
-                this.$element.find('.annotation').empty();                
 
                 this.annotator.update();
             }
@@ -215,17 +253,22 @@
             return series;
         },
 
-        getOptions: function(options) {
-
+        getOptions: function(options) {            
             var result = $.extend({}, $.extend(true, {}, $.fn.chart.defaults), options);
 
             if (this.$element.data('url')) {
                 result.url = this.$element.data('url');
             }
 
-            if (this.$element.data('expression')) {
-                result.expression = this.$element.data('expression');
-            }
+            var expression = [];
+
+            $.each(this.$element.data(), function (name, value) {
+                if (name.indexOf('expression') == 0) {
+                    expression.push(encodeURIComponent(value))
+                }                
+            });            
+
+            result.expression = expression;
 
             if (this.$element.data('annotations')) {
                 result.annotations = this.$element.data('annotations');
@@ -248,6 +291,16 @@
             }
 
             return result;
+        },
+
+        client_updateannotations: function () {
+                     
+            if (this.options.annotations) {
+                var stop = new Date();
+                var start = new Date(stop - parseInt(this.options.updateInterval));
+                
+                this.getAnnotations(this.addAnnotations.bind(this), start.toISOString(), stop.toISOString());
+            }            
         }
 
     };
@@ -277,7 +330,7 @@
     $.fn.chart.defaults = {
         url: undefined,
         annotationUrl: undefined,
-        expression: undefined,
+        expression: [],
         annotations: false,
         title: undefined,
         updateInterval: 10000,
@@ -287,6 +340,28 @@
 
 }(window.jQuery);
 
-$(document).ready(function() {
-    $('.chart_container').chart();
+$.ajaxSetup({ cache: false });
+
+$(document).ready(function () {
+    var $charts = $('.chart_container');
+    $charts.chart();
+
+    $('#send').click(function () {
+        var $self = $(this);
+
+        var $a = $('#annotation');
+
+        var url = $self.data('url');
+        
+        $.post(url, { message: $a.val() }, function (data) {
+            
+            if (data.success) {
+                $a.val('');
+                $charts.chart('updateannotations');
+            } else {
+                alert(data.message);
+            }
+
+        });
+    });
 });

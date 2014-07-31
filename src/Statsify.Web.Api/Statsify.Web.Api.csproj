@@ -87,6 +87,7 @@
     <Compile Include="Helpers\SeriesQueryHelper.cs" />
     <Compile Include="Models\MetricInfo.cs" />
     <Compile Include="Models\Series.cs" />
+    <Compile Include="Models\SeriesQueryModel.cs" />
     <Compile Include="Models\SeriesView.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

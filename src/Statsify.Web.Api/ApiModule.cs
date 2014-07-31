@@ -1,5 +1,6 @@
-﻿using System.Linq;
-using Statsify.Web.Api.Extensions;
+﻿
+
+using Nancy.Helpers;
 
 namespace Statsify.Web.Api
 {
@@ -8,7 +9,10 @@ namespace Statsify.Web.Api
     using Models;
     using Services;
     using Nancy;
-
+    using System.Linq;
+    using Nancy.ModelBinding;
+    using Extensions;
+   
     public class ApiModule : NancyModule
     {        
         public ApiModule(IMetricService metricService, ISeriesService seriesService, IAnnotationService annotationService)
@@ -44,47 +48,41 @@ namespace Statsify.Web.Api
                 }
                 catch(Exception e)
                 {
-                    return Response.AsJson(e);
+                    return Response.AsJson(new { Success = false, e.Message });
                 }
 
-                return null;
+                return Response.AsJson(new { Success = true });
             };
 
             Get["/api/series"] = x =>
             {                           
                 try
                 {
-                    JsonSettings.MaxJsonLength = int.MaxValue;  
+                    JsonSettings.MaxJsonLength = int.MaxValue;                   
 
-                    string expression = Request.Query.expression;                    
+                    var model = new SeriesQueryModel();
 
-                    DateTime? start = Request.Query.start;
+                    this.BindTo(model, new BindingConfig { BodyOnly = false });
 
-                    DateTime? stop = Request.Query.stop;
-
-                    if (String.IsNullOrWhiteSpace(expression))// ReSharper disable once NotResolvedInText                           
-                        throw new ArgumentNullException("expression");
-
+                    
                     var now = DateTime.Now;
 
-                    var seriesList = seriesService.GetSeries(expression,
-                        start.GetValueOrDefault(now.AddHours(-1)).ToUniversalTime(),
-                        stop.GetValueOrDefault(now).ToUniversalTime());
+                    var start = model.Start.GetValueOrDefault(now.AddHours(-1)).ToUniversalTime();
+                    var stop = model.Stop.GetValueOrDefault(now).ToUniversalTime();
 
-                    if(seriesList == null)
-                        return null;
+                    var seriesList = model.Expression.SelectMany(q => seriesService.GetSeries(HttpUtility.UrlDecode(q), start, stop));
 
                     var seriesViewList = (from series in seriesList
-                        let @from = series.From.ToUnixTimestamp()
-                        let interval = series.Interval.ToUnixTimestamp()
-                        select new SeriesView
-                            {
-                                Target = series.Target,
-                                DataPoints = series.Values.Select((v, i) => new[] { v, @from + i * interval }).ToArray()
-                            }
-                        ).ToArray();                    
+                                          let @from = series.From.ToUnixTimestamp()
+                                          let interval = series.Interval.ToUnixTimestamp()
+                                          select new SeriesView
+                                          {
+                                              Target = series.Target,
+                                              DataPoints = series.Values.Select((v, i) => new[] { v, @from + i * interval }).ToArray()
+                                          }
+                        ).OrderBy(s=>s.Target).ToArray();
 
-                    return Response.AsJson(seriesViewList);
+                    return Response.AsJson(seriesViewList);                    
                 }
                 catch(Exception e)
                 {
