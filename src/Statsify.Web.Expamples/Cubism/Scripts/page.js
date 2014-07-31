@@ -55,7 +55,7 @@ function getData(expression) {
         $.getJSON('http://localhost/Statsify/api/series', {
             start: start.toISOString(),
             stop: stop.toISOString(),
-            expression: 'List("' + expression + '")'
+            expression: expression
         }, function (data) {
 
             start = +start, stop = +stop;

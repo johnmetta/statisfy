@@ -59,7 +59,7 @@ namespace Statsify.Tests.Client
         [Test]
         public void Timer()
         {
-            using(var stats = new UdpStatsifyClient("127.0.0.1", Port, "Telemetry.tests."))
+            using (var stats = new UdpStatsifyClient("127.0.0.1", Port, "Telemetry.tests."))
             {
                 AssertDatagram(Port, "Telemetry.tests.sample_timer:3.5|ms", () => stats.Time("sample_timer", 3.5));
                 AssertDatagram(Port, "Telemetry.tests.sample_timer:1|ms", () => stats.Time(".sample_timer.", 1));

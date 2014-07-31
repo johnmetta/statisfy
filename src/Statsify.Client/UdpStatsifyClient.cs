@@ -10,14 +10,14 @@ namespace Statsify.Client
         private static readonly Random Sampler = new Random();
 
         private readonly string host;
-        private readonly int port;
+        private readonly int port;        
         private readonly string @namespace;
         private readonly UdpClient udpClient;
 
         public UdpStatsifyClient(string host = "127.0.0.1", int port = 8125, string @namespace = "")
         {
             this.host = host;
-            this.port = port;
+            this.port = port;           
             this.@namespace = @namespace;
             udpClient = new UdpClient();
         }
@@ -40,6 +40,11 @@ namespace Statsify.Client
         public void Time(string metric, double value, double sample = 1)
         {
             PublishMetric(metric, "ms", value, sample);
+        }
+
+        public void Annotation(string message)
+        {
+            PublishAnnotation(message);
         }
 
         public void Time(string metric, Action action, double sample = 1)
@@ -69,6 +74,15 @@ namespace Statsify.Client
             PublishDatagram(datagram);
         }
 
+        private void PublishAnnotation(string message)
+        {
+            var datagram = String.Format("annotation:{0}", message);
+
+            var buffer = Encoding.UTF8.GetBytes(datagram);
+
+            udpClient.Send(buffer, buffer.Length, host, port);           
+        }
+
         private string GetMetricName(string name)
         {
             return MetricNameBuilder.BuildMetricName(@namespace, name);
@@ -77,7 +91,7 @@ namespace Statsify.Client
         private void PublishDatagram(string datagram)
         {
             var buffer = Encoding.UTF8.GetBytes(datagram);
-            udpClient.Send(buffer, buffer.Length, host, port);
+            udpClient.Send(buffer, buffer.Length, host, port);            
         }
 
         public void Dispose()

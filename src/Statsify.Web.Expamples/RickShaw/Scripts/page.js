@@ -1,31 +1,198 @@
-moment.lang('ru');
+!function ($) {
+    "use strict";
 
-var getData = function (callback,option) {
+    var Chart = function (type, element, options) {
+        this.init(type, element, options);
+        this.series = [{ color: '', name: '', data: [{ x: 0, y: 0 }] }];
+    };
 
-    var url = option.url;
-    var expression = option.expression;
-    var start = option.start;
-    var stop = option.stop;
+    Chart.prototype = {
+        constructor: Chart,        
 
-    if (!start) {
-        start = new Date();
-        start = new Date(start.setHours(start.getHours() - 1));
-    }        
+        init: function(type, element, options) {
 
-    if (!stop) {
-        stop = new Date();
-    }
-    
+            this.$element = $(element);
+            this.type = type;
+            this.options = this.getOptions(options);
+            this.palette = new Rickshaw.Color.Palette({ scheme: this.options.colorscheme });
+            this.getSeries(this.initChart.bind(this));            
+        },
 
-    $.getJSON(url,
-    {
-        expression: expression,
-        start: start.toISOString(),
-        stop: stop.toISOString()
-    },
-        function (data) {
-            var series = [];
-            var palette = new Rickshaw.Color.Palette({ scheme: 'spectrum14' });
+        initChart:function(newSeries) {
+            var ticksTreatment = 'glow';
+
+            var $el = this.$element;             
+
+            if (newSeries.length)
+                this.series.shift();
+
+            for (var i = 0; i < newSeries.length; i++) {
+                this.series[i] = newSeries[i];
+            }
+           
+            this.initElements();
+
+            var width = $('body').width() - 80;
+            $el.css({ width: width + 'px' });
+            
+            this.graph = new Rickshaw.Graph({
+                element: this.$chart[0],
+                width: width - 500,
+                height: 250,
+                renderer: 'area',
+                stroke: true,
+                preserve: true,
+                series: this.series
+            });
+
+            this.graph.render();
+            
+            if (newSeries.length)
+                $el.fadeIn();
+
+            this.hoverDetail = new Rickshaw.Graph.HoverDetail({
+                graph: this.graph,
+                xFormatter: function (x) { var date = new moment(x * 1000); return date.format('LLLL'); }
+            });           
+
+            if (this.options.annotations) {
+                this.annotator = new Rickshaw.Graph.Annotate({
+                    graph: this.graph,
+                    element: this.$timeline[0]
+                });
+
+                this.getAnnotations(this.addAnnotations.bind(this));                
+            }
+
+            this.legend = new Rickshaw.Graph.Legend({
+                graph: this.graph,
+                element: this.$legend[0]
+
+            });
+
+            this.shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+                graph: this.graph,
+                legend: this.legend
+            });
+
+            this.highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
+                graph: this.graph,
+                legend: this.legend
+            });
+
+            this.xAxis = new Rickshaw.Graph.Axis.Time({
+                graph: this.graph,
+                ticksTreatment: ticksTreatment,
+                timeFixture: new Rickshaw.Fixtures.Time.Local()
+            });
+
+            this.xAxis.render();
+
+            this.yAxis = new Rickshaw.Graph.Axis.Y({
+                graph: this.graph,
+                tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+                ticksTreatment: ticksTreatment
+            });
+
+            this.yAxis.render();
+
+            this.controls = new RenderControls({
+                element: $el.find('.side_panel')[0],
+                graph: this.graph
+            });
+
+            setInterval(function() {
+
+                this.getSeries(function (series) {
+                   
+                    for (var i = 0; i < series.length; i++) {
+                        if (this.series[i] && this.series[i].data)
+                            this.series[i].data = series[i].data;
+                        else {
+                            this.series[i] = series[i];
+                        }
+                    }
+                    
+                    this.graph.update();
+                    
+                }.bind(this));
+
+            }.bind(this), this.options.updateInterval);
+
+            if (this.options.annotations) {
+
+                setInterval(function () {
+                    this.getAnnotations(this.addAnnotations.bind(this));
+                }.bind(this), this.options.updateInterval);
+
+            }
+
+        },
+
+        initElements: function () {
+            var $el = this.$element;
+            var options = this.options;
+
+            var template = '<div class="chart-header"></div><table width="100%"><tr><td class="control"></td><td><div class="chart"></div></td><td><div class="legend"></div></td></tr></table>';
+
+            $el.empty().append(template);
+
+            this.$chart = $el.find('.chart');
+            this.$legend = $el.find('.legend');
+            this.$header = $el.find('.chart-header').text(options.title);
+
+            $el.find('.control').append(options.controlTemplate);
+
+            if (options.annotations) {
+                this.$timeline = $('<div class="timeline"></div>').insertAfter(this.$chart);
+            }
+        },
+
+        getSeries: function (callback) {
+            var start = new Date();
+            start = new Date(start.setHours(start.getHours() - 1)).toISOString();
+
+            var stop = new Date().toISOString();
+
+            $.getJSON(this.options.url, { start: start, stop: stop, expression: this.options.expression }, function(series) {
+
+                series = this.seriesListConverter(series);
+                
+                callback(series);
+
+            }.bind(this));
+        },
+
+        getAnnotations: function(callback) {
+            var start = new Date();
+            start = new Date(start.setHours(start.getHours() - 1)).toISOString();
+
+            var stop = new Date().toISOString();
+
+            $.getJSON(this.options.annotationUrl, { start: start, stop: stop }, callback.bind(this));
+        },
+
+        addAnnotations:function(annotations) {
+            if (annotations) {
+
+                for (var i = 0; i < annotations.length; i++) {
+                    var annotation = annotations[i];
+                    var time = annotation.timestamp;
+                    var message = annotation.message;
+
+                    this.annotator.add(parseInt(time), message);
+                }
+
+                this.$element.find('.annotation').empty();                
+
+                this.annotator.update();
+            }
+        },
+
+        seriesListConverter: function (data) {
+
+            var series = [];            
+
             for (var i = 0; i < data.length; i++) {
 
                 var points = [];
@@ -33,164 +200,93 @@ var getData = function (callback,option) {
                 for (var j = 0; j < data[i].dataPoints.length; j++) {
                     var point = {
                         y: data[i].dataPoints[j][0],
-                        x: data[i].dataPoints[j][1]
+                        x: data[i].dataPoints[j][1] * 1
                     };
                     points[j] = point;
                 }
 
                 series[i] = {
                     data: points,
-                    color: palette.color(),
+                    color: this.palette.color(),
                     name: data[i].target
                 };
             }
 
-            if (callback)
-                callback(series);
-        }
-    );
-};
+            return series;
+        },
 
-function initChart($container) {
+        getOptions: function(options) {
 
-    var title = $container.attr('data-title');
-    var expression = $container.attr('data-expression');
-    var url = $container.attr('data-url');
-    var interval = $container.attr('data-update-interval');
-    var renderer = $container.attr('data-renderer');
+            var result = $.extend({}, $.extend(true, {}, $.fn.chart.defaults), options);
 
-    if (!renderer)
-        renderer = 'area';
-
-    var series = [
-        {
-            color: '',
-            name: '',
-            data: [{ x: 0, y: 0 }]
-        }
-    ];
-
-    var graph;
-    var legend;
-    var highlighter;
-
-    getData(function(d) {
-        if(d.length)
-			series.shift();
-			
-        $container.empty();
-        var template = '<div class="chart-header"></div><table width="100%"><tr><td class="control"></td><td><div class="chart"></div></td><td><div class="legend"></div></td></tr></table>';
-        $container.append(template);
-        var $chart = $container.find('.chart');
-        var $chartHeader = $container.find('.chart-header');
-        $chartHeader.text(title);
-        var $legend = $container.find('.legend');
-        $container.find('.control').append($('.panel_template').clone().children());
-
-       
-        for (var i = 0; i < d.length; i++) {
-            series[i] = d[i];			
-        }
-        var width = $('body').width()-80;
-        $container.css({ width: width + 'px' });
-        
-        graph = new Rickshaw.Graph({
-            element: $chart[0],
-            width: width - 500,
-            height: 250,
-            renderer: renderer,
-            stroke: true,
-            preserve: true,
-            series: series
-        });
-        
-        graph.render();
-
-		if(d.length)
-			$container.fadeIn();
-
-        var hoverDetail = new Rickshaw.Graph.HoverDetail({
-            graph: graph,
-            xFormatter: function(x) {
-                var date = new moment(x * 1000);
-                return date.format('LLLL');
-            }
-        });
-
-        legend = new Rickshaw.Graph.Legend({
-            graph: graph,
-            element: $legend[0]
-
-        });
-
-        var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
-            graph: graph,
-            legend: legend
-        });
-
-        highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
-            graph: graph,
-            legend: legend
-        });
-
-        var ticksTreatment = 'glow';
-
-        var xAxis = new Rickshaw.Graph.Axis.Time({
-            graph: graph,
-            ticksTreatment: ticksTreatment,
-            timeFixture: new Rickshaw.Fixtures.Time.Local()
-        });
-
-        xAxis.render();
-
-        var yAxis = new Rickshaw.Graph.Axis.Y({
-            graph: graph,            
-            tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-            ticksTreatment: ticksTreatment            
-        });
-
-        yAxis.render();
-        
-        var controls = new RenderControls({
-            element: $container.find('.side_panel')[0],
-            graph: graph
-        });
-
-    }, { url: url, expression: expression });    
-
-    setInterval(function () {
-       
-        getData(function (d) {            
-
-            for (var i = 0; i < d.length; i++) {
-                if (series[i] && series[i].data)
-                    series[i].data = d[i].data;
-                else {
-                    series[i] = d[i];
-                }
+            if (this.$element.data('url')) {
+                result.url = this.$element.data('url');
             }
 
-            graph.update();
+            if (this.$element.data('expression')) {
+                result.expression = this.$element.data('expression');
+            }
 
-        }, { url: url, expression: expression});
+            if (this.$element.data('annotations')) {
+                result.annotations = this.$element.data('annotations');
+            }
 
-    }, interval);
+            if (this.$element.data('annotations-url')) {
+                result.annotationUrl = this.$element.data('annotations-url');
+            }
 
-   
-}
+            if (this.$element.data('title')) {
+                result.title = this.$element.data('title');
+            }
 
-$(document).ready(function () {
-    $('.chart_container').each(function() {
-        initChart($(this));
-    });
+            if (this.$element.data('update-interval')) {
+                result.updateInterval = this.$element.data('update-interval');
+            }
 
-    $('body').on('click', '.js-find-target', function() {
-        var $self = $(this);
+            if (this.$element.data('color-scheme')) {
+                result.colorscheme = this.$element.data('color-scheme');
+            }
 
-        var $target = $self.parent().find('input.' + $self.attr('for'));
-        
-        $target.click();
+            return result;
+        }
 
-        return false;
-    })
+    };
+
+    $.fn.chart = function (option) {
+
+        return this.each(function () {
+
+            var $this, data, options, type;
+            type = 'rickshaw-chart';
+            $this = $(this);
+            data = $(this).data(type);
+            options = typeof option === 'object' && option;
+
+            if (!data) {
+                $this.data(type, (data = new Chart(type, this, options)));
+            }
+
+            if (typeof option === 'string') {
+                data['client_' + option]();
+            }
+        });
+    };
+
+    $.fn.chart.Constructor = Chart;
+
+    $.fn.chart.defaults = {
+        url: undefined,
+        annotationUrl: undefined,
+        expression: undefined,
+        annotations: false,
+        title: undefined,
+        updateInterval: 10000,
+        colorscheme:'spectrum14',
+        controlTemplate: '<form class="side_panel"><section><div class=" renderer_form toggler"><input type="radio" name="renderer" class="area" value="area" checked><label for="area" class="js-find-target">area</label><input type="radio"  name="renderer" class="bar" value="bar"><label for="bar" class="js-find-target">bar</label><input type="radio" name="renderer" class="line" value="line"><label for="line" class="js-find-target">line</label><input type="radio" name="renderer" class="scatter" value="scatterplot"><label for="scatter" class="js-find-target">scatter</label></div></section><section><div class="offset_form"><label for="stack"><input type="radio" name="offset" class="stack" value="zero" checked><span>stack</span></label><label for="stream"><input type="radio" name="offset" class="stream" value="wiggle"><span>stream</span></label><label for="pct"><input type="radio" name="offset" class="pct" value="expand"><span>pct</span></label><label for="value"><input type="radio" name="offset" class="value" value="value"><span>value</span></label></div><div class="interpolation_form"><label for="cardinal" ><input type="radio" name="interpolation" class="cardinal" value="cardinal" checked><span>cardinal</span></label><label for="linear" ><input type="radio" name="interpolation" class="linear" value="linear"><span>linear</span></label><label for="step" ><input type="radio" name="interpolation" class="step" value="step-after"><span>step</span></label></div></section></form>'
+    };
+
+}(window.jQuery);
+
+$(document).ready(function() {
+    $('.chart_container').chart();
 });

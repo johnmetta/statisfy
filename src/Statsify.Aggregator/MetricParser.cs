@@ -16,6 +16,11 @@ namespace Statsify.Aggregator
         {
             var datagram = Encoding.UTF8.GetString(buffer);
 
+            return ParseMetrics(datagram);
+        }
+
+        public IEnumerable<Metric> ParseMetrics(string datagram)
+        {
             var metrics = datagram.Contains("\n")
                 ? datagram.Split('\n')
                 : new[] { datagram };
