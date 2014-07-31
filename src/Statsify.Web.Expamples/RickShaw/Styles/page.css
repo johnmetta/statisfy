@@ -181,3 +181,7 @@ label[for=linear] {
 label[for=step] {
 	background-image: url(../images/interp_step.png);
 }
+
+.annotation-wrap {
+     margin: 20px;
+}
