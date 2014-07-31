@@ -48,5 +48,7 @@ namespace Statsify.Client
         /// <param name="value"></param>
         /// <param name="sample"></param>
         void Time(string metric, double value, double sample = 1);
+        
+        void Annotation(string message);
     }
 }

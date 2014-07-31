@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
+using System.Text;
 using System.Threading;
 using NLog;
 using Statsify.Aggregator.Configuration;
@@ -16,6 +18,8 @@ namespace Statsify.Aggregator
 
         private readonly MetricAggregator metricAggregator;
 
+        private readonly AnnotationAggregator annotationAggregator;
+
         private Timer publisherTimer;
 
         private readonly ManualResetEvent stopEvent;
@@ -23,6 +27,8 @@ namespace Statsify.Aggregator
         private readonly Logger log = LogManager.GetCurrentClassLogger();        
         
         private UdpDatagramReader udpDatagramReader;
+
+        private const string AnnotationDatagramPrefix = "annotation:";
 
         public StatsifyAggregatorService(HostSettings hostSettings, ConfigurationManager configurationManager)
         {
@@ -32,6 +38,8 @@ namespace Statsify.Aggregator
 
             metricAggregator = new MetricAggregator(configuration, stopEvent);
 
+            annotationAggregator = new AnnotationAggregator(configuration, stopEvent);
+
             metricParser = new MetricParser();
         }
 
@@ -39,23 +47,38 @@ namespace Statsify.Aggregator
         {
             stopEvent.Reset();
 
-            udpDatagramReader = new UdpDatagramReader(IPAddress.Parse(configuration.Endpoint.Address), configuration.Endpoint.Port);
+            var ipAddress = IPAddress.Parse(configuration.Endpoint.Address);
 
-            udpDatagramReader.DatagramHandler += UdpDatagramReaderDatagramHandler;
+            udpDatagramReader = new UdpDatagramReader(ipAddress, configuration.Endpoint.Port);
+
+            udpDatagramReader.DatagramHandler += UdpDatagramReaderHandler;                        
 
             publisherTimer = new Timer(PublisherTimerCallback, null, configuration.Storage.FlushInterval, configuration.Storage.FlushInterval);                       
 
             return true;
         }
 
-        private void UdpDatagramReaderDatagramHandler(object sender, UdpDatagramEventArgs args)
+        private void UdpDatagramReaderHandler(object sender, UdpDatagramEventArgs args)
         {
-            foreach(var metric in metricParser.ParseMetrics(args.Buffer))
-            {
-                log.Trace("received metric '{0}' ({1}) with value {2}", metric.Name, metric.Type, metric.Value);
+            var datagram = Encoding.UTF8.GetString(args.Buffer);
 
-                metricAggregator.Aggregate(metric);
+            if (datagram.StartsWith(AnnotationDatagramPrefix, true, CultureInfo.InvariantCulture))
+            {
+                var annotation = datagram.Substring(AnnotationDatagramPrefix.Length);
+
+                log.Trace("received annotation '{0}'", annotation);
+
+                annotationAggregator.Aggregate(annotation);
             }
+            else
+            {
+                foreach (var metric in metricParser.ParseMetrics(datagram))
+                {
+                    log.Trace("received metric '{0}' ({1}) with value {2}", metric.Name, metric.Type, metric.Value);
+
+                    metricAggregator.Aggregate(metric);
+                }   
+            }            
         }
 
         public bool Stop(HostControl hostControl)
@@ -92,6 +115,8 @@ namespace Statsify.Aggregator
         private void PublisherTimerCallback(object state)
         {
             metricAggregator.Flush();
+
+            annotationAggregator.Flush();
         }
     }
 }

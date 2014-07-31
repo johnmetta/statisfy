@@ -12,10 +12,10 @@
 </head>
 <body>
     <div id="content">
-        <div class="chart_container" data-expression="AliasByNode(servers.*.system.processor.*,1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Processor" data-update-interval="10000"></div>
-        <div class="chart_container" data-expression="AliasByNode(servers.*.system.physical_disk.*,1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Physical Disk" data-update-interval="10000"></div>
-        <div class="chart_container" data-expression="AliasByNode(servers.*.system.memory.*,1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="Memory" data-update-interval="10000"></div>
-        <div class="chart_container" data-expression="AliasByNode(servers.*.system.asp_net.*,1,4)" data-url="http://mow1aps3:8081/statsify/api/series" data-title="ASP.NET" data-update-interval="10000"></div>
+        <div class="chart_container" data-expression="AliasByNode(servers.*.system.processor.*,1,4)" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="10000"></div>
+        <div class="chart_container" data-expression="AliasByNode(servers.*.system.physical_disk.*,1,4)" data-url="http://localhost/statsify/api/series" data-title="Physical Disk" data-update-interval="10000"></div>
+        <div class="chart_container" data-expression="AliasByNode(servers.*.system.memory.*,1,4)" data-url="http://localhost/statsify/api/series" data-title="Memory" data-update-interval="10000"></div>
+        <div class="chart_container" data-expression="AliasByNode(servers.*.system.asp_net.*,1,4)" data-url="http://localhost/statsify/api/series" data-title="ASP.NET" data-update-interval="10000"></div>
     </div>
 
     <div class="panel_template" style="display:none;">

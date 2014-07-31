@@ -11,7 +11,7 @@ namespace Statsify.Web.Api
 
     public class ApiModule : NancyModule
     {        
-        public ApiModule(IMetricService metricService, ISeriesService seriesService)
+        public ApiModule(IMetricService metricService, ISeriesService seriesService, IAnnotationService annotationService)
         {
 
             Get["/api/find/{query}"] = x =>
@@ -21,13 +21,42 @@ namespace Statsify.Web.Api
                 return Response.AsJson(metrics);
             };
 
+            Get["/api/annotations"] = x => {
+
+                JsonSettings.MaxJsonLength = int.MaxValue;  
+
+                DateTime start = Request.Query.start;
+                DateTime stop = Request.Query.stop;
+
+                var data = annotationService.List(start.ToUniversalTime(), stop.ToUniversalTime());
+                var annotations = data.Select(a => new { Timestamp = a.Date.ToUniversalTime().ToUnixTimestamp(), a.Message });
+
+                return Response.AsJson(annotations);
+            };
+
+            Post["/api/annotations"] = x => {
+
+                string message = Request.Form.Message;
+
+                try
+                {
+                    annotationService.AddAnnotation(message);
+                }
+                catch(Exception e)
+                {
+                    return Response.AsJson(e);
+                }
+
+                return null;
+            };
+
             Get["/api/series"] = x =>
             {                           
                 try
                 {
                     JsonSettings.MaxJsonLength = int.MaxValue;  
 
-                    string expression = Request.Query.expression;
+                    string expression = Request.Query.expression;                    
 
                     DateTime? start = Request.Query.start;
 
@@ -49,11 +78,11 @@ namespace Statsify.Web.Api
                         let @from = series.From.ToUnixTimestamp()
                         let interval = series.Interval.ToUnixTimestamp()
                         select new SeriesView
-                        {
-                            Target = series.Target,
-                            DataPoints = series.Values.Select((v, i) => new[] { v, @from + i * interval }).ToArray()
-                        }
-                        ).ToArray();
+                            {
+                                Target = series.Target,
+                                DataPoints = series.Values.Select((v, i) => new[] { v, @from + i * interval }).ToArray()
+                            }
+                        ).ToArray();                    
 
                     return Response.AsJson(seriesViewList);
                 }
