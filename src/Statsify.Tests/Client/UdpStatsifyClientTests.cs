@@ -66,6 +66,18 @@ namespace Statsify.Tests.Client
             } // using
         }
 
+        [Test]
+        public void Annotation()
+        {
+            using(var stats = new UdpStatsifyClient(port: Port))
+            {
+                var prefix = "annotation:";
+                var message = "Test Message!";
+                
+                AssertDatagram(Port, prefix+message, () => stats.Annotation(message));
+            }
+        }
+
         private void AssertDatagram(int port, string expectedDatagram, Action action)
         {
             var completionEvent = new ManualResetEvent(false);
