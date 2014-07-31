@@ -15,10 +15,12 @@ namespace Statsify.Core.Storage
 
         public static void CreateDatabase(string path)
         {
-            if(!Directory.Exists(path))
-                Directory.CreateDirectory(path);
+            var directoryPath = Path.Combine(path, "statsify");
 
-            var filePath = Path.Combine(path, "statsify", DbName);
+            if (!Directory.Exists(directoryPath))
+                Directory.CreateDirectory(directoryPath);
+
+            var filePath = Path.Combine(directoryPath, DbName);
        
             try
             {               
@@ -37,13 +39,20 @@ namespace Statsify.Core.Storage
                 throw;
             }
                    
-        }        
+        }
 
         public static bool Exists(string path)
         {
             path = Path.Combine(path, "statsify", DbName);
 
             return File.Exists(path);
-        }        
+        }
+
+        public static void DropDatabase(string path)
+        {
+            path = Path.Combine(path, "statsify", DbName);
+
+            File.Delete(path);
+        }
     }
 }
