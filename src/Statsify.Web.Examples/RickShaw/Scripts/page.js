@@ -53,7 +53,7 @@
 
             this.hoverDetail = new Rickshaw.Graph.HoverDetail({
                 graph: this.graph,
-                xFormatter: function (x) { var date = new moment(x * 1000); return date.format('LLLL'); }
+                xFormatter: function (x) { var date = new moment(x * 1000); return date.calendar(); }
             });           
 
             if (this.options.annotations) {
@@ -107,15 +107,12 @@
                 graph: this.graph
             });
 
-            setInterval(function() {
-               
-                this.getSeries(this.updateSeries.bind(this));
-
-            }.bind(this), this.options.updateInterval);
+            
+            this.updateSeriesInterval = setInterval(function () {this.getSeries(this.updateSeries.bind(this)); }.bind(this), this.options.updateInterval);
 
             if (this.options.annotations) {
-               
-                setInterval(function () {
+
+                this.updateAnnotationsInterval = setInterval(function() {
                     var stop = new Date();
                     var start = new Date(stop - parseInt(this.options.updateInterval));
 
@@ -124,7 +121,6 @@
                 }.bind(this), this.options.updateInterval);
 
             }
-
         },
         
         findSeries:function(series, target) {
@@ -135,7 +131,7 @@
             }
 
             return null;
-        },
+        },        
 
         mergePoints: function (points, newpoints) {
             for (var i = 0; i < newpoints.length; i++) {
@@ -220,9 +216,9 @@
                 for (var i = 0; i < annotations.length; i++) {
                     var annotation = annotations[i];
                     var time = annotation.timestamp;
-                    var message = annotation.message;
+                    var message = annotation.message;                    
 
-                    this.annotator.add(parseInt(time), message);
+                    this.annotator.add(parseInt(time), message + '<br />' + new moment(time * 1000).calendar());
                 }
 
                 this.annotator.update();
@@ -293,8 +289,7 @@
             }
 
             return result;
-        }       
-
+        }        
     };
 
     $.fn.chart = function (option) {
@@ -335,10 +330,13 @@
 $.ajaxSetup({ cache: false });
 
 $(document).ready(function () {
+    moment.lang('ru');
+
     var $charts = $('.chart_container');
     $charts.chart();
 
     $('#send').click(function () {
+       
         var $self = $(this);
 
         var $a = $('#annotation');
