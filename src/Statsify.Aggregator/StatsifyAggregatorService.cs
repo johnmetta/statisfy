@@ -38,7 +38,7 @@ namespace Statsify.Aggregator
 
             metricAggregator = new MetricAggregator(configuration, stopEvent);
 
-            annotationAggregator = new AnnotationAggregator(configuration, stopEvent);
+            annotationAggregator = new AnnotationAggregator(configuration);
 
             metricParser = new MetricParser();
         }
@@ -114,9 +114,7 @@ namespace Statsify.Aggregator
 
         private void PublisherTimerCallback(object state)
         {
-            metricAggregator.Flush();
-
-            annotationAggregator.Flush();
+            metricAggregator.Flush();            
         }
     }
 }
