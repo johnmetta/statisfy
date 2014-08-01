@@ -216,9 +216,10 @@
                 for (var i = 0; i < annotations.length; i++) {
                     var annotation = annotations[i];
                     var time = annotation.timestamp;
-                    var message = annotation.message;                    
-
-                    this.annotator.add(parseInt(time), message + '<br />' + new moment(time * 1000).calendar());
+                    var message = annotation.message;
+                    
+                    message = '<span class="annotation-message">' + message + '</span><br />' + '<span class="annotation-date">' + new moment(time * 1000).calendar() + '</span>';
+                    this.annotator.add(parseInt(time), message);
                 }
 
                 this.annotator.update();
