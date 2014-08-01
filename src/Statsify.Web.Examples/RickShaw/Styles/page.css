@@ -185,3 +185,11 @@ label[for=step] {
 .annotation-wrap {
      margin: 20px;
 }
+.annotation-message {
+    font-style: italic;
+    font-size: 11px
+}
+.annotation-date {
+    font-size: 10px;
+    font-weight: bold;
+}
