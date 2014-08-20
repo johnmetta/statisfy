@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
 
@@ -42,45 +43,57 @@ namespace Statsify.Client
             PublishMetric(metric, "ms", value, sample);
         }
 
-        public void Annotation(string message)
+        public void Annotation(string title, string message)
         {
-            PublishAnnotation(message);
-        }
-
-        public void Time(string metric, Action action, double sample = 1)
-        {
-            
+            PublishAnnotation(title, message);
         }
 
         private void PublishMetric(string metric, string type, double value, double sample, bool explicitlySigned = false)
         {
+            var cultureInfo = CultureInfo.InvariantCulture;
+
             if(sample < 1 && sample < Sampler.NextDouble()) return;
-            
+
             var metricName = GetMetricName(metric);
 
             var metricValueFormat = explicitlySigned ? "{0:+#.####;-#.####;#}" : "{0}";
             var metricValue =
                 value == 0 ?
-                    (explicitlySigned ?
-                        "+0" :
-                        "0") :
-                    string.Format(CultureInfo.InvariantCulture, metricValueFormat, (float)value);
+                    (explicitlySigned ? "+0" : "0") :
+                    string.Format(cultureInfo, metricValueFormat, (float)value);
 
-            var datagram = string.Format(CultureInfo.InvariantCulture, "{0}:{1}|{2}", metricName, metricValue, type);
+            var datagram = string.Format(cultureInfo, "{0}:{1}|{2}", metricName, metricValue, type);
                 
             if(sample < 1)
-                datagram += string.Format(CultureInfo.InvariantCulture, "|@{0:N3}", (float)sample);
+                datagram += string.Format(cultureInfo, "|@{0:N3}", (float)sample);
 
             PublishDatagram(datagram);
         }
 
-        private void PublishAnnotation(string message)
+        private void PublishAnnotation(string title, string message)
         {
-            var datagram = String.Format("annotation:{0}", message);
+            using(var memoryStream = new MemoryStream())
+            {
+                byte[] buffer;
 
-            var buffer = Encoding.UTF8.GetBytes(datagram);
+                using(var binaryWriter = new BinaryWriter(memoryStream, Encoding.ASCII))
+                {
+                    binaryWriter.Write(Encoding.ASCII.GetBytes("datagram:"));
+                    binaryWriter.Write(Encoding.ASCII.GetBytes("annotation-v1:"));
 
-            udpClient.Send(buffer, buffer.Length, host, port);           
+                    buffer = Encoding.UTF8.GetBytes(title);
+                    binaryWriter.Write(buffer.Length);
+                    binaryWriter.Write(buffer);
+
+                    buffer = Encoding.UTF8.GetBytes(message);
+                    binaryWriter.Write(buffer.Length);
+                    binaryWriter.Write(buffer);
+                } // using
+
+                buffer = memoryStream.ToArray();
+
+                udpClient.Send(buffer, buffer.Length, host, port);           
+            } // using
         }
 
         private string GetMetricName(string name)
