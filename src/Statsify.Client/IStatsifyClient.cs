@@ -49,6 +49,11 @@ namespace Statsify.Client
         /// <param name="sample"></param>
         void Time(string metric, double value, double sample = 1);
         
-        void Annotation(string message);
+        /// <summary>
+        /// Records an annotation with <paramref name="title"/> and <paramref name="message"/>.
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="message"></param>
+        void Annotation(string title, string message);
     }
 }

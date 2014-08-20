@@ -71,25 +71,28 @@ namespace Statsify.Tests.Client
         {
             using(var stats = new UdpStatsifyClient(port: Port))
             {
-                var prefix = "annotation:";
-                var message = "Test Message!";
-                
-                AssertDatagram(Port, prefix+message, () => stats.Annotation(message));
+                AssertDatagram(Port, 
+                    Encoding.UTF8.GetBytes("datagram:annotation-v1:\n\0\0\0Deployment" + (char)24 + "\0\0\0Statsify Core Deployment"), 
+                    () => stats.Annotation("Deployment", "Statsify Core Deployment"));
             }
         }
 
         private void AssertDatagram(int port, string expectedDatagram, Action action)
         {
+            AssertDatagram(port, Encoding.UTF8.GetBytes(expectedDatagram), action);
+        }
+
+        private void AssertDatagram(int port, byte[] expectedDatagram, Action action)
+        {
             var completionEvent = new ManualResetEvent(false);
-            var actualDatagram = "";
+            byte[] actualDatagram = null;
 
             var ipEndpoint = new IPEndPoint(IPAddress.Any, port);
             using(var udpClient = new UdpClient(port))
             {
                 udpClient.BeginReceive(ar => {
-                    var buffer = udpClient.EndReceive(ar, ref ipEndpoint);
-                    actualDatagram = Encoding.UTF8.GetString(buffer);
-
+                    actualDatagram = udpClient.EndReceive(ar, ref ipEndpoint);
+                    
                     completionEvent.Set();
                 }, null);
 
@@ -98,7 +101,7 @@ namespace Statsify.Tests.Client
                 completionEvent.WaitOne();
             } // using
 
-            Assert.AreEqual(expectedDatagram, actualDatagram);
+            CollectionAssert.AreEqual(expectedDatagram, actualDatagram);
         }
     }
 
