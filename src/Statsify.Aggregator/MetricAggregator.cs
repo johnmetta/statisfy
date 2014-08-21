@@ -17,23 +17,14 @@ namespace Statsify.Aggregator
     public class MetricAggregator
     {
         private readonly Logger log = LogManager.GetCurrentClassLogger();
-
         private readonly StatsifyAggregatorConfigurationSection configuration;
-
         private readonly ManualResetEvent stopEvent;
-
         private readonly float flushInterval;
-
         private readonly IDictionary<string, IList<float>> timers = new Dictionary<string, IList<float>>();
-
         private readonly IDictionary<string, float> timerCounters = new Dictionary<string, float>();
-
         private readonly IDictionary<string, float> gauges = new Dictionary<string, float>();
-
         private readonly IDictionary<string, float> counters = new Dictionary<string, float>();
-
         private readonly ConcurrentQueue<Tuple<string, DateTime, float>> flushQueue = new ConcurrentQueue<Tuple<string, DateTime, float>>();
-
         private readonly object sync = new object();
 
         public MetricAggregator(StatsifyAggregatorConfigurationSection configuration, ManualResetEvent stopEvent)
