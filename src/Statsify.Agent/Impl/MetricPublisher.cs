@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Timers;
 using NLog;
 using Statsify.Agent.Configuration;
 using Statsify.Client;
@@ -19,10 +20,7 @@ namespace Statsify.Agent.Impl
         private ManualResetEvent stopEvent;
 
         private ManualResetEvent stoppedEvent;
-
-        private Timer publisherTimer;
-
-        private volatile bool publishing;
+        private System.Timers.Timer publisherTimer;
 
         public MetricPublisher(MetricCollector metricCollector, IStatsifyClient statsifyClient, TimeSpan collectionInterval)
         {
@@ -39,32 +37,30 @@ namespace Statsify.Agent.Impl
 
             stoppedEvent = new ManualResetEvent(false);
 
-            publisherTimer = new Timer(PublisherTimerCallback, null, collectionInterval, collectionInterval);
+            publisherTimer = new System.Timers.Timer(collectionInterval.TotalMilliseconds) { AutoReset = false };
+            publisherTimer.Elapsed += PublisherTimerCallback;
 
-            publishing = false;
+            publisherTimer.Start();
         }
 
         public void Stop()
         {
             if(publisherTimer == null) return;
 
-            publisherTimer.Dispose(stoppedEvent);
+            stopEvent.Set();
+            publisherTimer.Stop();
 
-            stopEvent.WaitOne();
-
-            publisherTimer = null;
+            publisherTimer.Dispose();
 
             stopEvent.Dispose();
 
             stoppedEvent.Dispose();
+
+            publisherTimer = null;
         }
 
-        private void PublisherTimerCallback(object state)
+        private void PublisherTimerCallback(object state, ElapsedEventArgs args)
         {
-            if(publishing) return;
-
-            publishing = true;
-
             foreach(var metric in metricCollector.GetCollectedMetrics())
             {
                 log.Trace("publishing metric '{0}' with value '{1}'", metric.Name, metric.Value);
@@ -84,7 +80,8 @@ namespace Statsify.Agent.Impl
                 }
             }
 
-            publishing = false;
+            if(!stopEvent.WaitOne(0))
+                publisherTimer.Start();
         }
     }
 }
