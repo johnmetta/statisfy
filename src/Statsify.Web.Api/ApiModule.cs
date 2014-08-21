@@ -14,14 +14,15 @@ namespace Statsify.Web.Api
     using Extensions;
    
     public class ApiModule : NancyModule
-    {        
+    {
         public ApiModule(IMetricService metricService, ISeriesService seriesService, IAnnotationService annotationService)
         {
 
             Get["/api/find/{query}"] = x =>
             {
-                MetricInfo[] metrics = metricService.Find(x.query);
-               
+                string query = x.query;
+                var metrics = metricService.Find(query);
+
                 return Response.AsJson(metrics);
             };
 
@@ -55,17 +56,17 @@ namespace Statsify.Web.Api
             };
 
             Get["/api/series"] = x =>
-            {                           
+            {
                 try
                 {
-                    JsonSettings.MaxJsonLength = int.MaxValue;                   
+                    JsonSettings.MaxJsonLength = int.MaxValue;
 
                     var model = new SeriesQueryModel();
 
                     this.BindTo(model, new BindingConfig { BodyOnly = false });
 
                     
-                    var now = DateTime.Now;
+                    var now = DateTime.UtcNow;
 
                     var start = model.Start.GetValueOrDefault(now.AddHours(-1)).ToUniversalTime();
                     var stop = model.Stop.GetValueOrDefault(now).ToUniversalTime();
@@ -84,10 +85,10 @@ namespace Statsify.Web.Api
 
                     return Response.AsJson(seriesViewList);                    
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     return Response.AsJson(new { e.Message, e.StackTrace });
-                }                                                
+                }
             };
         }
     }
