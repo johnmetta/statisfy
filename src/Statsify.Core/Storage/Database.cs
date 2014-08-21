@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -86,7 +85,7 @@ namespace Statsify.Core.Storage
             {
                 var signature = binaryReader.ReadBytes(Signature.Length);
                 if(!signature.SequenceEqual(Signature)) 
-                    throw new DataException("Incompatible Statsify Database format");
+                    throw new DatabaseException("Incompatible Statsify Database format");
 
                 var major = binaryReader.ReadByte();
                 var minor = binaryReader.ReadByte();
