@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Statsify.Core.Storage
@@ -68,7 +69,7 @@ namespace Statsify.Core.Storage
             return new AnnotationDatabase(path);
         }
 
-        public void WriteAnnotation(DateTime timestamp, string title, string message)
+        public void WriteAnnotation(DateTime timestamp, string title, string message, params string[] tags)
         {
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.Write, FileShare.Read))
             using(var binaryWriter = new BinaryWriter(fileStream, Encoding.UTF8, true))
@@ -85,6 +86,18 @@ namespace Statsify.Core.Storage
                 buffer = Encoding.UTF8.GetBytes(message);
                 binaryWriter.Write(buffer.Length);
                 binaryWriter.Write(buffer);
+
+                var tagCount = tags == null ? 0 : tags.Length;
+
+                binaryWriter.Write(tagCount);
+
+                if(tags != null)
+                    foreach(var tag in tags)
+                    {
+                        buffer = Encoding.UTF8.GetBytes(tag);
+                        binaryWriter.Write(buffer.Length);
+                        binaryWriter.Write(buffer);
+                    } // foreach
 
                 binaryWriter.Flush();
             } // using
@@ -125,7 +138,22 @@ namespace Statsify.Core.Storage
 
                 var message = Encoding.UTF8.GetString(buffer);
 
-                var annotation = new Annotation(ConvertFromTimestamp(timestamp), title, message);
+                var tags = new List<string>();
+                var tagCount = 0;
+
+                if(!binaryReader.TryReadInt32(out tagCount)) yield break;
+
+                for(var i = 0; i < tagCount; ++i)
+                {
+                    if(!binaryReader.TryReadInt32(out bytes)) yield break;
+                    if(!binaryReader.TryRead(bytes, out buffer)) yield break;
+
+                    var tag = Encoding.UTF8.GetString(buffer);
+
+                    tags.Add(tag);
+                } // for
+
+                var annotation = new Annotation(ConvertFromTimestamp(timestamp), title, message, tags);
 
                 yield return annotation;
             } // while
