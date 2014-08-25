@@ -7,21 +7,21 @@ using Statsify.Core.Storage;
 namespace Statsify.Tests.Core.Storage
 {
     [TestFixture]
-    public class DatabaseTests
+    public class DatapointDatabaseTests
     {
         [Test]
         public void CreateOpen()
         {
             var path = Path.GetTempFileName();
 
-            Database.Create(path, 0.5f, DownsamplingMethod.Sum, 
+            DatapointDatabase.Create(path, 0.5f, DownsamplingMethod.Sum, 
                 new RetentionPolicy {
                     { TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(1) },
                     { TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(5) },
                     { TimeSpan.FromSeconds(20), TimeSpan.FromMinutes(20) }
                 });
 
-            var database = Database.Open(path);
+            var database = DatapointDatabase.Open(path);
 
             Assert.AreEqual(0.5f, database.DownsamplingFactor);
             Assert.AreEqual(DownsamplingMethod.Sum, database.DownsamplingMethod);
@@ -48,7 +48,7 @@ namespace Statsify.Tests.Core.Storage
             Func<DateTime> currentTimeProvider = () => date.AddSeconds(n);
 
             var database = 
-                Database.Create(Path.GetTempFileName(), 0.5f, DownsamplingMethod.Last, 
+                DatapointDatabase.Create(Path.GetTempFileName(), 0.5f, DownsamplingMethod.Last, 
                     new RetentionPolicy {
                         { TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(1) },
                         { TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1) },
