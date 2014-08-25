@@ -187,7 +187,7 @@
         getSeries: function (callback) {
 
             var start = new Date();
-            start = new Date(start.setHours(start.getHours() - 1)).toISOString();
+            start = new Date(start.setHours(start.getHours() - 12)).toISOString();
 
             var stop = new Date().toISOString();
 

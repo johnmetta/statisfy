@@ -1,13 +1,11 @@
-﻿namespace Statsify.Web.Api.Services
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using LinqToDB;
-    using Core.Storage;
-    using Configuration;
+﻿using System;
+using System.Collections.Generic;
+using Statsify.Core.Storage;
+using Statsify.Web.Api.Configuration;
 
-    internal class AnnotationService:IAnnotationService
+namespace Statsify.Web.Api.Services
+{
+    internal class AnnotationService : IAnnotationService
     {
         private readonly string path;
 
@@ -18,25 +16,14 @@
 
         public IEnumerable<Annotation> List(DateTime @from, DateTime until)
         {
-            using(var dc = new AnnotationDataContext(path))
-            {
-                return dc.Annotations.Where(a => a.Date >= @from && a.Date <= until).ToArray();
-            }
+            var annotationDatabase = AnnotationDatabase.OpenOrCreate(path);
+            return annotationDatabase.ReadAnnotations(from, until);
         }
 
-        public void AddAnnotation(string message)
+        public void AddAnnotation(string title, string message)
         {
-            if(String.IsNullOrWhiteSpace(message))
-                throw new ArgumentNullException(message);
-
-            using (var dc = new AnnotationDataContext(path))
-            {
-                dc.Annotations.Insert(() => new Annotation
-                {
-                    Date = DateTime.UtcNow,
-                    Message = message
-                });                
-            }
+            var annotationDatabase = AnnotationDatabase.OpenOrCreate(path);
+            annotationDatabase.WriteAnnotation(DateTime.UtcNow, title, message);
         }
     }
 }

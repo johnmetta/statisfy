@@ -12,9 +12,9 @@
     {
         private readonly DirectoryInfo rootDirectory;
 
-        public MetricService(StatsifyConfigurationSection statsifyConfiguration)
+        public MetricService(string rootDirectory)
         {
-            rootDirectory = new DirectoryInfo(statsifyConfiguration.Storage.Path);
+            this.rootDirectory = new DirectoryInfo(rootDirectory);
         }
 
         public MetricInfo[] Find(string query)
