@@ -319,5 +319,38 @@
             return Absolute(seriesList);
         }
 
+        public Series[] Ema(Series[] series, float smoothingFactor)
+        {
+            foreach(var s in series)
+            {
+                double? ema = 0, prevV = 0, prevEma = 0;
+                var n = 0;
+
+                for(var i = 0; i < s.Values.Length; ++i)
+                {
+                    if(!s.Values[i].HasValue) continue;
+
+                    var v = s.Values[i];
+                    if(n == 0)
+                    {
+                        s.Values[i] = v;
+                        prevV = prevEma = v;
+                    } // if
+                    else
+                    {
+                        ema = smoothingFactor * prevV + (1 - smoothingFactor) * prevEma;
+                        s.Values[i] = ema;
+
+                        prevV = v;
+                        prevEma = ema;
+                    } // else
+
+                    n++;
+                }
+            }
+
+            return series;
+        }
+
     }
 }

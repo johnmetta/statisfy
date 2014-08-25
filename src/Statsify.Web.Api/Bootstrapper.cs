@@ -16,7 +16,7 @@ namespace Statsify.Web.Api
 
             var builder = new ContainerBuilder();
 
-            builder.Register(c => new MetricService(c.Resolve<StatsifyConfigurationSection>())).As<IMetricService>();
+            builder.Register(c => new MetricService(c.Resolve<StatsifyConfigurationSection>().Storage.Path)).As<IMetricService>();
             builder.Register(c => new AnnotationService(c.Resolve<StatsifyConfigurationSection>())).As<IAnnotationService>();
             builder.Register(c => new SeriesService(c.Resolve<IMetricService>())).As<ISeriesService>();
             builder.Register(c => new ConfigurationManager().Configuration).As<StatsifyConfigurationSection>().SingleInstance();

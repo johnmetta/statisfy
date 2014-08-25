@@ -46,7 +46,7 @@ namespace Statsify.Web.Api.Services
 
             return (from metric in metrics.Where(m => m.IsLeaf)
                     let databaseFilePath = metric.Info.FullName
-                    let db = Database.Open(databaseFilePath)
+                    let db = DatapointDatabase.Open(databaseFilePath)
                     let s = db.ReadSeries(start, stop)                   
                     select new Series(s.From,s.Until,s.Interval,s.Values)
                     {

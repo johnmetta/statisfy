@@ -1,25 +1,20 @@
-﻿
-
+﻿using System;
+using System.Linq;
+using Nancy;
 using Nancy.Helpers;
+using Nancy.Json;
+using Nancy.ModelBinding;
+using Statsify.Web.Api.Extensions;
+using Statsify.Web.Api.Models;
+using Statsify.Web.Api.Services;
 
 namespace Statsify.Web.Api
 {
-    using System;
-    using Nancy.Json;
-    using Models;
-    using Services;
-    using Nancy;
-    using System.Linq;
-    using Nancy.ModelBinding;
-    using Extensions;
-   
     public class ApiModule : NancyModule
     {
         public ApiModule(IMetricService metricService, ISeriesService seriesService, IAnnotationService annotationService)
         {
-
-            Get["/api/find/{query}"] = x =>
-            {
+            Get["/api/find/{query}"] = x => {
                 string query = x.query;
                 var metrics = metricService.Find(query);
 
@@ -28,26 +23,26 @@ namespace Statsify.Web.Api
 
             Get["/api/annotations"] = x => {
 
-                JsonSettings.MaxJsonLength = int.MaxValue;  
+                JsonSettings.MaxJsonLength = int.MaxValue;
 
                 DateTime start = Request.Query.start;
                 DateTime stop = Request.Query.stop;
 
                 var data = annotationService.List(start.ToUniversalTime(), stop.ToUniversalTime());
-                var annotations = data.Select(a => new { Timestamp = a.Date.ToUniversalTime().ToUnixTimestamp(), a.Message });
+                var annotations = data.Select(a => new { Timestamp = a.Timestamp.ToUniversalTime().ToUnixTimestamp(), a.Message });
 
                 return Response.AsJson(annotations);
             };
 
             Post["/api/annotations"] = x => {
-
-                string message = Request.Form.Message;
+                string title = Request.Form.title;
+                string message = Request.Form.message;
 
                 try
                 {
-                    annotationService.AddAnnotation(message);
+                    annotationService.AddAnnotation(title, message);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     return Response.AsJson(new { Success = false, e.Message });
                 }
@@ -55,8 +50,7 @@ namespace Statsify.Web.Api
                 return Response.AsJson(new { Success = true });
             };
 
-            Get["/api/series"] = x =>
-            {
+            Get["/api/series"] = x => {
                 try
                 {
                     JsonSettings.MaxJsonLength = int.MaxValue;
@@ -65,7 +59,7 @@ namespace Statsify.Web.Api
 
                     this.BindTo(model, new BindingConfig { BodyOnly = false });
 
-                    
+
                     var now = DateTime.UtcNow;
 
                     var start = model.Start.GetValueOrDefault(now.AddHours(-1)).ToUniversalTime();
@@ -81,9 +75,9 @@ namespace Statsify.Web.Api
                                               Target = series.Target,
                                               DataPoints = series.Values.Select((v, i) => new[] { v, @from + i * interval }).ToArray()
                                           }
-                        ).OrderBy(s=>s.Target).ToArray();
+                        ).OrderBy(s => s.Target).ToArray();
 
-                    return Response.AsJson(seriesViewList);                    
+                    return Response.AsJson(seriesViewList);
                 }
                 catch (Exception e)
                 {

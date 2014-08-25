@@ -8,6 +8,6 @@ namespace Statsify.Web.Api.Services
     {
         IEnumerable<Annotation> List(DateTime from, DateTime until);
 
-        void AddAnnotation(string message);
+        void AddAnnotation(string title, string message);
     }
 }

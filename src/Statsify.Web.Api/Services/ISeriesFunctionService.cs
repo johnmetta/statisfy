@@ -97,5 +97,7 @@
 
         Series[] MaximumBelow(Series[] seriesList, double n);
 
+        Series[] Ema(Series[] series, float smoothingFactor);
+
     }
 }
