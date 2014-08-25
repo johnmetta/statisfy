@@ -237,7 +237,7 @@ namespace Statsify.Aggregator
             }
         }
 
-        private Database GetDatabase(string root, string metric)
+        private DatapointDatabase GetDatabase(string root, string metric)
         {
             var fullPath = Path.Combine(root, metric.Replace(".", @"\") + ".db");
             var directory = Path.GetDirectoryName(fullPath);
@@ -251,7 +251,7 @@ namespace Statsify.Aggregator
             if(storage == null) return null;
 
             var retentonPolicy = RetentionPolicy.Parse(storage.Retention);
-            var database = Database.OpenOrCreate(fullPath, downsampling.Factor, downsampling.Method, retentonPolicy);
+            var database = DatapointDatabase.OpenOrCreate(fullPath, downsampling.Factor, downsampling.Method, retentonPolicy);
 
             return database;
         }

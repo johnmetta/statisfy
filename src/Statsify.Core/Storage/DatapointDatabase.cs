@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Statsify.Core.Storage
 {
-    public class Database
+    public class DatapointDatabase
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private static readonly byte[] Signature = Encoding.ASCII.GetBytes("STFY");
@@ -38,7 +38,7 @@ namespace Statsify.Core.Storage
             get { return downsamplingMethod; }
         }
 
-        private Database(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, int maxRetention, IList<Archive> archives, Func<DateTime> currentTimeProvider)
+        private DatapointDatabase(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, int maxRetention, IList<Archive> archives, Func<DateTime> currentTimeProvider)
         {
             this.path = path;
             this.downsamplingFactor = downsamplingFactor;
@@ -53,7 +53,7 @@ namespace Statsify.Core.Storage
             return File.Exists(path);
         }
 
-        public static Database OpenOrCreate(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, RetentionPolicy retentionPolicy, Func<DateTime> currentTimeProvider = null)
+        public static DatapointDatabase OpenOrCreate(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, RetentionPolicy retentionPolicy, Func<DateTime> currentTimeProvider = null)
         {
             EnsureValidRetentionPolicy(retentionPolicy);
 
@@ -65,13 +65,13 @@ namespace Statsify.Core.Storage
             } // using
         }
 
-        public static Database Open(string path, Func<DateTime> currentTimeProvider = null)
+        public static DatapointDatabase Open(string path, Func<DateTime> currentTimeProvider = null)
         {   
             using(var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 return Open(path, fileStream);
         }
 
-        public static Database Create(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, RetentionPolicy retentionPolicy, Func<DateTime> currentTimeProvider = null)
+        public static DatapointDatabase Create(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, RetentionPolicy retentionPolicy, Func<DateTime> currentTimeProvider = null)
         {
             EnsureValidRetentionPolicy(retentionPolicy);
 
@@ -79,7 +79,7 @@ namespace Statsify.Core.Storage
                 return Create(path, fileStream, downsamplingFactor, downsamplingMethod, retentionPolicy, currentTimeProvider);
         }
 
-        private static Database Open(string path, Stream stream, Func<DateTime> currentTimeProvider = null)
+        private static DatapointDatabase Open(string path, Stream stream, Func<DateTime> currentTimeProvider = null)
         {
             using(var binaryReader = new BinaryReader(stream, Encoding.UTF8, true))
             {
@@ -109,12 +109,12 @@ namespace Statsify.Core.Storage
                     archives.Add(new Archive(offset, history * DatapointSize, new Retention(TimeSpan.FromSeconds(precision), history)));
                 } // for
 
-                return new Database(path, downsamplingFactor, dowsamplingMethod, maxRetention, archives, currentTimeProvider);
+                return new DatapointDatabase(path, downsamplingFactor, dowsamplingMethod, maxRetention, archives, currentTimeProvider);
             } // using
         }
 
 
-        private static Database Create(string path, FileStream stream, float downsamplingFactor, DownsamplingMethod downsamplingMethod, RetentionPolicy retentionPolicy, Func<DateTime> currentTimeProvider = null)
+        private static DatapointDatabase Create(string path, FileStream stream, float downsamplingFactor, DownsamplingMethod downsamplingMethod, RetentionPolicy retentionPolicy, Func<DateTime> currentTimeProvider = null)
         {
             var maxRetention = retentionPolicy.Select(h => h.Precision * h.History).Max();
 
@@ -159,7 +159,7 @@ namespace Statsify.Core.Storage
                 stream.SetLength(offset);
             } // using
 
-            return new Database(path, downsamplingFactor, downsamplingMethod, maxRetention, archives, currentTimeProvider);
+            return new DatapointDatabase(path, downsamplingFactor, downsamplingMethod, maxRetention, archives, currentTimeProvider);
         }
 
         public Series ReadSeries(DateTime from, DateTime until, TimeSpan? precision = null)

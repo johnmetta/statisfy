@@ -39,7 +39,7 @@
     <Compile Include="Storage\Annotation.cs" />
     <Compile Include="Storage\AnnotationDatabase.cs" />
     <Compile Include="Storage\Archive.cs" />
-    <Compile Include="Storage\Database.cs" />
+    <Compile Include="Storage\DatapointDatabase.cs" />
     <Compile Include="Storage\DatabaseException.cs" />
     <Compile Include="Storage\DownsamplingMethod.cs" />
     <Compile Include="Storage\History.cs" />
