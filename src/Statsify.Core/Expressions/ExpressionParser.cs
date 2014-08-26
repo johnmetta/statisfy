@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using Statsify.Core.Model;
+using Statsify.Core.Storage;
 
 namespace Statsify.Core.Expressions
 {
@@ -151,12 +153,70 @@ namespace Statsify.Core.Expressions
 
     public interface IMetricProvider
     {
-        IEnumerable<string> GetMetricNames(string selector);
+        IEnumerable<string> GetMetricNames(string metricNameSelector);
     }
 
     public interface ISeriesReader
     {
         Series ReadSeries(string metric, DateTime from, DateTime until, TimeSpan? precision = null);
+    }
+
+    public class X : IMetricProvider, ISeriesReader
+    {
+        private readonly string rootDirectory;
+
+        public X(string rootDirectory)
+        {
+            this.rootDirectory = rootDirectory;
+        }
+
+        public IEnumerable<string> GetMetricNames(string metricNameSelector)
+        {
+            return GetDatabaseFilePaths(metricNameSelector).
+                Select(f => {
+                    var directoryName = Path.GetDirectoryName(f.FullName);
+                    Debug.Assert(directoryName != null, "directoryName != null");
+                    directoryName = directoryName.Substring(rootDirectory.Length + 1);
+                    
+                    var fileName = Path.GetFileNameWithoutExtension(f.FullName);
+                    
+                    return Path.Combine(directoryName, fileName).Replace(Path.DirectorySeparatorChar, '.');
+                });
+        }
+
+        private IEnumerable<FileInfo> GetDatabaseFilePaths(string metricNameSelector)
+        {
+            var fragments = metricNameSelector.Split('.');
+            return GetDatabaseFilePaths(new DirectoryInfo(rootDirectory), fragments, 0);
+        }
+
+        private IEnumerable<FileInfo> GetDatabaseFilePaths(DirectoryInfo directory, string[] fragments, int i)
+        {
+            if(i == fragments.Length - 1)
+            {
+                var files = directory.GetFiles(fragments[i] + ".db");
+                foreach(var file in files)
+                    yield return file;
+            } // if
+            else
+            {
+                foreach(var subdirectory in directory.GetDirectories(fragments[i]))
+                {
+                    directory = new DirectoryInfo(Path.Combine(directory.FullName, subdirectory.Name));
+                    foreach(var metricName in GetDatabaseFilePaths(directory, fragments, i + 1))
+                        yield return metricName;
+                } // foreach
+            } // else
+        }
+
+        public Series ReadSeries(string metric, DateTime @from, DateTime until, TimeSpan? precision = null)
+        {
+            var databaseFilePath = GetDatabaseFilePaths(metric).FirstOrDefault();
+            if(databaseFilePath == null) return null;
+
+            var database = DatapointDatabase.Open(databaseFilePath.FullName);
+            return database.ReadSeries(from, until, precision);
+        }
     }
 
     public class Function
@@ -173,7 +233,8 @@ namespace Statsify.Core.Expressions
             var p = new List<object> { context };
 
             var pis = methodInfo.GetParameters();
-            var hasParams = pis.Any(pi => pi.GetCustomAttribute<ParamArrayAttribute>() != null);
+            var paramsPi = pis.SingleOrDefault(pi => pi.GetCustomAttribute<ParamArrayAttribute>() != null);
+            var hasParams = paramsPi != null;
             var hasMetric = pis.All(pi => pi.GetType() != typeof(MetricSelector));
 
             //
@@ -183,8 +244,10 @@ namespace Statsify.Core.Expressions
                 p.AddRange(parameters.Take(pis.Length - 2));
                 var @params = parameters.Skip(pis.Length - 2).ToArray();
 
-                p.Add(@params);
+                var par = Array.CreateInstance(paramsPi.ParameterType.GetElementType(), @params.Length);
+                Array.Copy(@params, par, @params.Length);
 
+                p.Add(par);
             } // if
             else
                 p.AddRange(parameters);

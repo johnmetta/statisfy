@@ -50,6 +50,7 @@
     <Compile Include="Core\Storage\DatapointDatabaseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Web\Api\Services\SeriesServiceTests.cs" />
+    <Compile Include="XT.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Statsify.Aggregator\Statsify.Aggregator.csproj">
