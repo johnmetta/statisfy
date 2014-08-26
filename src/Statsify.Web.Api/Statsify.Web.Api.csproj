@@ -87,7 +87,6 @@
     <Compile Include="Services\Impl\AnnotationService.cs" />
     <Compile Include="Services\ISeriesFunctionService.cs" />
     <Compile Include="Services\IMetricService.cs" />
-    <Compile Include="Services\Impl\SeriesFunctionService.cs" />
     <Compile Include="Services\Impl\MetricService.cs" />
     <Compile Include="Services\Impl\SeriesService.cs" />
     <Compile Include="Services\ISeriesService.cs" />

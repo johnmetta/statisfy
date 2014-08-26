@@ -33,9 +33,9 @@ namespace Statsify.Web.Api.Services
 
             expr.TypeRegistry.RegisterSymbol(seriesListAlias, seriesList);//Register seriesList parameter
 
-            var seriesListFunctionService = new SeriesFunctionService(start, stop, seriesListExpression);
+            //var seriesListFunctionService = new SeriesFunctionService(start, stop, seriesListExpression);
 
-            seriesList = expr.ScopeCompile<ISeriesFunctionService>()(seriesListFunctionService) as Series[];            
+            seriesList = expr.ScopeCompile<ISeriesFunctionService>()(null) as Series[];            
 
             return seriesList;
         }
@@ -48,7 +48,7 @@ namespace Statsify.Web.Api.Services
                     let databaseFilePath = metric.Info.FullName
                     let db = DatapointDatabase.Open(databaseFilePath)
                     let s = db.ReadSeries(start, stop)                   
-                    select new Series(s.From,s.Until,s.Interval,s.Values)
+                    select new Series(s.From, s.Until, s.Interval, s.Datapoints)
                     {
                         Metric = metric,
                         Target = metric.Path

@@ -1,11 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30626.0
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Core", "Statsify.Core\Statsify.Core.csproj", "{CE4BFA81-3B50-42BE-B96C-0A4E4A135187}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Tests", "Statsify.Tests\Statsify.Tests.csproj", "{23A14CDC-C1A7-4935-832C-BA2474F8E37E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{42A19738-EC3C-4ED2-9516-B164138DD23D} = {42A19738-EC3C-4ED2-9516-B164138DD23D}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Client", "Statsify.Client\Statsify.Client.csproj", "{106B9B44-F0D9-43FC-923E-562BEDCD7D06}"
 EndProject
