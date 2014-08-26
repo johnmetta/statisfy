@@ -22,7 +22,7 @@
 
         <div class="chart_container" data-expression="AliasByNode(production.aeroclub_time.platform.*.request.count, 3)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Platform Requests" data-update-interval="5000"></div>
 
-        <div class="chart_container" data-expression="AliasByNode(Ema(servers.*.system.processor.total_time, 0.1),1,4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
+        <div class="chart_container" data-expression="AliasByNode(servers.*.system.processor.total_time), 1, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
 
         <div class="chart_container" data-expression="AliasByNode(servers.*.system.physical_disk.*,1,4)" data-annotations="" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Physical Disk" data-update-interval="5000"></div>
         

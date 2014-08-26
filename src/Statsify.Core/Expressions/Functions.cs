@@ -84,6 +84,12 @@ namespace Statsify.Core.Expressions
         public DateTime From { get; private set; }
 
         public DateTime Until { get; private set; }
+
+        public EvalContext(DateTime @from, DateTime until)
+        {
+            From = @from;
+            Until = until;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
