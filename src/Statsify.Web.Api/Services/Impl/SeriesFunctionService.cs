@@ -1,4 +1,6 @@
-﻿namespace Statsify.Web.Api.Services
+﻿using Statsify.Core.Model;
+
+namespace Statsify.Web.Api.Services
 {
     using System;
     using System.Linq;
@@ -39,18 +41,10 @@
             if (seriesList == null)
                 return null;
 
-            foreach (var series in seriesList)
-            {
-                var total = series.Values.Sum();
-
-                if(total.HasValue)
-                    series.Values = series.Values.Select(value => value.HasValue ? (100 * value / total) : null).ToArray();
-
-                series.Target = String.Format("AsPercent({0})", series.Target);
-            }
-                
-
-            return seriesList;
+            return
+                seriesList.
+                    Select(s => new Series(s.From, s.Until, s.Interval, s.Datapoints.Select(d => new Datapoint(d.Timestamp, d.Value.HasValue ? (100 * d.Value / s.Datapoints.Sum(_d => _d.Value)) : null)))).
+                    ToArray();
         }
 
         public Series[] AsPercent(Series[] seriesList, double total)
@@ -58,14 +52,11 @@
             if (seriesList == null)
                 return null;
 
-            foreach(var series in seriesList)
-            {
-                series.Values = series.Values.Select(value => value.HasValue ? (100 * value / total) : null).ToArray();
+            return
+                seriesList.
+                    Select(s => new Series(s.From, s.Until, s.Interval, s.Datapoints.Select(d => new Datapoint(d.Timestamp, d.Value.HasValue ? (100 * d.Value / total) : null)))).
+                    ToArray();
 
-                series.Target = String.Format("AsPercent({0},{1})", series.Target, total);
-            }                
-
-            return seriesList;
         }
 
         public Series[] Limit(Series[] seriesList, int n)

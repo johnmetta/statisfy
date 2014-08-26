@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Statsify.Core.Model;
 
 namespace Statsify.Core.Storage
 {
@@ -68,7 +69,7 @@ namespace Statsify.Core.Storage
         public static DatapointDatabase Open(string path, Func<DateTime> currentTimeProvider = null)
         {   
             using(var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                return Open(path, fileStream);
+                return Open(path, fileStream, currentTimeProvider);
         }
 
         public static DatapointDatabase Create(string path, float downsamplingFactor, DownsamplingMethod downsamplingMethod, RetentionPolicy retentionPolicy, Func<DateTime> currentTimeProvider = null)
@@ -190,33 +191,35 @@ namespace Statsify.Core.Storage
 
                 var fromInterval = (fromTimestamp - (fromTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
                 var untilInterval = (untilTimestamp - (untilTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
+                var step = archive.Retention.Precision;
 
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
 
+                double?[] values = null;
+
                 var baseInterval = binaryReader.ReadInt64();
-
-                var step = archive.Retention.Precision;
-
                 if(baseInterval == 0)
                 {
-                    var pts = (untilInterval - fromInterval) / step;
-                    var valueList = new double?[pts];
-
-                    return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), valueList);
+                    var points = (untilInterval - fromInterval) / step;
+                    values = new double?[points];
                 } // if
+                else
+                {
+                    var fromOffset = GetOffset(fromInterval, baseInterval, archive);
+                    var untilOffset = GetOffset(untilInterval, baseInterval, archive);
 
+                    var buffer = ReadBuffer(fileStream, fromOffset, untilOffset, binaryReader, archive);
 
-                var fromOffset = GetOffset(fromInterval, baseInterval, archive);
-                var untilOffset = GetOffset(untilInterval, baseInterval, archive);
+                    int knownValues;
+                    UnpackDatapoints(archive, buffer, fromInterval, out values, out knownValues);
+                } // else
 
-                var buffer = ReadBuffer(fileStream, fromOffset, untilOffset, binaryReader, archive);
+                var timestamps =
+                    Enumerable.Range(0, values.Length).
+                        Select(i => ConvertFromTimestamp(fromInterval + step * i));
 
-                double?[] values;
-                int knownValues;
-
-                UnpackDatapoints(archive, buffer, fromInterval, out values, out knownValues);
-
-                return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), values);
+                return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), 
+                    timestamps.Zip(values, (ts, v) => new Datapoint(ts, v)));
             } // using
         }
 
@@ -260,6 +263,13 @@ namespace Statsify.Core.Storage
             var fromOffset = archive.Offset + increment;
             
             return fromOffset;
+        }
+
+        public void WriteDatapoint(Datapoint datapoint)
+        {
+            if(!datapoint.Value.HasValue) return;
+
+            WriteDatapoint(datapoint.Timestamp, datapoint.Value.Value);
         }
 
         public void WriteDatapoint(DateTime dateTime, double value)

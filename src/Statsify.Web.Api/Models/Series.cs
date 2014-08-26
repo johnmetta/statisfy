@@ -1,13 +1,24 @@
-﻿namespace Statsify.Web.Api.Models
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Statsify.Core.Model;
+
+namespace Statsify.Web.Api.Models
 {
-    using System;
-
-    public class Series : Core.Storage.Series
+    public class Series : Core.Model.Series
     {
-        public Series(DateTime @from, DateTime until, TimeSpan interval, double?[] values) : base(@from, until, interval, values){}
-
+        public string Target { get; set; }
+        
         internal MetricInfo Metric { get; set; }
 
-        public string Target { get; set; }  
+        public IEnumerable<double?> Values
+        {
+            get { return Datapoints.Select(d => d.Value); }
+        }
+
+        public Series(DateTime @from, DateTime until, TimeSpan interval, IEnumerable<Datapoint> datapoints): 
+            base(@from, until, interval, datapoints)
+        {
+        }
     }
 }

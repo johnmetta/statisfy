@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
+using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
+using Statsify.Core.Model;
 
 namespace Statsify.Core.Expressions
 {
@@ -20,7 +20,7 @@ namespace Statsify.Core.Expressions
                     if(tokens.Lookahead.Type == TokenType.OpenParen)
                         return ParseFunctionInvocationExpression(id, tokens);
                     else
-                        return ParseSeriesSelector(id, tokens);
+                        return ParseMetricSelectorExpression(id, tokens);
                     break;
                 case TokenType.String:
                     return new ConstantExpression(tokens.Read().Lexeme);
@@ -35,7 +35,7 @@ namespace Statsify.Core.Expressions
             return null;
         }
 
-        private SeriesSelectorExpression ParseSeriesSelector(Token id, TokenStream tokens)
+        private MetricSelectorExpression ParseMetricSelectorExpression(Token id, TokenStream tokens)
         {
             var selectorBuilder = new StringBuilder(id.Lexeme);
             var set = false;
@@ -50,10 +50,10 @@ namespace Statsify.Core.Expressions
                 selectorBuilder.Append(token.Lexeme);
             } // if
 
-            return new SeriesSelectorExpression(selectorBuilder.ToString());
+            return new MetricSelectorExpression(selectorBuilder.ToString());
         }
 
-        private Expression ParseFunctionInvocationExpression(Token id, TokenStream tokens)
+        private FunctionInvocationExpression ParseFunctionInvocationExpression(Token id, TokenStream tokens)
         {
             tokens.Read(TokenType.OpenParen);
 
@@ -70,19 +70,24 @@ namespace Statsify.Core.Expressions
     }
 
     [DebuggerDisplay("{Selector,nq}")]
-    internal class SeriesSelectorExpression : Expression
+    internal class MetricSelectorExpression : Expression
     {
         public string Selector { get; private set; }
 
-        public SeriesSelectorExpression(string selector)
+        public MetricSelectorExpression(string selector)
         {
             Selector = selector;
+        }
+
+        public override object Evaluate(Environment environment, EvalContext context)
+        {
+            return new MetricSelector(Selector, context.From, context.Until);
         }
     }
 
     public abstract class Expression
     {
-        public virtual object Evaluate(Environment environment)
+        public virtual object Evaluate(Environment environment, EvalContext context)
         {
             return null;
         }
@@ -98,7 +103,7 @@ namespace Statsify.Core.Expressions
             Value = value;
         }
 
-        public override object Evaluate(Environment environment)
+        public override object Evaluate(Environment environment, EvalContext context)
         {
             return Value;
         }
@@ -117,28 +122,94 @@ namespace Statsify.Core.Expressions
             Parameters = new ReadOnlyCollection<Expression>(new List<Expression>(parameters));
         }
 
-        public override object Evaluate(Environment environment)
+        public override object Evaluate(Environment environment, EvalContext context)
         {
-            var parameters = Parameters.Select(p => p.Evaluate(environment)).ToArray();
+            var parameters = Parameters.Select(p => p.Evaluate(environment, context)).ToArray();
             var function = environment.ResolveFunction(Name);
 
-            return function.Invoke(parameters);
+            return function.Invoke(environment, context, parameters);
         }
     }
 
     public class Environment
     {
+        private static readonly IDictionary<string, Function> Functions = new Dictionary<string, Function>();
+
+        public ISeriesReader SeriesReader { get; set; }
+        public IMetricProvider MetricProvider { get; set; }
+
+        public static void RegisterFunction(string name, Function function)
+        {
+            Functions[name] = function;
+        }
+
         public Function ResolveFunction(string name)
         {
-            return null;
+            return Functions[name];
         }
+    }
+
+    public interface IMetricProvider
+    {
+        IEnumerable<string> GetMetricNames(string selector);
+    }
+
+    public interface ISeriesReader
+    {
+        Series ReadSeries(string metric, DateTime from, DateTime until, TimeSpan? precision = null);
     }
 
     public class Function
     {
-        public object Invoke(object[] parameters)
+        private readonly MethodInfo methodInfo;
+
+        public Function(MethodInfo methodInfo)
         {
-            return null;
+            this.methodInfo = methodInfo;
+        }
+
+        public object Invoke(Environment environment, EvalContext context, object[] parameters)
+        {
+            var p = new List<object> { context };
+
+            var pis = methodInfo.GetParameters();
+            var hasParams = pis.Any(pi => pi.GetCustomAttribute<ParamArrayAttribute>() != null);
+            var hasMetric = pis.All(pi => pi.GetType() != typeof(MetricSelector));
+
+            //
+            // First parameter must always be an EvalContext instance
+            if(hasParams)
+            {
+                p.AddRange(parameters.Take(pis.Length - 2));
+                var @params = parameters.Skip(pis.Length - 2).ToArray();
+
+                p.Add(@params);
+
+            } // if
+            else
+                p.AddRange(parameters);
+
+            if(hasMetric)
+            {
+                var pos = p.FindIndex(_p => _p is MetricSelector);
+                if(pos > -1)
+                {
+                    var ms = p[pos] as MetricSelector;
+
+                    var metrics = new List<Metric>();
+                    foreach(var metricName in environment.MetricProvider.GetMetricNames(ms.Selector))
+                    {
+                        var series = environment.SeriesReader.ReadSeries(metricName, context.From, context.Until);
+                        var metric = new Metric(metricName, series);
+
+                        metrics.Add(metric);
+                    } // foreach
+
+                    p[pos] = metrics.ToArray();
+                } // if
+            } // if
+
+            return methodInfo.Invoke(null,  p.ToArray());
         }
     }
 }

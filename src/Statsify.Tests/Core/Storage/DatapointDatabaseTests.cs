@@ -65,17 +65,17 @@ namespace Statsify.Tests.Core.Storage
             var series = database.ReadSeries(now.AddSeconds(-60), now);
             CollectionAssert.AreEqual(
                 Enumerable.Range(60, 60).Select(v => (double?)v).ToArray(),
-                series.Values);
+                series.Datapoints.Select(d => d.Value).ToArray());
 
             series = database.ReadSeries(now.AddSeconds(-60), now, TimeSpan.FromSeconds(10));
             CollectionAssert.AreEqual(
                 new double?[] { 69, 79, 89, 99, 109, 119 }, 
-                series.Values);
+                series.Datapoints.Select(d => d.Value).ToArray());
 
             series = database.ReadSeries(now.AddSeconds(-60), now, TimeSpan.FromSeconds(20));
             CollectionAssert.AreEqual(
                 new double?[] { 79, 99, 119 },
-                series.Values);
+                series.Datapoints.Select(d => d.Value).ToArray());
         }
     }
 }

@@ -98,19 +98,17 @@ Use counters for metrics when you don’t care about how long the code your are 
 
 Timers are more powerful because they can be used to analyze the time spent in a piece of code but also be used as a counters. Most of my work involves timers because I want to detect system anomalies including performance changes and trends in the way code is being used.
 
-## Glossary
-
-_Datapoint_ is a tuple which consists of a _Timestamp_ and a _Value_.
-
-_Series_ is an ordered collection of _Datapoints_
-
-_Metric_ is a _Series_ with a name.
-
 ### Glossary
 
-_Datapoint_ is a tuple which consists of a _Timestamp_ and a _Value_.
+_Datapoint_ is a tuple which consists of a _Timestamp_ and a (possibly undefined) _Value_.
 
-_Series_ is an ordered collection of _Datapoints_
+_Series_ is an ordered collection of _Datapoints_ spanning certain time range.
+
+_Archive_ is a _Series_ stored inside a _Database_.
+
+_Database_ is a named and ordered collection of _Archives_.
 
 _Metric_ is a _Series_ with a name.
+
+_Sample_ is a _Datapoint_ with a name and type.
 

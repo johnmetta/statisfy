@@ -37,8 +37,13 @@
   <ItemGroup>
     <Compile Include="Expressions\ExpressionParser.cs" />
     <Compile Include="Expressions\ExpressionScanner.cs" />
+    <Compile Include="Expressions\Functions.cs" />
     <Compile Include="Expressions\Token.cs" />
     <Compile Include="Expressions\TokenPosition.cs" />
+    <Compile Include="Model\Datapoint.cs" />
+    <Compile Include="Model\Metric.cs" />
+    <Compile Include="Model\Sample.cs" />
+    <Compile Include="Model\Series.cs" />
     <Compile Include="Expressions\TokenScanner.cs" />
     <Compile Include="Expressions\TokenStream.cs" />
     <Compile Include="Expressions\TokenType.cs" />
@@ -55,7 +60,6 @@
     <Compile Include="Storage\RetentionPolicy.cs" />
     <Compile Include="Storage\RetentionPolicyValidationException.cs" />
     <Compile Include="Storage\RetentionPolicyValidator.cs" />
-    <Compile Include="Storage\Series.cs" />
     <Compile Include="Util\StringUtil.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
