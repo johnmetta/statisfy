@@ -30,7 +30,7 @@ namespace Statsify.Core.Storage
 
         public static AnnotationDatabase OpenOrCreate(string path)
         {
-            using(var fileStream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 8192, FileOptions.WriteThrough))
+            using(var fileStream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite, 8192, FileOptions.WriteThrough))
             {
                 return fileStream.Length == 0 ? 
                     Create(path, fileStream) : 

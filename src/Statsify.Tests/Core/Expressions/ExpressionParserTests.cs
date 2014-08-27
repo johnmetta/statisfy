@@ -18,13 +18,11 @@ namespace Statsify.Tests.Core.Expressions
             var parser = new ExpressionParser();
             var expression = parser.Parse(new TokenStream(tokens));
 
-            Environment.RegisterFunction("abs", new Function(typeof(Functions).GetMethod("Abs")));
-            Environment.RegisterFunction("ema", new Function(typeof(Functions).GetMethod("Ema")));
-            Environment.RegisterFunction("alias_by_fragment", new Function(typeof(Functions).GetMethod("AliasByFragment")));
+            Environment.RegisterFunctions(typeof(Functions));
 
-            var metricManager = new MetricManager(@"c:\statsify");
+            var metricRegistry = new MetricRegistry(@"c:\statsify");
 
-            var env = new Environment { MetricReader = metricManager, MetricNameResolver = metricManager };
+            var env = new Environment { MetricRegistry = metricRegistry };
             var r = expression.Evaluate(env, new EvalContext(DateTime.UtcNow.AddMinutes(-20), DateTime.UtcNow));
         }
     }

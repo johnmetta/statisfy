@@ -5,13 +5,13 @@ using Statsify.Core.Components.Impl;
 namespace Statsify.Tests.Core.Components.Impl
 {
     [TestFixture]
-    public class MetricManagerTests
+    public class MetricRegistryTests
     {
         [Test]
         public void ResolveMetricNames()
         {
-            var metricManager = new MetricManager(@"c:\statsify");
-            var metricNames = metricManager.ResolveMetricNames("servers.*.system.processor.total*").ToList();
+            var metricRegistry = new MetricRegistry(@"c:\statsify");
+            var metricNames = metricRegistry.ResolveMetricNames("servers.*.system.processor.total*").ToList();
         }
     }
 }

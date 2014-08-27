@@ -1,17 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Statsify.Core.Model;
 
 namespace Statsify.Core.Expressions
 {
+    public delegate double? DatapointAggregationFunction(IEnumerable<Datapoint> values);
+
     public static class Functions
     {
         [Function("timeshift")]
         public static MetricSelector Timeshift(EvalContext context, MetricSelector selector, string offset)
         {
-            var ts = TimeSpan.Parse(offset);
-            return new MetricSelector(selector.Selector, selector.From.Add(ts), selector.Until.Add(ts));
+            var offsetDuration = ParseTimeSpan(offset);
+            if(offsetDuration == null) return selector;
+
+            return new MetricSelector(selector.Selector, selector.From.Add(offsetDuration.Value), selector.Until.Add(offsetDuration.Value));
         }
 
         [Function("abs")]
@@ -49,6 +53,75 @@ namespace Statsify.Core.Expressions
                 ToArray();
         }
 
+        [Function("summarize")]
+        public static Metric[] Summarize(EvalContext context, Metric[] metrics, string aggregationFunction, string bucket)
+        {
+            var bucketDuration = ParseTimeSpan(bucket);
+            if(bucketDuration == null) return metrics;
+
+            DatapointAggregationFunction fn = null;
+
+            switch(aggregationFunction.ToLowerInvariant())
+            {
+                case "max":
+                    fn = vs => vs.Where(v => v.Value.HasValue).Max(v => v.Value);
+                    break;
+                case "min":
+                    fn = vs => vs.Where(v => v.Value.HasValue).Min(v => v.Value);
+                    break;
+                case "avg":
+                case "average":
+                    fn = vs => vs.Where(v => v.Value.HasValue).Average(v => v.Value);
+                    break;
+                case "sum":
+                    fn = vs => vs.Where(v => v.Value.HasValue).Sum(v => v.Value);
+                    break;
+            } // switch
+
+            return
+                metrics.Select(m => {
+                    var datapoints = 
+                        m.Series.Datapoints.
+                            GroupBy(d => (long)TimeSpan.FromTicks(d.Timestamp.Ticks).TotalSeconds / (long)bucketDuration.Value.TotalSeconds,
+                                (ts, ds) => {
+                                    var tst = DateTime.MinValue.AddSeconds(ts * (long)bucketDuration.Value.TotalSeconds);
+                                    var dpt = fn(ds);
+
+                                    return new Datapoint(tst, dpt);
+                                }).ToList();
+
+                    return new Metric(m.Name, new Series(m.Series.From, m.Series.Until, bucketDuration.Value, datapoints));
+                }).
+                ToArray();
+        }
+
+        private static TimeSpan? ParseTimeSpan(string bucket)
+        {
+            var i = 0;
+
+            if(int.TryParse(bucket, out i))
+                return TimeSpan.FromSeconds(i);
+            
+            var specifier = bucket.Substring(bucket.Length - 1).ToLowerInvariant();
+            bucket = bucket.Substring(0, bucket.Length - 1);
+
+            if(!int.TryParse(bucket, out i)) return null;
+
+            switch(specifier)
+            {
+                case "s":
+                    return TimeSpan.FromSeconds(i);
+                case "m":
+                    return TimeSpan.FromMinutes(i);
+                case "h":
+                    return TimeSpan.FromHours(i);
+                case "d":
+                    return TimeSpan.FromDays(i);
+                default:
+                    return null;
+            } // switch
+        }
+
         [Function("ema")]
         [Function("exponential_moving_average")]
         public static Metric[] Ema(EvalContext context, Metric[] metrics, int smoothingFactor)
@@ -63,7 +136,7 @@ namespace Statsify.Core.Expressions
                     return new Metric(m.Name, m.Series.Transform(v => {
                         if(!v.HasValue) return null;
 
-                        if(n == 0)
+                        if(n++ == 0)
                         {
                             prevV = prevEma = v.Value;
                             return v.Value;
@@ -79,59 +152,6 @@ namespace Statsify.Core.Expressions
                     }));
                 }).
                 ToArray();
-        }
-    }
-
-    public class MetricSelector
-    {
-        public string Selector { get; private set; }
-
-        public DateTime From { get; private set; }
-
-        public DateTime Until { get; private set; }
-
-        public MetricSelector(string selector, DateTime from, DateTime until)
-        {
-            Selector = selector;
-            From = from;
-            Until = until;
-        }
-    }
-
-    public class Metric2
-    {
-        public string Name { get; private set; }
-
-        public Series Series { get; private set; }
-
-        public Metric2(string name, Series series)
-        {
-            Name = name;
-            Series = series;
-        }
-    }
-
-    public class EvalContext
-    {
-        public DateTime From { get; private set; }
-
-        public DateTime Until { get; private set; }
-
-        public EvalContext(DateTime @from, DateTime until)
-        {
-            From = @from;
-            Until = until;
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-    public sealed class FunctionAttribute : Attribute
-    {
-        public string Name { get; private set; }
-
-        public FunctionAttribute(string name)
-        {
-            Name = name;
         }
     }
 }

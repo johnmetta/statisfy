@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link type="text/css" rel="stylesheet" href="./Styles/rickshaw.css">
+    <link type="text/css" rel="stylesheet" href="./Styles/page.css">    
+    <script src="../Scripts/moment-with-langs.js"></script>    
+    <script src="../Scripts/d3.v3.js"></script>
+    <script src="../Scripts/jquery-1.10.2.js"></script>    
+    <script src="./Scripts/rickshaw.js"></script> 
+    <script src="./Scripts/extensions.js"></script> 
+</head>
+<body>
+    <div id="content">
+        <div class="chart_container" data-expression="summarize(alias_by_fragment(servers.*.system.processor.*, 1, 4), 'max', '10m')" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
+        <div class="chart_container" data-expression="summarize(alias_by_fragment(servers.*.system.processor.*, 1, 4), 'avg', '10m')" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
+        <!--div class="chart_container" data-expression="alias_by_fragment(servers.*.system.processor.total_time, 1, 4)" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="5000"></div-->
+    </div>    
+
+    <script src="./Scripts/page.js"></script>
+</body>
+</html>

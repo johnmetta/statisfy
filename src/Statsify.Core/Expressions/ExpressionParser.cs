@@ -104,10 +104,10 @@ namespace Statsify.Core.Expressions
                     var ms = p[pos] as MetricSelector;
 
                     var metrics = new List<Metric>();
-                    foreach(var metricName in environment.MetricNameResolver.ResolveMetricNames(ms.Selector))
+                    foreach(var metricName in environment.MetricRegistry.ResolveMetricNames(ms.Selector))
                     {
                         var metric = 
-                            environment.MetricReader.ReadMetric(metricName, context.From, context.Until);
+                            environment.MetricRegistry.ReadMetric(metricName, context.From, context.Until);
 
                         metrics.Add(metric);
                     } // foreach

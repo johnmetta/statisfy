@@ -8,11 +8,11 @@ using Statsify.Core.Storage;
 
 namespace Statsify.Core.Components.Impl
 {
-    public class MetricManager : IMetricNameResolver, IMetricReader
+    public class MetricRegistry : IMetricRegistry
     {
         private readonly string rootDirectory;
 
-        public MetricManager(string rootDirectory)
+        public MetricRegistry(string rootDirectory)
         {
             this.rootDirectory = rootDirectory;
         }
