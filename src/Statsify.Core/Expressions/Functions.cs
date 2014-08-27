@@ -48,6 +48,38 @@ namespace Statsify.Core.Expressions
                 }).
                 ToArray();
         }
+
+        [Function("ema")]
+        [Function("exponential_moving_average")]
+        public static Metric[] Ema(EvalContext context, Metric[] metrics, int smoothingFactor)
+        {
+            var sf = 1d / smoothingFactor;
+
+            return
+                metrics.Select(m => {
+                    double? ema = 0, prevV = 0, prevEma = 0;
+                    var n = 0;
+
+                    return new Metric(m.Name, m.Series.Transform(v => {
+                        if(!v.HasValue) return null;
+
+                        if(n == 0)
+                        {
+                            prevV = prevEma = v.Value;
+                            return v.Value;
+                        } // if
+                        else
+                        {
+                            ema = sf * prevV + (1 - sf) * prevEma;
+                            prevV = v.Value;
+                            prevEma = ema;
+
+                            return ema;
+                        } // else
+                    }));
+                }).
+                ToArray();
+        }
     }
 
     public class MetricSelector
@@ -66,13 +98,13 @@ namespace Statsify.Core.Expressions
         }
     }
 
-    public class Metric
+    public class Metric2
     {
         public string Name { get; private set; }
 
         public Series Series { get; private set; }
 
-        public Metric(string name, Series series)
+        public Metric2(string name, Series series)
         {
             Name = name;
             Series = series;

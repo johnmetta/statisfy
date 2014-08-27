@@ -35,9 +35,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\IMetricNameResolver.cs" />
+    <Compile Include="Components\IMetricReader.cs" />
+    <Compile Include="Components\Impl\MetricManager.cs" />
+    <Compile Include="Expressions\ConstantExpression.cs" />
+    <Compile Include="Expressions\Environment.cs" />
+    <Compile Include="Expressions\Expression.cs" />
     <Compile Include="Expressions\ExpressionParser.cs" />
     <Compile Include="Expressions\ExpressionScanner.cs" />
+    <Compile Include="Expressions\FunctionInvocationExpression.cs" />
     <Compile Include="Expressions\Functions.cs" />
+    <Compile Include="Expressions\MetricSelectorExpression.cs" />
     <Compile Include="Expressions\Token.cs" />
     <Compile Include="Expressions\TokenPosition.cs" />
     <Compile Include="Model\Datapoint.cs" />
@@ -62,6 +70,7 @@
     <Compile Include="Storage\RetentionPolicyValidator.cs" />
     <Compile Include="Util\StringUtil.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
