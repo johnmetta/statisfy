@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Nancy;
 using Nancy.Helpers;
 using Nancy.Json;
 using Nancy.ModelBinding;
+using Statsify.Core.Components;
+using Statsify.Core.Expressions;
+using Statsify.Core.Model;
+using Statsify.Core.Storage;
 using Statsify.Web.Api.Extensions;
 using Statsify.Web.Api.Models;
 using Statsify.Web.Api.Services;
@@ -12,7 +17,7 @@ namespace Statsify.Web.Api
 {
     public class ApiModule : NancyModule
     {
-        public ApiModule(IMetricService metricService, ISeriesService seriesService, IAnnotationService annotationService)
+        public ApiModule(IMetricService metricService, IAnnotationRegistry annotationRegistry, IMetricRegistry metricRegistry)
         {
             Get["/api/find/{query}"] = x => {
                 string query = x.query;
@@ -28,9 +33,11 @@ namespace Statsify.Web.Api
                 DateTime start = Request.Query.start;
                 DateTime stop = Request.Query.stop;
 
-                var data = annotationService.List(start.ToUniversalTime(), stop.ToUniversalTime());
-                var annotations = data.Select(a => new { Timestamp = a.Timestamp.ToUniversalTime().ToUnixTimestamp(), a.Message });
-
+                var annotations = 
+                    annotationRegistry.
+                        ReadAnnotations(start, stop).
+                        Select(a => new { Timestamp = a.Timestamp.ToUnixTimestamp(), a.Title, a.Message });;
+                
                 return Response.AsJson(annotations);
             };
 
@@ -38,14 +45,7 @@ namespace Statsify.Web.Api
                 string title = Request.Form.title;
                 string message = Request.Form.message;
 
-                try
-                {
-                    annotationService.AddAnnotation(title, message);
-                }
-                catch (Exception e)
-                {
-                    return Response.AsJson(new { Success = false, e.Message });
-                }
+                annotationRegistry.WriteAnnotation(new Annotation(DateTime.UtcNow, title, message));
 
                 return Response.AsJson(new { Success = true });
             };
@@ -59,21 +59,40 @@ namespace Statsify.Web.Api
 
                     this.BindTo(model, new BindingConfig { BodyOnly = false });
 
-
                     var now = DateTime.UtcNow;
 
                     var start = model.Start.GetValueOrDefault(now.AddHours(-1)).ToUniversalTime();
                     var stop = model.Stop.GetValueOrDefault(now).ToUniversalTime();
 
-                    var seriesList = model.Expression.SelectMany(q => seriesService.GetSeries(HttpUtility.UrlDecode(q), start, stop));
+                    var scanner = new ExpressionScanner();
+                    var parser = new ExpressionParser();
 
-                    var seriesViewList = (from series in seriesList
-                                          let @from = series.From.ToUnixTimestamp()
-                                          let interval = series.Interval.ToUnixTimestamp()
+                    var environment = new Statsify.Core.Expressions.Environment {
+                        MetricRegistry = metricRegistry
+                    };
+
+                    var evalContext = new EvalContext(start, stop);
+
+                    var metrics = new List<Metric>();
+                    foreach(var expression in model.Expression.Select(HttpUtility.UrlDecode))
+                    {
+                        Console.WriteLine("evaluating " + expression);
+
+                        var tokens = scanner.Scan(expression);
+                        var e = parser.Parse(new TokenStream(tokens));
+
+                        var r = (Metric[])e.Evaluate(environment, evalContext);
+
+                        metrics.AddRange(r);
+                    } // foreach
+
+                    var seriesViewList = (from metric in metrics
+                                          let @from = metric.Series.From.ToUnixTimestamp()
+                                          let interval = metric.Series.Interval.ToUnixTimestamp()
                                           select new SeriesView
                                           {
-                                              Target = series.Target,
-                                              DataPoints = series.Values.Select((v, i) => new[] { v, @from + i * interval }).ToArray()
+                                              Target = metric.Name,
+                                              DataPoints = metric.Series.Datapoints.Select((v, i) => new[] { v.Value, @from + i * interval }).ToArray()
                                           }
                         ).OrderBy(s => s.Target).ToArray();
 

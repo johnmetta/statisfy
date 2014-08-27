@@ -1,4 +1,5 @@
 ﻿using Nancy.Bootstrapper;
+using Statsify.Core.Expressions;
 
 namespace Statsify.Web.Api
 {
@@ -13,6 +14,8 @@ namespace Statsify.Web.Api
                 new Uri("http://localhost/Statsify/");
 
             NancyBootstrapperLocator.Bootstrapper = new Bootstrapper(); 
+
+            Core.Expressions.Environment.RegisterFunctions(typeof(Functions));
 
             using (var host = new NancyHost(uri))
             {                

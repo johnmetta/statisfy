@@ -63,7 +63,7 @@
                 });
 
                 var start = new Date();
-                start = new Date(start.setHours(start.getHours() - 1)).toISOString();
+                start = new Date(start.setHours(start.getHours() - 12)).toISOString();
 
                 var stop = new Date().toISOString();
 
@@ -96,6 +96,7 @@
 
             this.yAxis = new Rickshaw.Graph.Axis.Y({
                 graph: this.graph,
+                min: 0, max: 100,
                 tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
                 ticksTreatment: ticksTreatment
             });
@@ -321,7 +322,7 @@
         expression: [],
         annotations: false,
         title: undefined,
-        updateInterval: 10000,
+        updateInterval: 5000,
         colorscheme:'spectrum14',
         controlTemplate: '<form class="side_panel"><section><div class=" renderer_form toggler"><input type="radio" name="renderer" class="area" value="area" checked><label for="area" class="js-find-target">area</label><input type="radio"  name="renderer" class="bar" value="bar"><label for="bar" class="js-find-target">bar</label><input type="radio" name="renderer" class="line" value="line"><label for="line" class="js-find-target">line</label><input type="radio" name="renderer" class="scatter" value="scatterplot"><label for="scatter" class="js-find-target">scatter</label></div></section><section><div class="offset_form"><label for="stack"><input type="radio" name="offset" class="stack" value="zero" checked><span>stack</span></label><label for="stream"><input type="radio" name="offset" class="stream" value="wiggle"><span>stream</span></label><label for="pct"><input type="radio" name="offset" class="pct" value="expand"><span>pct</span></label><label for="value"><input type="radio" name="offset" class="value" value="value"><span>value</span></label></div><div class="interpolation_form"><label for="cardinal" ><input type="radio" name="interpolation" class="cardinal" value="cardinal" checked><span>cardinal</span></label><label for="linear" ><input type="radio" name="interpolation" class="linear" value="linear"><span>linear</span></label><label for="step" ><input type="radio" name="interpolation" class="step" value="step-after"><span>step</span></label></div></section></form>'
     };

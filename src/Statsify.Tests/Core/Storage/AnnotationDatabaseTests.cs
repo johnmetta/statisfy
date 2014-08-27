@@ -13,10 +13,10 @@ namespace Statsify.Tests.Core.Storage
          {
             var path = Path.GetTempFileName();
 
-            var annotationDatabase = AnnotationDatabase.Create(path);
-            var now = DateTime.UtcNow;
+            var annotationDatabase = AnnotationDatabase.Create(@"c:\statsify\annotations.db");
+            var now = DateTime.UtcNow.AddHours(-2);
 
-            for(var i = 0; i < 200; ++i)
+            for(var i = 0; i < 10; ++i)
             {
                 annotationDatabase.WriteAnnotation(now.AddSeconds(i), "Deployment", "Deployed changeset cf43450d", "aeroclub-time", "deployment", "production");
                 annotationDatabase.WriteAnnotation(now.AddSeconds(i * 2), "Deployment Started",
