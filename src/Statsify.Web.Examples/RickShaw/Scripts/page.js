@@ -63,7 +63,7 @@
                 });
 
                 var start = new Date();
-                start = new Date(start.setHours(start.getHours() - 12)).toISOString();
+                start = new Date(start.setHours(start.getHours() - 8)).toISOString();
 
                 var stop = new Date().toISOString();
 
@@ -188,7 +188,7 @@
         getSeries: function (callback) {
 
             var start = new Date();
-            start = new Date(start.setHours(start.getHours() - 12)).toISOString();
+            start = new Date(start.setHours(start.getHours() - 8)).toISOString();
 
             var stop = new Date().toISOString();
 
@@ -217,9 +217,10 @@
                 for (var i = 0; i < annotations.length; i++) {
                     var annotation = annotations[i];
                     var time = annotation.timestamp;
+                    var title = annotation.title;
                     var message = annotation.message;
                     
-                    message = '<span class="annotation-message">' + message + '</span><br />' + '<span class="annotation-date">' + new moment(time * 1000).calendar() + '</span>';
+                    message = '<p>' + title + '</p><span class="annotation-message">' + message + '</span><br />' + '<span class="annotation-date">' + new moment(time * 1000).calendar() + '</span>';
                     this.annotator.add(parseInt(time), message);
                 }
 

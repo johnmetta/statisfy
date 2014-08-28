@@ -16,17 +16,33 @@
             <input type="text" id="annotation" />            
             <button type="button" data-url="http://mow1aps3/statsify/api/annotations" id="send">Send annotation</button>
         </div>
-        <div class="chart_container" data-expression="AliasByNode(Integral(production.aeroclub_platform_backend.service.exported.count), 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Invoicing" data-update-interval="5000"></div>
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_platform_backend.service.exported.count, 'sum', '15m'), 3, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Invoicing" data-update-interval="5000"></div>
 
-        <div class="chart_container" data-expression="AliasByNode(servers.*.system.asp_net.requests_sec, 1, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="ASP.NET Requests/Sec" data-update-interval="5000"></div>
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_integration_gds.files.*.success, 'sum', '15m'), 3, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="GDS Success" data-update-interval="5000"></div>
 
-        <div class="chart_container" data-expression="AliasByNode(production.aeroclub_time.platform.*.request.count, 3)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Platform Requests" data-update-interval="5000"></div>
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_integration_gds.files.*.error, 'sum', '15m'), 3, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="GDS Errors" data-update-interval="5000"></div>
 
-        <div class="chart_container" data-expression="AliasByNode(servers.*.system.processor.total_time, 1, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
+        <!--div class="chart_container" data-expression="AliasByNode(servers.*.system.asp_net.requests_sec, 1, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="ASP.NET Requests/Sec" data-update-interval="5000"></div-->
+
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_time.platform.*.request.count, 'sum', '15m'), 3)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Platform Requests" data-update-interval="5000"></div>
+        
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_time.platform.*.error.count, 'sum', '15m'), 3)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Platform Errors" data-update-interval="5000"></div>
+
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_time.platform.*.common__search.*.count, 'sum', '15m'), 3, 4 ,5)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Searches" data-update-interval="5000"></div>
+
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_time.platform.*.common__booking.*.count, 'sum', '15m'), 3, 4, 5)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Reservations" data-update-interval="5000"></div>
+
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_time.platform.*.common__ticketing.*.count, 'sum', '15m'), 3, 4, 5)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Executions" data-update-interval="5000"></div>
+
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(servers.*.system.network.*, 'avg', '5m'), 1, 3, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Network I/O Bytes/Sec" data-update-interval="5000"></div>
+
+        <div class="chart_container" data-expression="alias_by_fragment(summarize(servers.*.system.asp_net.requests_sec, 'avg', '5m'), 1, 3, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="ASP.NET Requests/Sec" data-update-interval="5000" data-color-scheme='colorwheel'></div>    		
+
+        <!--div class="chart_container" data-expression="AliasByNode(servers.*.system.processor.total_time, 1, 4)" data-annotations="true" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
 
         <div class="chart_container" data-expression="AliasByNode(servers.*.system.physical_disk.*,1,4)" data-annotations="" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Physical Disk" data-update-interval="5000"></div>
         
-        <div class="chart_container" data-expression="AliasByNode(servers.*.system.memory.*,1,4)" data-annotations="" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Memory" data-update-interval="5000"></div>
+        <div class="chart_container" data-expression="AliasByNode(servers.*.system.memory.*,1,4)" data-annotations="" data-annotations-url="http://mow1aps3/statsify/api/annotations" data-url="http://mow1aps3/statsify/api/series" data-title="Memory" data-update-interval="5000"></div-->
     </div>    
 
     <script src="./Scripts/page.js"></script>

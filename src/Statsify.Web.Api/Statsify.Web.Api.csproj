@@ -67,7 +67,6 @@
     <Compile Include="Configuration\ConfigurationManager.cs" />
     <Compile Include="Configuration\StatsifyConfigurationSection.cs" />
     <Compile Include="Configuration\StorageConfigurationElement.cs" />
-    <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Helpers\SeriesQueryHelper.cs" />
     <Compile Include="Models\MetricInfo.cs" />
     <Compile Include="Models\Series.cs" />
@@ -95,6 +94,7 @@
       <Name>Statsify.Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

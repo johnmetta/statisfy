@@ -92,6 +92,8 @@ namespace Statsify.Client
 
                 buffer = memoryStream.ToArray();
 
+                Console.WriteLine("sending {0} bytes", buffer.Length);
+
                 udpClient.Send(buffer, buffer.Length, host, port);           
             } // using
         }

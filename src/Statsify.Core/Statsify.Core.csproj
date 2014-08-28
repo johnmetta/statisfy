@@ -72,6 +72,7 @@
     <Compile Include="Storage\RetentionPolicy.cs" />
     <Compile Include="Storage\RetentionPolicyValidationException.cs" />
     <Compile Include="Storage\RetentionPolicyValidator.cs" />
+    <Compile Include="Util\DateTimeUtil.cs" />
     <Compile Include="Util\StringUtil.cs" />
   </ItemGroup>
   <ItemGroup />

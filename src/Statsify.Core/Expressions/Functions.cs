@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Statsify.Core.Model;
+using Statsify.Core.Util;
 
 namespace Statsify.Core.Expressions
 {
@@ -41,12 +42,8 @@ namespace Statsify.Core.Expressions
         {
             return
                 metrics.Select(m => {
-                    var name = 
-                        string.Join(
-                            ".",
-                            m.Name.
-                                Split('.').
-                                Where((s, i) => fragmentIndices.Contains(i)));
+                    var fragments = m.Name.Split('.').Where((s, i) => fragmentIndices.Contains(i));
+                    var name = string.Join(".", fragments);
 
                     return new Metric(name, m.Series);
                 }).
@@ -59,8 +56,31 @@ namespace Statsify.Core.Expressions
             var bucketDuration = ParseTimeSpan(bucket);
             if(bucketDuration == null) return metrics;
 
-            DatapointAggregationFunction fn = null;
+            var fn = ParseAggregationFunction(aggregationFunction);
+            if(fn == null) return metrics;
 
+            return
+                metrics.Select(m => {
+                    var datapoints = 
+                        m.Series.Datapoints.
+                            GroupBy(d => (long)TimeSpan.FromTicks(d.Timestamp.Ticks).TotalSeconds / (long)bucketDuration.Value.TotalSeconds,
+                                (ts, ds) => {
+                                    var tst = DateTime.MinValue.AddSeconds(ts * (long)bucketDuration.Value.TotalSeconds);
+                                    var dpt = fn(ds);
+
+                                    return new Datapoint(tst, dpt);
+                                }).ToList();
+
+                    return new Metric(m.Name, new Series(m.Series.From, m.Series.Until, bucketDuration.Value, datapoints));
+                }).
+                ToArray();
+        }
+
+        private static DatapointAggregationFunction ParseAggregationFunction(string aggregationFunction)
+        {
+            DatapointAggregationFunction fn = null;
+            
+            // TODO: Handle empty collections correctly
             switch(aggregationFunction.ToLowerInvariant())
             {
                 case "max":
@@ -81,21 +101,7 @@ namespace Statsify.Core.Expressions
                     break;
             } // switch
 
-            return
-                metrics.Select(m => {
-                    var datapoints = 
-                        m.Series.Datapoints.
-                            GroupBy(d => (long)TimeSpan.FromTicks(d.Timestamp.Ticks).TotalSeconds / (long)bucketDuration.Value.TotalSeconds,
-                                (ts, ds) => {
-                                    var tst = DateTime.MinValue.AddSeconds(ts * (long)bucketDuration.Value.TotalSeconds);
-                                    var dpt = fn(ds);
-
-                                    return new Datapoint(tst, dpt);
-                                }).ToList();
-
-                    return new Metric(m.Name, new Series(m.Series.From, m.Series.Until, bucketDuration.Value, datapoints));
-                }).
-                ToArray();
+            return fn;
         }
 
         private static TimeSpan? ParseTimeSpan(string bucket)
@@ -123,6 +129,65 @@ namespace Statsify.Core.Expressions
                 default:
                     return null;
             } // switch
+        }
+
+        [Function("sort_by_name")]
+        public static Metric[] SortByName(EvalContext context, Metric[] metrics)
+        {
+            return metrics.OrderBy(m => m.Name).ToArray();
+        }
+
+        [Function("random_metrics")]
+        public static Metric[] RandomMetric(EvalContext context, string name, int number)
+        {
+            var r = new Random();
+
+            var from = context.From.ToUnixTimestamp();
+            var until = context.Until.ToUnixTimestamp();
+
+            var metrics = 
+                Enumerable.Range(0, number).
+                    Select(n => {
+                        double value = 0;
+
+                        var datapoints = 
+                            Enumerable.Range(0, (int)(until - @from)).
+                                Select(v => new Datapoint(context.From.AddSeconds(v), value = value + r.NextDouble() - 0.5));
+
+                        var series = new Series(context.From, context.Until, TimeSpan.FromSeconds(1), datapoints);
+
+                        return new Metric(number == 1 ? name : string.Format("{0}.{1}", name, n + 1), series);
+                    }).
+                    ToArray();
+
+            return metrics;
+        }
+
+        [Function("random_metric")]
+        public static Metric[] RandomMetric(EvalContext context, string name)
+        {
+            return RandomMetric(context, name, 1);
+        }
+
+        [Function("derivative")]
+        public static Metric[] Derivative(EvalContext context, Metric[] metrics)
+        {
+            return 
+                metrics.Select(m => {
+                    double? prev = null;
+
+                    return 
+                        Metric.Transform(m,
+                            (d => {
+                                if(!d.HasValue || !prev.HasValue) return (double?)null;
+
+                                var v = d.Value - prev.Value;
+                                prev = d.Value;
+
+                                return v;
+                            }));
+                }).
+                ToArray();
         }
 
         [Function("ema")]
