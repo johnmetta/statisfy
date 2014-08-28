@@ -48,20 +48,20 @@ namespace Statsify.Core.Components.Impl
             return GetDatabaseFilePaths(new DirectoryInfo(rootDirectory), fragments, 0);
         }
 
-        private IEnumerable<FileInfo> GetDatabaseFilePaths(DirectoryInfo directory, string[] fragments, int i)
+        private IEnumerable<FileInfo> GetDatabaseFilePaths(DirectoryInfo directoryInfo, string[] fragments, int i)
         {
             if(i == fragments.Length - 1)
             {
-                var files = directory.GetFiles(fragments[i] + ".db");
+                var files = directoryInfo.GetFiles(fragments[i] + ".db");
                 foreach(var file in files)
                     yield return file;
             } // if
             else
             {
-                foreach(var subdirectory in directory.GetDirectories(fragments[i]))
+                foreach(var subdirectory in directoryInfo.GetDirectories(fragments[i]))
                 {
-                    directory = new DirectoryInfo(Path.Combine(directory.FullName, subdirectory.Name));
-                    foreach(var metricName in GetDatabaseFilePaths(directory, fragments, i + 1))
+                    var subdirectoryInfo = new DirectoryInfo(Path.Combine(directoryInfo.FullName, subdirectory.Name));
+                    foreach(var metricName in GetDatabaseFilePaths(subdirectoryInfo, fragments, i + 1))
                         yield return metricName;
                 } // foreach
             } // else
