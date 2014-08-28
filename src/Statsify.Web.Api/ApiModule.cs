@@ -9,7 +9,7 @@ using Statsify.Core.Components;
 using Statsify.Core.Expressions;
 using Statsify.Core.Model;
 using Statsify.Core.Storage;
-using Statsify.Web.Api.Extensions;
+using Statsify.Core.Util;
 using Statsify.Web.Api.Models;
 using Statsify.Web.Api.Services;
 
@@ -30,8 +30,8 @@ namespace Statsify.Web.Api
 
                 JsonSettings.MaxJsonLength = int.MaxValue;
 
-                DateTime start = Request.Query.start;
-                DateTime stop = Request.Query.stop;
+                DateTime start = DateTime.SpecifyKind(Request.Query.start, DateTimeKind.Utc);
+                DateTime stop = DateTime.SpecifyKind(Request.Query.stop, DateTimeKind.Utc);
 
                 var annotations = 
                     annotationRegistry.

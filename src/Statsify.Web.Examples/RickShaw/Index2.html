@@ -12,9 +12,12 @@
 </head>
 <body>
     <div id="content">
-        <div class="chart_container" data-expression="summarize(alias_by_fragment(servers.*.system.processor.*, 1, 4), 'max', '10m')" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
-        <div class="chart_container" data-expression="summarize(alias_by_fragment(servers.*.system.processor.*, 1, 4), 'avg', '10m')" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
+        <!--div class="chart_container" data-expression="summarize(alias_by_fragment(servers.*.system.processor.*, 1, 4), 'max', '10m')" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="5000"></div>
+        <div class="chart_container" data-expression="summarize(alias_by_fragment(servers.*.system.processor.*, 1, 4), 'avg', '10m')" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="5000"></div-->
         <!--div class="chart_container" data-expression="alias_by_fragment(servers.*.system.processor.total_time, 1, 4)" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="Processor" data-update-interval="5000"></div-->
+
+<div class="chart_container" data-expression="sort_by_name(summarize(random_metrics('random', 5), 'sum', '2h'))" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="GDS Success" data-update-interval="5000"></div>
+<div class="chart_container" data-expression="alias_by_fragment(summarize(production.aeroclub_integration_gds.files.*.error, 'sum', '1h'), 3, 4)" data-annotations="true" data-annotations-url="http://localhost/statsify/api/annotations" data-url="http://localhost/statsify/api/series" data-title="GDS Success" data-update-interval="5000"></div>
     </div>    
 
     <script src="./Scripts/page.js"></script>
