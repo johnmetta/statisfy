@@ -76,6 +76,9 @@ namespace Statsify.Core.Expressions
                 case "sum":
                     fn = vs => vs.Where(v => v.Value.HasValue).Sum(v => v.Value);
                     break;
+                case "last":
+                    fn = vs => vs.Where(v => v.Value.HasValue).Last().Value;
+                    break;
             } // switch
 
             return
