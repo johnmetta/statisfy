@@ -17,10 +17,7 @@ namespace Statsify.Core.Expressions
                 if(lookahead == null)
                 {
                     if(!tokens.MoveNext())
-                    {
-                        Any = false;
                         return null;
-                    } // if
 
                     lookahead = tokens.Current;
                 } // if
@@ -29,14 +26,15 @@ namespace Statsify.Core.Expressions
             }
         }
 
-        public bool Any { get; private set; }
+        public bool Any
+        {
+            get { return Lookahead != null; }
+        }
 
         [DebuggerStepThrough]
         public TokenStream(IEnumerable<Token> tokens)
         {
             this.tokens = tokens.GetEnumerator();
-
-            Any = true;
         }
 
         public Token Read(params TokenType[] types)
@@ -51,10 +49,7 @@ namespace Statsify.Core.Expressions
             else
             {
                 if(!tokens.MoveNext())
-                {
-                    Any = false;
                     return null;
-                } // if
                 
                 token = tokens.Current;
             } // else

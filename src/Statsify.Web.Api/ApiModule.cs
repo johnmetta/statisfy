@@ -81,6 +81,11 @@ namespace Statsify.Web.Api
                         var tokens = scanner.Scan(expression);
                         var e = parser.Parse(new TokenStream(tokens));
 
+                        if(e is MetricSelectorExpression)
+                        {
+                            e = new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression);
+                        } // if
+
                         var r = (Metric[])e.Evaluate(environment, evalContext);
 
                         metrics.AddRange(r);

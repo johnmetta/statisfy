@@ -31,7 +31,7 @@ namespace Statsify.Core.Expressions
         {
             var selectorBuilder = new StringBuilder(id.Lexeme);
             var set = false;
-            while((set || tokens.Lookahead.Type != TokenType.Comma) && tokens.Lookahead.Type != TokenType.CloseParen)
+            while(tokens.Any && (set || tokens.Lookahead.Type != TokenType.Comma) && tokens.Lookahead.Type != TokenType.CloseParen)
             {
                 var token = tokens.Read();
                 if(token.Type == TokenType.OpenCBrace)
