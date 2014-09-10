@@ -24,7 +24,7 @@ namespace Statsify.Agent
                     });
 
                     x.SetServiceName("statsify-agent");
-                    x.SetDisplayName("statsify Agent");
+                    x.SetDisplayName("Statsify Agent");
                     x.SetDescription("Statsify Agent collects machine-level metrics and sends them off to Statsify Aggregator or any Statsd-compatible server.");
 
                     x.StartAutomaticallyDelayed();
