@@ -50,6 +50,15 @@ namespace Statsify.Core.Expressions
                 ToArray();
         }
 
+        [Function("alias")]
+        public static Metric[] Alias(EvalContext context, Metric[] metrics, string alias)
+        {
+            return 
+                metrics.
+                    Select(m => new Metric(alias, m.Series)).
+                    ToArray();
+        }
+
         [Function("summarize")]
         public static Metric[] Summarize(EvalContext context, Metric[] metrics, string aggregationFunction, string bucket)
         {
