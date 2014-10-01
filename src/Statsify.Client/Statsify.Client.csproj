@@ -45,6 +45,7 @@
     <Compile Include="MetricNameBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stats.cs" />
+    <Compile Include="StatsBatch.cs" />
     <Compile Include="StatsifyClientExtensions.cs" />
     <Compile Include="UdpStatsifyClient.cs" />
   </ItemGroup>
