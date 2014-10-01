@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Statsify.Client
+﻿namespace Statsify.Client
 {
     /// <summary>
     /// 
@@ -8,7 +6,7 @@ namespace Statsify.Client
     /// <remarks>
     /// Documentation is from https://github.com/b/statsd_spec.
     /// </remarks>
-    public interface IStatsifyClient : IDisposable
+    public interface IStatsifyClient
     {
         /// <summary>
         /// Increments counter <paramref name="metric"/> by <paramref name="value"/>.

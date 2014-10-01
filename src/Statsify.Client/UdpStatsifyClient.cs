@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Statsify.Client
 {
-    public class UdpStatsifyClient : IStatsifyClient
+    public class UdpStatsifyClient : IStatsifyClient, IDisposable
     {
         private static readonly Random Sampler = new Random();
 
