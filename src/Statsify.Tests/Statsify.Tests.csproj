@@ -47,6 +47,7 @@
     <Compile Include="Core\Components\Impl\MetricRegistryTests.cs" />
     <Compile Include="Core\Expressions\ExpressionParserTests.cs" />
     <Compile Include="Core\Expressions\ExpressionScannerTests.cs" />
+    <Compile Include="Core\Expressions\FunctionsTests.cs" />
     <Compile Include="Core\Storage\AnnotationDatabaseTests.cs" />
     <Compile Include="Core\Storage\DatapointDatabaseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
