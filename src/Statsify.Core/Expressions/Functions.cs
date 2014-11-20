@@ -203,6 +203,34 @@ namespace Statsify.Core.Expressions
                 ToArray();
         }
 
+        [Function("nonnegative_derivative")]
+        public static Metric[] NonnegativeDerivative(EvalContext context, Metric[] metrics)
+        {
+            return 
+                metrics.Select(m => {
+                    double? prev = null;
+
+                    return 
+                        Metric.Transform(m,
+                            (d => {
+                                if(!d.HasValue || !prev.HasValue)
+                                {
+                                    prev = d;
+                                    return (double?)null;
+                                } // if
+
+                                var diff = d.Value - prev.Value;
+                                prev = d.Value;
+
+                                return diff >= 0 ?
+                                    (double?)diff :
+                                    null;
+                            }));
+                }).
+                ToArray();
+        }
+
+
         [Function("ema")]
         [Function("exponential_moving_average")]
         public static Metric[] Ema(EvalContext context, Metric[] metrics, int smoothingFactor)
