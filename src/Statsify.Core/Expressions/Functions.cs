@@ -188,7 +188,11 @@ namespace Statsify.Core.Expressions
                     return 
                         Metric.Transform(m,
                             (d => {
-                                if(!d.HasValue || !prev.HasValue) return (double?)null;
+                                if(!d.HasValue || !prev.HasValue)
+                                {
+                                    prev = d;
+                                    return (double?)null;
+                                } // if
 
                                 var v = d.Value - prev.Value;
                                 prev = d.Value;
