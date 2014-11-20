@@ -230,5 +230,26 @@ namespace Statsify.Core.Expressions
                 }).
                 ToArray();
         }
+
+        [Function("keep_last_value")]
+        public static Metric[] KeepLastValue(EvalContext context, Metric[] metrics)
+        {
+            return 
+                metrics.Select(m => {
+                    double? prev = null;
+
+                    return 
+                        Metric.Transform(m,
+                            d => {
+                                if(!d.HasValue)
+                                    return prev;
+
+                                prev = d.Value;
+                                return d;
+                            });
+                }).
+                ToArray();
+
+        }
     }
 }
