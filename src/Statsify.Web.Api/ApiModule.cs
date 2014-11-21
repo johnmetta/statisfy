@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Nancy;
 using Nancy.Helpers;
@@ -61,8 +62,26 @@ namespace Statsify.Web.Api
 
                     var now = DateTime.UtcNow;
 
-                    var start = model.Start.GetValueOrDefault(now.AddHours(-1)).ToUniversalTime();
-                    var stop = model.Stop.GetValueOrDefault(now).ToUniversalTime();
+                    DateTime from, until;
+                    if(string.IsNullOrWhiteSpace(model.From))
+                        from = now.AddHours(-1);
+                    else if(model.From.StartsWith("-"))
+                    {
+                        var offset = RetentionPolicy.ParseTimeSpan(model.From.Substring(1));
+                        from = offset.HasValue ? now.Subtract(offset.Value) : now.AddHours(-1);
+                    } // else
+                    else
+                        from = DateTime.Parse(model.From, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+
+                    if(string.IsNullOrWhiteSpace(model.Until))
+                        until = now;
+                    else if(model.Until.StartsWith("-"))
+                    {
+                        var offset = RetentionPolicy.ParseTimeSpan(model.Until.Substring(1));
+                        until = offset.HasValue ? now.Subtract(offset.Value) : now;
+                    } // else
+                    else
+                        until = DateTime.Parse(model.Until, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
                     var scanner = new ExpressionScanner();
                     var parser = new ExpressionParser();
@@ -71,7 +90,7 @@ namespace Statsify.Web.Api
                         MetricRegistry = metricRegistry
                     };
 
-                    var evalContext = new EvalContext(start, stop);
+                    var evalContext = new EvalContext(from, until);
 
                     var metrics = new List<Metric>();
                     foreach(var expression in model.Expression.Select(HttpUtility.UrlDecode))
@@ -92,12 +111,12 @@ namespace Statsify.Web.Api
                     } // foreach
 
                     var seriesViewList = (from metric in metrics
-                                          let @from = metric.Series.From.ToUnixTimestamp()
+                                          let f = metric.Series.From.ToUnixTimestamp()
                                           let interval = metric.Series.Interval.ToUnixTimestamp()
                                           select new SeriesView
                                           {
                                               Target = metric.Name,
-                                              DataPoints = metric.Series.Datapoints.Select((v, i) => new[] { v.Value, @from + i * interval }).ToArray()
+                                              DataPoints = metric.Series.Datapoints.Select((v, i) => new[] { v.Value, f + i * interval }).ToArray()
                                           }
                         ).OrderBy(s => s.Target).ToArray();
 
