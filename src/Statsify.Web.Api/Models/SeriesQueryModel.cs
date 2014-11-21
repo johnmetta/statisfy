@@ -1,12 +1,10 @@
 ﻿namespace Statsify.Web.Api.Models
 {
-    using System;
-
     public class SeriesQueryModel
     {
-        public DateTime? Start { get; set; }
+        public string From { get; set; }
 
-        public DateTime? Stop { get; set; }
+        public string Until { get; set; }
 
         public string[] Expression { get; set; }
     }
