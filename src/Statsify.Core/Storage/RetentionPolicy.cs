@@ -53,7 +53,7 @@ namespace Statsify.Core.Storage
             return retentionPolicy;
         }
 
-        private static TimeSpan? ParseTimeSpan(string text)
+        public static TimeSpan? ParseTimeSpan(string text)
         {
             var suffix = text.Last();
             var value = int.Parse(text.Substring(0, text.Length - 1));
