@@ -73,6 +73,8 @@ namespace Statsify.Core.Storage
                     return TimeSpan.FromHours(value);
                 case 'd':
                     return TimeSpan.FromDays(value);
+                case 'w':
+                    return TimeSpan.FromDays(value * 7);
                 case 'y':
                     return TimeSpan.FromDays(365.25 * value);
                 default:
