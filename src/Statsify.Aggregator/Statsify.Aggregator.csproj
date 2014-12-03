@@ -44,6 +44,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyVersion.cs">
+      <Link>Properties\AssemblyVersion.cs</Link>
+    </Compile>
     <Compile Include="AnnotationAggregator.cs" />
     <Compile Include="Configuration\AggregationConfigurationElement.cs" />
     <Compile Include="Configuration\AggregationConfigurationElementCollection.cs" />

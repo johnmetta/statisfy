@@ -35,6 +35,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyVersion.cs">
+      <Link>Properties\AssemblyVersion.cs</Link>
+    </Compile>
     <Compile Include="Components\IAnnotationRegistry.cs" />
     <Compile Include="Components\IMetricRegistry.cs" />
     <Compile Include="Components\Impl\AnnotationRegistry.cs" />
@@ -77,6 +80,9 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>"$(ProjectDir)..\..\tools\semverstein\svs" format "[assembly: System.Reflection.AssemblyVersion(\"${VERSION}\")]" --semver="$(ProjectDir)..\..\.semver" &gt; "$(ProjectDir)..\AssemblyVersion.cs"</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
