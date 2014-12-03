@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using NLog;
 using Statsify.Agent.Configuration;
 using Statsify.Agent.Impl;
@@ -11,13 +10,10 @@ namespace Statsify.Agent
     public class StatsifyAgentService
     {
         private readonly StatsifyAgentConfigurationSection configuration;
-
         private readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private MetricCollector metricCollector;
-
         private MetricPublisher metricPublisher;
-
         private IStatsifyClient statsifyClient;        
 
         public StatsifyAgentService(ConfigurationManager configurationManager)
@@ -39,11 +35,10 @@ namespace Statsify.Agent
             log.Trace("configuring StatsifyClient with host: {0}, port: {1}, namespace: '{2}'", configuration.Statsify.Host, configuration.Statsify.Port, @namespace);
 
             statsifyClient = new UdpStatsifyClient(configuration.Statsify.Host, configuration.Statsify.Port, @namespace);
-
+            
             metricCollector = new MetricCollector(configuration.Metrics);
-
+            
             metricPublisher = new MetricPublisher(metricCollector, statsifyClient, configuration.Metrics.CollectionInterval);
-
             metricPublisher.Start();
             
             return true;

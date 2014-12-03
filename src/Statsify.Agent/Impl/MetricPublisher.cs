@@ -10,15 +10,10 @@ namespace Statsify.Agent.Impl
     public class MetricPublisher
     {
         private readonly Logger log = LogManager.GetCurrentClassLogger();
-
         private readonly MetricCollector metricCollector;
-
         private readonly IStatsifyClient statsifyClient;
-
         private readonly TimeSpan collectionInterval;
-
         private ManualResetEvent stopEvent;
-
         private ManualResetEvent stoppedEvent;
         private System.Timers.Timer publisherTimer;
 
