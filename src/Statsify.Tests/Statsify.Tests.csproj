@@ -34,12 +34,14 @@
       <HintPath>..\..\lib\nunit.framework\bin\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Agent\Impl\MetricDefinitionFactoryTests.cs" />
     <Compile Include="Aggregator\DatagramParserTests.cs" />
     <Compile Include="Aggregator\MetricParserTests.cs" />
     <Compile Include="Client\MetricNameBuilderTests.cs" />
@@ -53,6 +55,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Statsify.Agent\Statsify.Agent.csproj">
+      <Project>{42A19738-EC3C-4ED2-9516-B164138DD23D}</Project>
+      <Name>Statsify.Agent</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Statsify.Aggregator\Statsify.Aggregator.csproj">
       <Project>{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}</Project>
       <Name>Statsify.Aggregator</Name>
