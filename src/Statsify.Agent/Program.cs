@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using System.Reflection;
+using NLog;
 using Statsify.Agent.Configuration;
 using Topshelf;
 
@@ -10,6 +11,8 @@ namespace Statsify.Agent
 
         static int Main(string[] args)
         {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+
             Log.Info("starting up");
 
             var configurationManager = new ConfigurationManager();
@@ -24,7 +27,7 @@ namespace Statsify.Agent
                     });
 
                     x.SetServiceName("statsify-agent");
-                    x.SetDisplayName("Statsify Agent");
+                    x.SetDisplayName("Statsify Agent " + version);
                     x.SetDescription("Statsify Agent collects machine-level metrics and sends them off to Statsify Aggregator or any Statsd-compatible server.");
 
                     x.StartAutomaticallyDelayed();
