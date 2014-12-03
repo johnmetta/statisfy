@@ -72,7 +72,7 @@ namespace Statsify.Agent.Impl
             }
             catch (Exception e)
             {
-                Log.Error("could not create performance counter: {0}", e.Message);
+                Log.ErrorException(string.Format("could not create performance counter from '{0}'", s), e);
                 return null;
             }
 
