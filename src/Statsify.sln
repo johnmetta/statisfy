@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Core", "Statsify.Core\Statsify.Core.csproj", "{CE4BFA81-3B50-42BE-B96C-0A4E4A135187}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Tests", "Statsify.Tests\Statsify.Tests.csproj", "{23A14CDC-C1A7-4935-832C-BA2474F8E37E}"
@@ -9,8 +11,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Tests", "Statsify.
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Client", "Statsify.Client\Statsify.Client.csproj", "{106B9B44-F0D9-43FC-923E-562BEDCD7D06}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE4BFA81-3B50-42BE-B96C-0A4E4A135187} = {CE4BFA81-3B50-42BE-B96C-0A4E4A135187}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Agent", "Statsify.Agent\Statsify.Agent.csproj", "{42A19738-EC3C-4ED2-9516-B164138DD23D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE4BFA81-3B50-42BE-B96C-0A4E4A135187} = {CE4BFA81-3B50-42BE-B96C-0A4E4A135187}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Aggregator", "Statsify.Aggregator\Statsify.Aggregator.csproj", "{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}"
 EndProject
@@ -19,8 +27,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installers", "Installers", "{A126413E-E0DF-4387-9FB3-2852CD9778C9}"
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Statsify.Agent.Installer", "Statsify.Agent.Installer\Statsify.Agent.Installer.wixproj", "{A5E4F34D-1B91-48FA-973B-F62A34656319}"
+	ProjectSection(ProjectDependencies) = postProject
+		{106B9B44-F0D9-43FC-923E-562BEDCD7D06} = {106B9B44-F0D9-43FC-923E-562BEDCD7D06}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify", "Statsify\Statsify.csproj", "{05786DB8-02D9-43BE-9DEE-3C16AB2F0698}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CE4BFA81-3B50-42BE-B96C-0A4E4A135187} = {CE4BFA81-3B50-42BE-B96C-0A4E4A135187}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

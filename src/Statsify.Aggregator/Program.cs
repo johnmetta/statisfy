@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using System.Reflection;
+using NLog;
 using Statsify.Aggregator.Configuration;
 using Statsify.Core.Storage;
 using Topshelf;
@@ -11,6 +12,8 @@ namespace Statsify.Aggregator
 
         static int Main(string[] args)
         {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+
             Log.Info("starting up");
 
             var configurationManager = new ConfigurationManager();
@@ -33,9 +36,7 @@ namespace Statsify.Aggregator
                     });
 
                     x.SetServiceName("statsify-aggregator");
-
-                    x.SetDisplayName("Statsify Aggregator");
-
+                    x.SetDisplayName("Statsify Aggregator " + version);
                     x.SetDescription("Statsify Aggregator aggregates and stores metrics sent to it.");
 
                     x.StartAutomaticallyDelayed();
