@@ -61,28 +61,9 @@ namespace Statsify.Web.Api
                     this.BindTo(model, new BindingConfig { BodyOnly = false });
 
                     var now = DateTime.UtcNow;
-
-                    DateTime from, until;
-                    if(string.IsNullOrWhiteSpace(model.From))
-                        from = now.AddHours(-1);
-                    else if(model.From.StartsWith("-"))
-                    {
-                        var offset = RetentionPolicy.ParseTimeSpan(model.From.Substring(1));
-                        from = offset.HasValue ? now.Subtract(offset.Value) : now.AddHours(-1);
-                    } // else
-                    else
-                        from = DateTime.Parse(model.From, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-
-                    if(string.IsNullOrWhiteSpace(model.Until))
-                        until = now;
-                    else if(model.Until.StartsWith("-"))
-                    {
-                        var offset = RetentionPolicy.ParseTimeSpan(model.Until.Substring(1));
-                        until = offset.HasValue ? now.Subtract(offset.Value) : now;
-                    } // else
-                    else
-                        until = DateTime.Parse(model.Until, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-
+                    var from = ParseDateTime(model.From, now, now.AddHours(-1));
+                    var until = ParseDateTime(model.Until, now, now);
+                    
                     var scanner = new ExpressionScanner();
                     var parser = new ExpressionParser();
 
@@ -127,6 +108,25 @@ namespace Statsify.Web.Api
                     return Response.AsJson(new { e.Message, e.StackTrace });
                 }
             };
+        }
+
+        private static DateTime ParseDateTime(string value, DateTime now, DateTime @default)
+        {
+            if(string.IsNullOrWhiteSpace(value))
+                return @default;
+            
+            if(value.StartsWith("-"))
+            {
+                var offset = RetentionPolicy.ParseTimeSpan(value.Substring(1));
+                return offset.HasValue ? 
+                    now.Subtract(offset.Value) : 
+                    @default;
+            } // else
+
+            DateTime result;
+            return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out result) ? 
+                result : 
+                @default;
         }
     }
 }
