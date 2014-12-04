@@ -20,6 +20,8 @@ namespace Statsify.Web.Api
     {
         public ApiModule(IMetricService metricService, IAnnotationRegistry annotationRegistry, IMetricRegistry metricRegistry)
         {
+            JsonSettings.MaxJsonLength = int.MaxValue;
+
             Get["/api/find/{query}"] = x => {
                 string query = x.query;
                 var metrics = metricService.Find(query);
@@ -28,8 +30,6 @@ namespace Statsify.Web.Api
             };
 
             Get["/api/annotations"] = x => {
-
-                JsonSettings.MaxJsonLength = int.MaxValue;
 
                 DateTime start = DateTime.SpecifyKind(Request.Query.start, DateTimeKind.Utc);
                 DateTime stop = DateTime.SpecifyKind(Request.Query.stop, DateTimeKind.Utc);
@@ -43,6 +43,7 @@ namespace Statsify.Web.Api
             };
 
             Post["/api/annotations"] = x => {
+
                 string title = Request.Form.title;
                 string message = Request.Form.message;
 
@@ -52,10 +53,9 @@ namespace Statsify.Web.Api
             };
 
             Get["/api/series"] = x => {
+
                 try
                 {
-                    JsonSettings.MaxJsonLength = int.MaxValue;
-
                     var model = new SeriesQueryModel();
 
                     this.BindTo(model, new BindingConfig { BodyOnly = false });
@@ -63,9 +63,6 @@ namespace Statsify.Web.Api
                     var now = DateTime.UtcNow;
                     var from = ParseDateTime(model.From, now, now.AddHours(-1));
                     var until = ParseDateTime(model.Until, now, now);
-                    
-                    var scanner = new ExpressionScanner();
-                    var parser = new ExpressionParser();
 
                     var environment = new Statsify.Core.Expressions.Environment {
                         MetricRegistry = metricRegistry
@@ -76,9 +73,10 @@ namespace Statsify.Web.Api
                     var metrics = new List<Metric>();
                     foreach(var expression in model.Expression.Select(HttpUtility.UrlDecode))
                     {
-                        Console.WriteLine("evaluating " + expression);
-
+                        var scanner = new ExpressionScanner();
                         var tokens = scanner.Scan(expression);
+                        
+                        var parser = new ExpressionParser();
                         var e = parser.Parse(new TokenStream(tokens));
 
                         if(e is MetricSelectorExpression)
