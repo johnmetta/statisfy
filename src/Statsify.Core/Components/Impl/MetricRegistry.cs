@@ -19,7 +19,7 @@ namespace Statsify.Core.Components.Impl
 
         public IEnumerable<string> ResolveMetricNames(string metricNameSelector)
         {
-            return GetDatabaseFilePaths(metricNameSelector).
+            return GetDatabaseFiles(metricNameSelector).
                 Select(f => {
                     var directoryName = Path.GetDirectoryName(f.FullName);
                     Debug.Assert(directoryName != null, "directoryName != null");
@@ -33,7 +33,7 @@ namespace Statsify.Core.Components.Impl
 
         public Metric ReadMetric(string metricName, DateTime @from, DateTime until, TimeSpan? precision = null)
         {
-            var databaseFilePath = GetDatabaseFilePaths(metricName).FirstOrDefault();
+            var databaseFilePath = GetDatabaseFiles(metricName).FirstOrDefault();
             if(databaseFilePath == null) return null;
 
             var database = DatapointDatabase.Open(databaseFilePath.FullName);
@@ -42,29 +42,65 @@ namespace Statsify.Core.Components.Impl
             return new Metric(metricName, series);
         }
 
-        private IEnumerable<FileInfo> GetDatabaseFilePaths(string metricNameSelector)
+        private IEnumerable<FileInfo> GetDatabaseFiles(string metricNameSelector)
         {
             var fragments = metricNameSelector.Split('.');
-            return GetDatabaseFilePaths(new DirectoryInfo(rootDirectory), fragments, 0);
+            return GetDatabaseFiles(new DirectoryInfo(rootDirectory), fragments, 0);
         }
 
-        private IEnumerable<FileInfo> GetDatabaseFilePaths(DirectoryInfo directoryInfo, string[] fragments, int i)
+        private IEnumerable<FileInfo> GetDatabaseFiles(DirectoryInfo directoryInfo, string[] fragments, int i)
         {
+            var fragment = fragments[i];
+
             if(i == fragments.Length - 1)
             {
-                var files = directoryInfo.GetFiles(fragments[i] + ".db");
-                foreach(var file in files)
-                    yield return file;
+                if(fragment.StartsWith("{") && fragment.EndsWith("}"))
+                {
+                    fragment = fragment.TrimStart('{').TrimEnd('}');
+                    
+                    var subfragments = fragment.Split(',');
+                    foreach(var file in subfragments.SelectMany(subfragment => GetDatabaseFiles(directoryInfo, subfragment)))
+                        yield return file;
+                }
+                else
+                {
+                    foreach(var file in GetDatabaseFiles(directoryInfo, fragment))
+                        yield return file;
+                } // else
             } // if
             else
             {
-                foreach(var subdirectory in directoryInfo.GetDirectories(fragments[i]))
+                if(fragment.StartsWith("{") && fragment.EndsWith("}"))
                 {
-                    var subdirectoryInfo = new DirectoryInfo(Path.Combine(directoryInfo.FullName, subdirectory.Name));
-                    foreach(var metricName in GetDatabaseFilePaths(subdirectoryInfo, fragments, i + 1))
-                        yield return metricName;
-                } // foreach
+                    fragment = fragment.TrimStart('{').TrimEnd('}');
+                    
+                    var subfragments = fragment.Split(',');
+                    foreach(var file in subfragments.SelectMany(subfragment => GetDatabaseFiles(directoryInfo, subfragment, fragments, i)))
+                        yield return file;
+                } // if
+                else
+                {
+                    foreach(var file in GetDatabaseFiles(directoryInfo, fragment, fragments, i))
+                        yield return file;
+                } // else
             } // else
+        }
+
+        private IEnumerable<FileInfo> GetDatabaseFiles(DirectoryInfo directoryInfo, string searchPattern)
+        {
+            var files = directoryInfo.GetFiles(searchPattern + ".db");
+            foreach(var file in files)
+                yield return file;
+        } 
+
+        private IEnumerable<FileInfo> GetDatabaseFiles(DirectoryInfo directoryInfo, string searchPatten, string[] fragments, int i)
+        {
+            foreach(var subdirectory in directoryInfo.GetDirectories(searchPatten))
+            {
+                var subdirectoryInfo = new DirectoryInfo(Path.Combine(directoryInfo.FullName, subdirectory.Name));
+                foreach(var metricName in GetDatabaseFiles(subdirectoryInfo, fragments, i + 1))
+                    yield return metricName;
+            } // foreach
         }
     }
 }
