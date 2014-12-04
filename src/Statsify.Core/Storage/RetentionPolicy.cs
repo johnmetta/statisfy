@@ -56,9 +56,12 @@ namespace Statsify.Core.Storage
         public static TimeSpan? ParseTimeSpan(string text)
         {
             var suffix = text.Last();
-            var value = int.Parse(text.Substring(0, text.Length - 1));
+            
+            int value;
+            if(int.TryParse(text.Substring(0, text.Length - 1), out value))
+                return ParseTimeSpan(suffix, value);
 
-            return ParseTimeSpan(suffix, value);
+            return null;
         }
 
         private static TimeSpan? ParseTimeSpan(char suffix, int value)
