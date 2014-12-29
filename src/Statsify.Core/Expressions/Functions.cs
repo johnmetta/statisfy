@@ -148,6 +148,17 @@ namespace Statsify.Core.Expressions
             return metrics.OrderBy(m => m.Name).ToArray();
         }
 
+        [Function("sort_by_fragment")]
+        public static Metric[] SortByFragment(EvalContext context, Metric[] metrics, int fragmentIndex)
+        {
+            return
+                metrics.OrderBy(m => {
+                    var fragment = m.Name.Split('.').Where((s, i) => i == fragmentIndex).SingleOrDefault();
+                    return fragment;
+                }).
+                ToArray();
+        }
+
         [Function("random_metrics")]
         public static Metric[] RandomMetric(EvalContext context, string name, int number)
         {
