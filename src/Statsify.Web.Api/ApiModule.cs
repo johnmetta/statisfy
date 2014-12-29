@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Nancy;
 using Nancy.Helpers;
@@ -18,6 +17,8 @@ namespace Statsify.Web.Api
 {
     public class ApiModule : NancyModule
     {
+        
+
         public ApiModule(IMetricService metricService, IAnnotationRegistry annotationRegistry, IMetricRegistry metricRegistry)
         {
             JsonSettings.MaxJsonLength = int.MaxValue;
@@ -31,12 +32,17 @@ namespace Statsify.Web.Api
 
             Get["/api/annotations"] = x => {
 
-                DateTime start = DateTime.SpecifyKind(Request.Query.start, DateTimeKind.Utc);
-                DateTime stop = DateTime.SpecifyKind(Request.Query.stop, DateTimeKind.Utc);
+                var model = new AnnotationsQueryModel();
+                this.BindTo(model, new BindingConfig { BodyOnly = false });
+                
+                var now = DateTime.UtcNow;
+                var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
+                var until = Parser.ParseDateTime(model.Until, now, now);
 
                 var annotations = 
                     annotationRegistry.
-                        ReadAnnotations(start, stop).
+                        ReadAnnotations(from, until).
+                        Where(a => model.Tag == null || model.Tag.Length == 0 || a.Tags.Intersect(model.Tag).Any()).
                         Select(a => new { Timestamp = a.Timestamp.ToUnixTimestamp(), a.Title, a.Message });;
                 
                 return Response.AsJson(annotations);
@@ -57,12 +63,11 @@ namespace Statsify.Web.Api
                 try
                 {
                     var model = new SeriesQueryModel();
-
                     this.BindTo(model, new BindingConfig { BodyOnly = false });
 
                     var now = DateTime.UtcNow;
-                    var from = ParseDateTime(model.From, now, now.AddHours(-1));
-                    var until = ParseDateTime(model.Until, now, now);
+                    var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
+                    var until = Parser.ParseDateTime(model.Until, now, now);
 
                     var environment = new Statsify.Core.Expressions.Environment {
                         MetricRegistry = metricRegistry
@@ -106,25 +111,6 @@ namespace Statsify.Web.Api
                     return Response.AsJson(new { e.Message, e.StackTrace });
                 }
             };
-        }
-
-        private static DateTime ParseDateTime(string value, DateTime now, DateTime @default)
-        {
-            if(string.IsNullOrWhiteSpace(value))
-                return @default;
-            
-            if(value.StartsWith("-"))
-            {
-                var offset = RetentionPolicy.ParseTimeSpan(value.Substring(1));
-                return offset.HasValue ? 
-                    now.Subtract(offset.Value) : 
-                    @default;
-            } // else
-
-            DateTime result;
-            return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out result) ? 
-                result : 
-                @default;
         }
     }
 }
