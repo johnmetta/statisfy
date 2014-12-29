@@ -53,6 +53,7 @@
     <Compile Include="Core\Storage\AnnotationDatabaseTests.cs" />
     <Compile Include="Core\Storage\DatapointDatabaseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Web\Api\ParserTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Statsify.Agent\Statsify.Agent.csproj">
