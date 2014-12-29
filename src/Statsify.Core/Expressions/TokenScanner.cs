@@ -13,7 +13,10 @@ namespace Statsify.Core.Expressions
 
         public static TokenScanner Scan(TokenType tokenType, string regex, RegexOptions options = RegexOptions.None, Func<string, string> lexemePostprocessor = null)
         {
-            return Scan(tokenType, new Regex(@"\G" + regex, RegexOptions.Compiled | options), lexemePostprocessor);
+            if(!regex.StartsWith(@"\G"))
+                regex = @"\G" + regex;
+
+            return Scan(tokenType, new Regex(regex, RegexOptions.Compiled | options), lexemePostprocessor);
         }
 
         public static TokenScanner Scan(TokenType tokenType, Regex regex, Func<string, string> lexemePostprocessor = null)
