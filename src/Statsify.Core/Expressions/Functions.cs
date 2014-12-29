@@ -71,14 +71,16 @@ namespace Statsify.Core.Expressions
             return
                 metrics.Select(m => {
                     var datapoints = 
-                        m.Series.Datapoints.
-                            GroupBy(d => (long)TimeSpan.FromTicks(d.Timestamp.Ticks).TotalSeconds / (long)bucketDuration.Value.TotalSeconds,
-                                (ts, ds) => {
-                                    var tst = DateTime.MinValue.AddSeconds(ts * (long)bucketDuration.Value.TotalSeconds);
-                                    var dpt = fn(ds);
+                        m.Series.Interval > bucketDuration ?
+                            m.Series.Datapoints.ToList() :
+                            m.Series.Datapoints.
+                                GroupBy(d => (long)TimeSpan.FromTicks(d.Timestamp.Ticks).TotalSeconds / (long)bucketDuration.Value.TotalSeconds,
+                                    (ts, ds) => {
+                                        var tst = DateTime.MinValue.AddSeconds(ts * (long)bucketDuration.Value.TotalSeconds);
+                                        var dpt = fn(ds);
 
-                                    return new Datapoint(tst, dpt);
-                                }).ToList();
+                                        return new Datapoint(tst, dpt);
+                                    }).ToList();
 
                     return new Metric(m.Name, new Series(m.Series.From, m.Series.Until, bucketDuration.Value, datapoints));
                 }).
