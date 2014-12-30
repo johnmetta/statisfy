@@ -10,6 +10,14 @@ namespace Statsify.Tests.Core.Expressions
     public class ExpressionParserTests
     {
         [Test]
+        public void ParseFloat()
+        {
+            var expression = new ExpressionParser().Parse(new TokenStream(new ExpressionScanner().Scan("-293847.2724379324")));
+
+            Assert.IsInstanceOf<ConstantExpression>(expression);
+        }
+
+        [Test]
         public void Parse()
         {
             var scanner = new ExpressionScanner();
