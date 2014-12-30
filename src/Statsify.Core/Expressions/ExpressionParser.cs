@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -21,7 +22,9 @@ namespace Statsify.Core.Expressions
                 case TokenType.String:
                     return new ConstantExpression(tokens.Read().Lexeme);
                 case TokenType.Integer:
-                    return new ConstantExpression(Convert.ToInt32(tokens.Read().Lexeme));
+                    return new ConstantExpression(Convert.ToInt32(tokens.Read().Lexeme, CultureInfo.InvariantCulture));
+                case TokenType.Float:
+                    return new ConstantExpression(Convert.ToDouble(tokens.Read().Lexeme, CultureInfo.InvariantCulture));
                 default:
                     throw new Exception(string.Format("unexpected '{0}' at {1}", tokens.Lookahead.Type, tokens.Lookahead.Position));
             } // switch
