@@ -17,7 +17,10 @@ namespace Statsify.Web.Api
 
             Core.Expressions.Environment.RegisterFunctions(typeof(Functions));
 
-            using (var host = new NancyHost(uri))
+            var configuration = new HostConfiguration();
+            configuration.UrlReservations.CreateAutomatically = true;
+
+            using (var host = new NancyHost(configuration, uri))
             {                
                 host.Start();                
 
