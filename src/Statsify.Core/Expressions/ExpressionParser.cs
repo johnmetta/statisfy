@@ -82,7 +82,7 @@ namespace Statsify.Core.Expressions
             var pis = methodInfo.GetParameters();
             var paramsPi = pis.SingleOrDefault(pi => pi.GetCustomAttribute<ParamArrayAttribute>() != null);
             var hasParams = paramsPi != null;
-            var hasMetric = pis.All(pi => pi.GetType() != typeof(MetricSelector));
+            var hasMetric = pis.All(pi => pi.ParameterType != typeof(MetricSelector));
 
             //
             // First parameter must always be an EvalContext instance
