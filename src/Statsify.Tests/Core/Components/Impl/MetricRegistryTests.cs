@@ -11,7 +11,7 @@ namespace Statsify.Tests.Core.Components.Impl
         public void ResolveMetricNames()
         {
             var metricRegistry = new MetricRegistry(@"c:\statsify");
-            var metricNames = metricRegistry.ResolveMetricNames("servers.*.system.processor.total*").ToList();
+            var metricNames = metricRegistry.ResolveMetricNames("servers.*.system.{processor,memory}.*").ToList();
         }
     }
 }

@@ -10,6 +10,8 @@
 
         Integer,
 
+        Float,
+
         OpenParen,
 
         CloseParen,

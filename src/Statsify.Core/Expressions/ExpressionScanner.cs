@@ -14,21 +14,21 @@ namespace Statsify.Core.Expressions
         private readonly Regex identifier = new Regex(@"\G[_a-zA-Z][_\-a-zA-Z0-9]*", RegexOptions.Compiled);
         private readonly Regex @string = new Regex(@"\G(""[^""\r\n\\]*(?:\\.[^""\r\n\\]*)*""|'[^'\r\n\\]*(?:\\.[^'\r\n\\]*)*')", RegexOptions.Compiled);
         private readonly Regex multilineString = new Regex(@"\G\""(?:[^""]|\"""")*\""", RegexOptions.Compiled | RegexOptions.Multiline);
-        private readonly Regex integer = new Regex(@"\G\d+", RegexOptions.Compiled);
         private readonly Regex punctuation = new Regex(@"\G(\;|\:\:|\:|\.|,|=>|\{|\}|\[|\]|\(|\)|\$|\*|\?|\=|\@|\!)", RegexOptions.Compiled);
         private readonly Regex whitespace = new Regex(@"\G(\s|\r|\n)+", RegexOptions.Compiled | RegexOptions.Multiline);
         private readonly Regex comment = new Regex(@"\G#(.*?)\r?\n", RegexOptions.Compiled | RegexOptions.Multiline);
 
-        private readonly IList<TokenScanner> tokenScanners = new List<TokenScanner>();
+        private readonly IList<ITokenScanner> tokenScanners = new List<ITokenScanner>();
 
         public ExpressionScanner()
         {
-            tokenScanners = new List<TokenScanner> {
+            tokenScanners = new List<ITokenScanner> {
                 TokenScanner.Scan(TokenType.Keyword, keyword),
                 TokenScanner.Scan(TokenType.Identifier, identifier),
                 TokenScanner.Scan(TokenType.String, @string, s => s.Trim('\'').Trim('\"')),
                 TokenScanner.Scan(TokenType.String, multilineString, s => s.Trim('\'').Trim('\"')),
-                TokenScanner.Scan(TokenType.Integer, integer),
+
+                new NumberTokenScanner(),
 
                 TokenScanner.Scan(TokenType.OpenParen, @"\("),
                 TokenScanner.Scan(TokenType.CloseParen, @"\)"),
@@ -56,89 +56,46 @@ namespace Statsify.Core.Expressions
             var line = 1;
             var column = 1;
 
-            Token token;
-
             while(offset < source.Length)
             {
                 var scanned = false;
 
                 foreach(var scanner in tokenScanners)
                 {
-                    if(scanner.TokenType.HasValue)
-                    {
-                        // ReSharper disable once CSharpWarnings::CS0665
-                        if(scanned = ScanToken(source, scanner, ref offset, ref line, ref column, out token))
-                        {
-                            yield return token;
-                            break;
-                        } // if
-                    } //
-                    else
-                    {
-                        // ReSharper disable once CSharpWarnings::CS0665
-                        if(scanned = SkipToken(source, scanner.Regex, ref offset, ref line, ref column))
-                            break;
-                    } // else
+                    string lexeme;
+                    Token token;
+                    
+                    scanned = scanner.Scan(source, offset, new TokenPosition(line, column), out token, out lexeme);
+                    if(!scanned) continue;
+                    
+                    AdvancePosition(lexeme, ref offset, ref line, ref column);
+                    if(token != null)
+                        yield return token;
+                            
+                    break;
                 } // foreach
 
                 if(!scanned)
                     throw new Exception(string.Format("unexpected '{0}' at ({1}, {2} ({3}))", source[offset], line, column, offset));
             } // while
         }
-
-        private bool ScanToken(string source, TokenScanner scanner,ref int offset, ref int line, ref int column, out Token token)
+        
+        private void AdvancePosition(string lexeme, ref int offset, ref int line, ref int column)
         {
-            var m = scanner.Regex.Match(source, offset);
+            offset += lexeme.Length;
 
-            if(m.Success)
-            {
-                var lexeme = m.Value;
-                if(scanner.LexemePostprocessor != null)
-                    lexeme = scanner.LexemePostprocessor.Invoke(lexeme);
-
-                token = new Token {
-                    //
-                    // Null check happens elsewhere.
-                    // ReSharper disable once PossibleInvalidOperationException
-                    Type = scanner.TokenType.Value, 
-                    Lexeme = lexeme, 
-                    Position = new TokenPosition(line, column)
-                };
-
-                AdvancePosition(m, ref offset, ref line, ref column);
-
-                return true;
-            } // if
-
-            token = null;
-            return false;
-        }
-
-        private bool SkipToken(string source, Regex regex, ref int offset, ref int line, ref int column)
-        {
-            var m = regex.Match(source, offset);
-            if(m.Success)
-                AdvancePosition(m, ref offset, ref line, ref column);
-
-            return m.Success;
-        }
-
-        private void AdvancePosition(Match match, ref int offset, ref int line, ref int column)
-        {
-            offset += match.Value.Length;
-
-            if(match.Value.Contains("\n"))
+            if(lexeme.Contains("\n"))
             {
                 //
                 // Multiline lexemes can span, well, multiple lines and can stretch very far to the right,
                 // thus increasing initial @column value
                 //
                 // Aggregate() starts wiht 1 since @column is 1-based
-                column = match.Value.SubstringAfterLast("\n").Trim('\r', '\n').Aggregate(1, (i, c) => i += c == '\t' ? TabSize : 1);
-                line += match.Value.Count(c => c == '\n');
+                column = lexeme.SubstringAfterLast("\n").Trim('\r', '\n').Aggregate(1, (i, c) => i += c == '\t' ? TabSize : 1);
+                line += lexeme.Count(c => c == '\n');
             }
             else
-                column += match.Value.Length;
+                column += lexeme.Length;
         }
     }
 }
