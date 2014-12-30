@@ -165,37 +165,37 @@ namespace Statsify.Core.Storage
 
         public Series ReadSeries(DateTime from, DateTime until, TimeSpan? precision = null)
         {
+            var fromTimestamp = ConvertToTimestamp(from);
+            var untilTimestamp = ConvertToTimestamp(until);
+            var nowTimestamp = ConvertToTimestamp(currentTimeProvider());
+
+            if(fromTimestamp > untilTimestamp) throw new Exception(); // TODO: Exception class
+
+            var oldestTime = nowTimestamp - maxRetention;
+
+            if(fromTimestamp > nowTimestamp) return null;
+            if(untilTimestamp < oldestTime) return null;
+
+            if(fromTimestamp < oldestTime)
+                fromTimestamp = oldestTime;
+
+            if(untilTimestamp > nowTimestamp)
+                untilTimestamp = nowTimestamp;
+
+            var diff = nowTimestamp - fromTimestamp;
+
+            var archive = archives.First(a => ((TimeSpan)a.Retention.History).TotalSeconds >= diff && (precision == null || a.Retention.Precision >= precision.Value));
+
+            var fromInterval = (fromTimestamp - (fromTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
+            var untilInterval = (untilTimestamp - (untilTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
+            var step = archive.Retention.Precision;
+
+            double?[] values = null;
+
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using(var binaryReader = new BinaryReader(fileStream, Encoding.UTF8, true))
             {
-                var fromTimestamp = ConvertToTimestamp(from);
-                var untilTimestamp = ConvertToTimestamp(until);
-                var nowTimestamp = ConvertToTimestamp(currentTimeProvider());
-
-                if(fromTimestamp > untilTimestamp) throw new Exception(); // TODO: Exception class
-
-                var oldestTime = nowTimestamp - maxRetention;
-
-                if(fromTimestamp > nowTimestamp) return null;
-                if(untilTimestamp < oldestTime) return null;
-
-                if(fromTimestamp < oldestTime)
-                    fromTimestamp = oldestTime;
-
-                if(untilTimestamp > nowTimestamp)
-                    untilTimestamp = nowTimestamp;
-
-                var diff = nowTimestamp - fromTimestamp;
-
-                var archive = archives.First(a => ((TimeSpan)a.Retention.History).TotalSeconds >= diff && (precision == null || a.Retention.Precision >= precision.Value));
-
-                var fromInterval = (fromTimestamp - (fromTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
-                var untilInterval = (untilTimestamp - (untilTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
-                var step = archive.Retention.Precision;
-
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
-
-                double?[] values = null;
 
                 var baseInterval = binaryReader.ReadInt64();
                 if(baseInterval == 0)
@@ -213,14 +213,14 @@ namespace Statsify.Core.Storage
                     int knownValues;
                     UnpackDatapoints(archive, buffer, fromInterval, out values, out knownValues);
                 } // else
-
-                var timestamps =
-                    Enumerable.Range(0, values.Length).
-                        Select(i => ConvertFromTimestamp(fromInterval + step * i));
-
-                return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), 
-                    timestamps.Zip(values, (ts, v) => new Datapoint(ts, v)));
             } // using
+            
+            var timestamps =
+                Enumerable.Range(0, values.Length).
+                    Select(i => ConvertFromTimestamp(fromInterval + step * i));
+
+            return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), 
+                timestamps.Zip(values, (ts, v) => new Datapoint(ts, v)));
         }
 
         private static byte[] ReadBuffer(FileStream fileStream, long fromOffset, long untilOffset, BinaryReader binaryReader, Archive archive)
@@ -274,26 +274,26 @@ namespace Statsify.Core.Storage
 
         public void WriteDatapoint(DateTime dateTime, double value)
         {
+            var timestamp = ConvertToTimestamp(dateTime.ToUniversalTime());
+            var now = ConvertToTimestamp(currentTimeProvider());
+
+            var diff = now - timestamp;
+
+            if(diff < 0) throw new Exception(); // TODO
+            if(diff >= maxRetention) throw new Exception(); // TODO
+
+            var archive = archives.FirstOrDefault(a => a.Retention.History >= diff);
+            if(archive == null)
+                throw new Exception(); // TODO: Exception
+
+            var lowerArchives = archives.Skip(archives.IndexOf(archive) + 1);
+
+            var myInterval = timestamp - (timestamp % archive.Retention.Precision);
+
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
             using(var binaryWriter = new BinaryWriter(fileStream, Encoding.UTF8, true))
             using(var binaryReader = new BinaryReader(fileStream, Encoding.UTF8, true))
             {
-                var timestamp = ConvertToTimestamp(dateTime.ToUniversalTime());
-                var now = ConvertToTimestamp(currentTimeProvider());
-
-                var diff = now - timestamp;
-
-                if(diff < 0) throw new Exception(); // TODO
-                if(diff >= maxRetention) throw new Exception(); // TODO
-
-                var archive = archives.FirstOrDefault(a => a.Retention.History >= diff);
-                if(archive == null)
-                    throw new Exception(); // TODO: Exception
-
-                var lowerArchives = archives.Skip(archives.IndexOf(archive) + 1);
-
-                var myInterval = timestamp - (timestamp % archive.Retention.Precision);
-
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
                 var baseInterval = binaryReader.ReadInt64();
 
