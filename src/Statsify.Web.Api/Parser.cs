@@ -8,7 +8,7 @@ namespace Statsify.Web.Api
     {
         public static DateTime ParseDateTime(string value, DateTime now, DateTime @default)
         {
-            value = value.Trim();
+            value = (value ?? "").Trim();
 
             if(string.IsNullOrWhiteSpace(value))
                 return @default;
