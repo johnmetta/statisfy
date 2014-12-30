@@ -26,6 +26,13 @@ namespace Statsify.Core.Expressions
                 metrics.Select(m => new Metric(m.Name, m.Series.Transform(v => v.HasValue ? Math.Abs(v.Value) : (double?)null))).ToArray();
         }
 
+        [Function("scale")]
+        public static Metric[] Scale(EvalContext context, Metric[] metrics, double scale)
+        {
+            return 
+                metrics.Select(m => new Metric(m.Name, m.Series.Transform(v => v.HasValue ? v.Value * scale : (double?)null))).ToArray();
+        }
+
         [Function("integral")]
         public static Metric[] Integral(EvalContext context, Metric[] metrics)
         {
