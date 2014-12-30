@@ -94,6 +94,36 @@ namespace Statsify.Core.Expressions
                 ToArray();
         }
 
+        [Function("aggregated_above")]
+        public static Metric[] AggregatedAbove(EvalContext context, Metric[] metrics, string aggregationFunction, double threshold)
+        {
+            var fn = ParseAggregationFunction(aggregationFunction);
+            if(fn == null) return metrics;
+
+            return
+                metrics.
+                    Where(m => {
+                        var aggregated = fn(m.Series.Datapoints);
+                        return aggregated.HasValue && aggregated.Value > threshold;
+                    }).
+                    ToArray();
+        }
+
+        [Function("aggregated_below")]
+        public static Metric[] AggregatedBelow(EvalContext context, Metric[] metrics, string aggregationFunction, double threshold)
+        {
+            var fn = ParseAggregationFunction(aggregationFunction);
+            if(fn == null) return metrics;
+
+            return
+                metrics.
+                    Where(m => {
+                        var aggregated = fn(m.Series.Datapoints);
+                        return aggregated.HasValue && aggregated.Value < threshold;
+                    }).
+                    ToArray();
+        }
+
         private static DatapointAggregationFunction ParseAggregationFunction(string aggregationFunction)
         {
             DatapointAggregationFunction fn = null;
