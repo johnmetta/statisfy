@@ -79,6 +79,9 @@
     <Compile Include="Storage\RetentionPolicyValidationException.cs" />
     <Compile Include="Storage\RetentionPolicyValidator.cs" />
     <Compile Include="Util\DateTimeUtil.cs" />
+    <Compile Include="Util\EnumerableExtensions.cs" />
+    <Compile Include="Util\EnumerableUtil.cs" />
+    <Compile Include="Util\Range.cs" />
     <Compile Include="Util\StringUtil.cs" />
   </ItemGroup>
   <ItemGroup />
