@@ -66,7 +66,7 @@ namespace Statsify.Core.Storage
 
         private static TimeSpan? ParseTimeSpan(char suffix, int value)
         {
-            switch(suffix)
+            switch(Char.ToLower(suffix))
             {
                 case 's':
                     return TimeSpan.FromSeconds(value);
