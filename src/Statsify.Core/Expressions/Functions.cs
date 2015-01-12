@@ -290,10 +290,8 @@ namespace Statsify.Core.Expressions
 
         [Function("ema")]
         [Function("exponential_moving_average")]
-        public static Metric[] Ema(EvalContext context, Metric[] metrics, int smoothingFactor)
+        public static Metric[] Ema(EvalContext context, Metric[] metrics, double smoothingFactor)
         {
-            var sf = 1d / smoothingFactor;
-
             return
                 metrics.Select(m => {
                     double? ema = 0, prevV = 0, prevEma = 0;
@@ -309,7 +307,7 @@ namespace Statsify.Core.Expressions
                         } // if
                         else
                         {
-                            ema = sf * prevV + (1 - sf) * prevEma;
+                            ema = smoothingFactor * prevV + (1 - smoothingFactor) * prevEma;
                             prevV = v.Value;
                             prevEma = ema;
 
