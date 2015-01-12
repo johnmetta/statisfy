@@ -70,24 +70,24 @@ namespace Statsify.Core.Expressions
         public static Metric[] Summarize(EvalContext context, Metric[] metrics, string aggregationFunction, string bucket)
         {
             var bucketDuration = ParseTimeSpan(bucket);
-            if(bucketDuration == null) return metrics;
+            if(!bucketDuration.HasValue) return metrics;
 
             var fn = ParseAggregationFunction(aggregationFunction);
             if(fn == null) return metrics;
+
+            var until = context.Until;
+            var from = context.From.Subtract(bucketDuration.Value);
+            var ranges = EnumerableUtil.Generate(until, dt => dt.Subtract(bucketDuration.Value), dt => from < dt).Reverse().ToRanges().ToArray();
 
             return
                 metrics.Select(m => {
                     var datapoints = 
                         m.Series.Interval > bucketDuration ?
                             m.Series.Datapoints.ToList() :
-                            m.Series.Datapoints.
-                                GroupBy(d => (long)TimeSpan.FromTicks(d.Timestamp.Ticks).TotalSeconds / (long)bucketDuration.Value.TotalSeconds,
-                                    (ts, ds) => {
-                                        var tst = DateTime.MinValue.AddSeconds(ts * (long)bucketDuration.Value.TotalSeconds);
-                                        var dpt = fn(ds);
-
-                                        return new Datapoint(tst, dpt);
-                                    }).ToList();
+                            ranges.Select(r => {
+                                var datapoint = fn(m.Series.Datapoints.Where(d => d.Timestamp > r.From && d.Timestamp <= r.Until));
+                                return new Datapoint(r.Until, datapoint);
+                            }).ToList();
 
                     return new Metric(m.Name, new Series(m.Series.From, m.Series.Until, bucketDuration.Value, datapoints));
                 }).
@@ -126,30 +126,37 @@ namespace Statsify.Core.Expressions
 
         private static DatapointAggregationFunction ParseAggregationFunction(string aggregationFunction)
         {
-            DatapointAggregationFunction fn = null;
-            
-            // TODO: Handle empty collections correctly
+            Func<IEnumerable<Datapoint>, double?> fn = null;
+
             switch(aggregationFunction.ToLowerInvariant())
             {
                 case "max":
-                    fn = vs => vs.Where(v => v.Value.HasValue).Max(v => v.Value);
+                    fn = vs => vs.Max(v => v.Value);
                     break;
                 case "min":
-                    fn = vs => vs.Where(v => v.Value.HasValue).Min(v => v.Value);
+                    fn = vs => vs.Min(v => v.Value);
                     break;
                 case "avg":
                 case "average":
-                    fn = vs => vs.Where(v => v.Value.HasValue).Average(v => v.Value);
+                    fn = vs => vs.Average(v => v.Value);
+                    break;
+                case "median":
+                    fn = vs => vs.Median(v => v.Value, (a, b) => a + b, (a, b) => a / b);
                     break;
                 case "sum":
-                    fn = vs => vs.Where(v => v.Value.HasValue).Sum(v => v.Value);
+                    fn = vs => vs.Sum(v => v.Value);
+                    break;
+                case "first":
+                    fn = vs => vs.First().Value;
                     break;
                 case "last":
-                    fn = vs => vs.Where(v => v.Value.HasValue).Last().Value;
+                    fn = vs => vs.Last().Value;
                     break;
             } // switch
 
-            return fn;
+            var @default = new Datapoint(DateTime.MinValue, 0);
+
+            return vs => fn(vs.Where(v => v.Value.HasValue).DefaultIfEmpty(@default));
         }
 
         private static TimeSpan? ParseTimeSpan(string bucket)
