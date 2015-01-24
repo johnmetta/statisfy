@@ -56,9 +56,17 @@ namespace Statsify.Aggregator
                 {
                     n++;
 
-                    var db = GetDatabase(configuration.Storage.Path, datapoint.Item1);
-                    if(db != null)
-                        db.WriteDatapoint(datapoint.Item2, datapoint.Item3);
+                    try
+                    {
+                        var db = GetDatabase(configuration.Storage.Path, datapoint.Item1);
+                        if(db != null)
+                            db.WriteDatapoint(datapoint.Item2, datapoint.Item3);
+                    } // try
+                    catch(Exception e)
+                    {
+                        var message = string.Format("could not write datapoint ({0}, {1}) to '{2}'", datapoint.Item2, datapoint.Item3, datapoint.Item1);
+                        log.ErrorException(message, e);
+                    } // catch
                 } // while
 
                 if(n > 0)
