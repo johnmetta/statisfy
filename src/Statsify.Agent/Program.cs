@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using NLog;
 using Statsify.Agent.Configuration;
 using Topshelf;
@@ -27,8 +28,8 @@ namespace Statsify.Agent
                     });
 
                     x.SetServiceName("statsify-agent");
-                    x.SetDisplayName("Statsify Agent " + version);
-                    x.SetDescription("Statsify Agent collects machine-level metrics and sends them off to Statsify Aggregator or any Statsd-compatible server.");
+                    x.SetDisplayName("Statsify Agent " + version.ToString(2));
+                    x.SetDescription("Collects machine-level metrics and sends them off to Statsify Aggregator or any StatsD-compatible server.");
 
                     x.StartAutomaticallyDelayed();
 

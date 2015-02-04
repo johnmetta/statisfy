@@ -36,8 +36,8 @@ namespace Statsify.Aggregator
                     });
 
                     x.SetServiceName("statsify-aggregator");
-                    x.SetDisplayName("Statsify Aggregator " + version);
-                    x.SetDescription("Statsify Aggregator aggregates and stores metrics sent to it.");
+                    x.SetDisplayName("Statsify Aggregator " + version.ToString(2));
+                    x.SetDescription("Listens to StatsD-compatible UDP datagrams and aggregates and stores metrics sent to it.");
 
                     x.StartAutomaticallyDelayed();
 
