@@ -16,14 +16,14 @@ namespace Statsify.Aggregator
 
             Log.Info("starting up");
 
-            var configurationManager = new ConfigurationManager();
-            
+            //
             // Validate configuration on startup
+            var configurationManager = ConfigurationManager.Instance;
             foreach(StorageConfigurationElement storage in configurationManager.Configuration.Storage)
             {
                 var retentionPolicy = RetentionPolicy.Parse(storage.Retention);
                 RetentionPolicyValidator.EnsureRetentionPolicyValid(retentionPolicy);
-            }
+            } // foreach
 
             var host = 
                 HostFactory.New(x => {
@@ -45,7 +45,6 @@ namespace Statsify.Aggregator
                 });
 
             return (int)host.Run();
-
         }
     }
 }

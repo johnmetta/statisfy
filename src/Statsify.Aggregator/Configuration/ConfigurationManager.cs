@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Xml;
 
 namespace Statsify.Aggregator.Configuration
@@ -26,6 +27,22 @@ namespace Statsify.Aggregator.Configuration
                     var configuration = new StatsifyAggregatorConfigurationSection(xmlReader);
                     Configuration = configuration;
                 }
+            }
+        }
+
+        public static ConfigurationManager Instance
+        {
+            get
+            {
+                var configurationFilePaths = new[] {
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Statsify", "Aggregator", "statsify-aggregator.config"),
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "statsify-aggregator.config")
+                };
+
+                var configurationFilePath = configurationFilePaths.FirstOrDefault(File.Exists);
+                if(configurationFilePath == null) throw new ApplicationException();
+
+                return new ConfigurationManager(configurationFilePath);
             }
         }
     }
