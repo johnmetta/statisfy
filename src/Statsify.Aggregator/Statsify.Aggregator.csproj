@@ -50,10 +50,12 @@
     <Compile Include="AnnotationAggregator.cs" />
     <Compile Include="Configuration\AggregationConfigurationElement.cs" />
     <Compile Include="Configuration\AggregationConfigurationElementCollection.cs" />
+    <Compile Include="Configuration\ApiEndpointElement.cs" />
     <Compile Include="Configuration\ConfigurationManager.cs" />
     <Compile Include="Configuration\DownsampleConfigurationElement.cs" />
     <Compile Include="Configuration\DownsampleConfigurationElementCollection.cs" />
     <Compile Include="Configuration\EndpointElement.cs" />
+    <Compile Include="Configuration\UdpEndpointElement.cs" />
     <Compile Include="Configuration\EnumConfigurationConverter.cs" />
     <Compile Include="Configuration\StatsifyAggregatorConfigurationSection.cs" />
     <Compile Include="Configuration\StorageConfigurationElement.cs" />

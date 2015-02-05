@@ -5,11 +5,21 @@ namespace Statsify.Aggregator.Configuration
 {
     public sealed class StatsifyAggregatorConfigurationSection : ConfigurationSection
     {
-        [ConfigurationProperty("endpoint", IsRequired = true)]
-        public EndpointElement Endpoint
+        private const string UdpEndpointPropertyName = "udp-endpoint";
+        private const string ApiEndpointPropertyName = "api-endpoint";
+
+        [ConfigurationProperty(UdpEndpointPropertyName, IsRequired = true)]
+        public UdpEndpointElement UdpUdpEndpoint
         {
-            get { return (EndpointElement)this["endpoint"]; }
-            set { this["endpoint"] = value; }
+            get { return (UdpEndpointElement)this[UdpEndpointPropertyName]; }
+            set { this[UdpEndpointPropertyName] = value; }
+        }
+
+        [ConfigurationProperty(ApiEndpointPropertyName, IsRequired = true)]
+        public ApiEndpointElement ApiUdpEndpoint
+        {
+            get { return (ApiEndpointElement)this[ApiEndpointPropertyName]; }
+            set { this[ApiEndpointPropertyName] = value; }
         }
 
         [ConfigurationProperty("storage", IsRequired = true)]
@@ -38,6 +48,8 @@ namespace Statsify.Aggregator.Configuration
             DeserializeSection(xmlReader);
         }
 
-        public StatsifyAggregatorConfigurationSection(){}
+        public StatsifyAggregatorConfigurationSection()
+        {
+        }
     }
 }
