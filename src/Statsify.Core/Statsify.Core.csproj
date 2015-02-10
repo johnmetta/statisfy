@@ -42,12 +42,14 @@
     <Compile Include="Components\IMetricRegistry.cs" />
     <Compile Include="Components\Impl\AnnotationRegistry.cs" />
     <Compile Include="Components\Impl\MetricRegistry.cs" />
+    <Compile Include="Expressions\Argument.cs" />
     <Compile Include="Expressions\ConstantExpression.cs" />
     <Compile Include="Expressions\Environment.cs" />
     <Compile Include="Expressions\EvalContext.cs" />
     <Compile Include="Expressions\Expression.cs" />
     <Compile Include="Expressions\ExpressionParser.cs" />
     <Compile Include="Expressions\ExpressionScanner.cs" />
+    <Compile Include="Expressions\Function.cs" />
     <Compile Include="Expressions\FunctionAttribute.cs" />
     <Compile Include="Expressions\FunctionInvocationExpression.cs" />
     <Compile Include="Expressions\Functions.cs" />

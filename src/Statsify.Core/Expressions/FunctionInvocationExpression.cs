@@ -10,17 +10,17 @@ namespace Statsify.Core.Expressions
     {
         public string Name { get; private set; }
 
-        public ReadOnlyCollection<Expression> Parameters { get; private set; }
+        public ReadOnlyCollection<Argument> Arguments { get; private set; }
 
-        public FunctionInvocationExpression(string name, IEnumerable<Expression> parameters)
+        public FunctionInvocationExpression(string name, IEnumerable<Argument> arguments)
         {
             Name = name;
-            Parameters = new ReadOnlyCollection<Expression>(new List<Expression>(parameters));
+            Arguments = new ReadOnlyCollection<Argument>(new List<Argument>(arguments));
         }
 
         public override object Evaluate(Environment environment, EvalContext context)
         {
-            var parameters = Parameters.Select(p => p.Evaluate(environment, context)).ToArray();
+            var parameters = Arguments.Select(a => a.Value.Evaluate(environment, context)).ToArray();
             var function = environment.ResolveFunction(Name);
 
             return function.Invoke(environment, context, parameters);

@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Reflection;
 using System.Text;
-using Statsify.Core.Model;
 
 namespace Statsify.Core.Expressions
 {
@@ -61,74 +58,17 @@ namespace Statsify.Core.Expressions
         {
             tokens.Read(TokenType.OpenParen);
 
-            var parameters = new List<Expression>();
+            var arguments = new List<Argument>();
             while(tokens.Lookahead.Type != TokenType.CloseParen)
             {
-                parameters.Add(Parse(tokens));
+                arguments.Add(new Argument(null, Parse(tokens)));
                 if(tokens.Lookahead.Type != TokenType.CloseParen)
                     tokens.Read(TokenType.Comma);
             } // while
 
             tokens.Read(TokenType.CloseParen);
 
-            return new FunctionInvocationExpression(id.Lexeme, parameters);
-        }
-    }
-
-    public class Function
-    {
-        private readonly MethodInfo methodInfo;
-
-        public Function(MethodInfo methodInfo)
-        {
-            this.methodInfo = methodInfo;
-        }
-
-        public object Invoke(Environment environment, EvalContext context, object[] parameters)
-        {
-            var p = new List<object> { context };
-
-            var pis = methodInfo.GetParameters();
-            var paramsPi = pis.SingleOrDefault(pi => pi.GetCustomAttribute<ParamArrayAttribute>() != null);
-            var hasParams = paramsPi != null;
-            var hasMetric = pis.All(pi => pi.ParameterType != typeof(MetricSelector));
-
-            //
-            // First parameter must always be an EvalContext instance
-            if(hasParams)
-            {
-                p.AddRange(parameters.Take(pis.Length - 2));
-                var @params = parameters.Skip(pis.Length - 2).ToArray();
-
-                var par = Array.CreateInstance(paramsPi.ParameterType.GetElementType(), @params.Length);
-                Array.Copy(@params, par, @params.Length);
-
-                p.Add(par);
-            } // if
-            else
-                p.AddRange(parameters);
-
-            if(hasMetric)
-            {
-                var pos = p.FindIndex(_p => _p is MetricSelector);
-                if(pos > -1)
-                {
-                    var ms = p[pos] as MetricSelector;
-
-                    var metrics = new List<Metric>();
-                    foreach(var metricName in environment.MetricRegistry.ResolveMetricNames(ms.Selector))
-                    {
-                        var metric = 
-                            environment.MetricRegistry.ReadMetric(metricName, context.From, context.Until);
-
-                        metrics.Add(metric);
-                    } // foreach
-
-                    p[pos] = metrics.ToArray();
-                } // if
-            } // if
-
-            return methodInfo.Invoke(null,  p.ToArray());
+            return new FunctionInvocationExpression(id.Lexeme, arguments);
         }
     }
 }
