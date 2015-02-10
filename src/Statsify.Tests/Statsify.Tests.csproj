@@ -50,6 +50,7 @@
     <Compile Include="Core\Expressions\ExpressionParserTests.cs" />
     <Compile Include="Core\Expressions\ExpressionScannerTests.cs" />
     <Compile Include="Core\Expressions\FunctionsTests.cs" />
+    <Compile Include="Core\Expressions\FunctionTests.cs" />
     <Compile Include="Core\Storage\AnnotationDatabaseTests.cs" />
     <Compile Include="Core\Storage\DatapointDatabaseTests.cs" />
     <Compile Include="Core\Util\EnumerableUtilTests.cs" />
