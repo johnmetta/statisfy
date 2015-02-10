@@ -6,12 +6,12 @@ namespace Statsify.Web.Api
     using System;
     using Nancy.Hosting.Self;
 
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var uri =
-                new Uri("http://localhost/Statsify/");
+                new Uri("http://localhost:8080/Statsify/");
 
             NancyBootstrapperLocator.Bootstrapper = new Bootstrapper(); 
 

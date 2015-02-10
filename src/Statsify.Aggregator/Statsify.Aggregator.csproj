@@ -32,6 +32,19 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\lib\Autofac\bin\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Nancy">
+      <HintPath>..\..\lib\Nancy\bin\Nancy.dll</HintPath>
+    </Reference>
+    <Reference Include="Nancy.Bootstrappers.Autofac">
+      <HintPath>..\..\lib\Nancy.Bootstrappers.Autofac\bin\Nancy.Bootstrappers.Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Nancy.Hosting.Self">
+      <HintPath>..\..\lib\Nancy.Hosting.Self\bin\Nancy.Hosting.Self.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\..\lib\nlog\bin\NLog.dll</HintPath>
     </Reference>
@@ -48,6 +61,19 @@
       <Link>Properties\AssemblyVersion.cs</Link>
     </Compile>
     <Compile Include="AnnotationAggregator.cs" />
+    <Compile Include="Api\ApiModule.cs" />
+    <Compile Include="Api\Bootstrapper.cs" />
+    <Compile Include="Api\Models\AnnotationsQueryModel.cs" />
+    <Compile Include="Api\Models\MetricInfo.cs" />
+    <Compile Include="Api\Models\Series.cs" />
+    <Compile Include="Api\Models\SeriesQueryModel.cs" />
+    <Compile Include="Api\Models\SeriesView.cs" />
+    <Compile Include="Api\Parser.cs" />
+    <Compile Include="Api\Services\IAnnotationService.cs" />
+    <Compile Include="Api\Services\IMetricService.cs" />
+    <Compile Include="Api\Services\Impl\AnnotationService.cs" />
+    <Compile Include="Api\Services\Impl\MetricService.cs" />
+    <Compile Include="Api\Services\ISeriesService.cs" />
     <Compile Include="Configuration\AggregationConfigurationElement.cs" />
     <Compile Include="Configuration\AggregationConfigurationElementCollection.cs" />
     <Compile Include="Configuration\ApiEndpointElement.cs" />
