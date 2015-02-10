@@ -26,7 +26,7 @@ namespace Statsify.Tests.Core.Expressions
             var parser = new ExpressionParser();
             var expression = parser.Parse(new TokenStream(tokens));
             
-            tokens = scanner.Scan("alias_by_fragment(ema(servers.srv-aps3.system.processor.{total*,user*}, 50), 2, 4)");
+            tokens = scanner.Scan("summarize(alias_by_fragment(ema(servers.srv-aps3.system.processor.{total*,user*}, 50), 2, 4), 'sum', '1d', false)");
             expression = parser.Parse(new TokenStream(tokens));
 
             Environment.RegisterFunctions(typeof(Functions));

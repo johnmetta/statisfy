@@ -25,6 +25,15 @@ namespace Statsify.Core.Expressions
                     return new ConstantExpression(Convert.ToInt32(tokens.Read().Lexeme, CultureInfo.InvariantCulture));
                 case TokenType.Float:
                     return new ConstantExpression(Convert.ToDouble(tokens.Read().Lexeme, CultureInfo.InvariantCulture));
+                case TokenType.Keyword:
+                    var token = tokens.Read();
+                    var lexeme = token.Lexeme;
+
+                    bool result;
+                    if(bool.TryParse(lexeme, out result))
+                        return new ConstantExpression(result);
+
+                    throw new Exception(string.Format("unexpected '{0}' at {1}", token.Type, token.Position));
                 default:
                     throw new Exception(string.Format("unexpected '{0}' at {1}", tokens.Lookahead.Type, tokens.Lookahead.Position));
             } // switch
