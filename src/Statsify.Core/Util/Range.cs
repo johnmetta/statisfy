@@ -11,6 +11,7 @@ namespace Statsify.Core.Util
 
         public T Until { get; private set; }
 
+        [DebuggerStepThrough]
         public Range(T @from, T until) : 
             this()
         {

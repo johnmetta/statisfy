@@ -1,6 +1,10 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Threading;
+using Nancy.Bootstrapper;
+using Nancy.Hosting.Self;
 using NLog;
+using Statsify.Aggregator.Api;
 using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Datagrams;
 using Statsify.Aggregator.Network;
@@ -17,8 +21,10 @@ namespace Statsify.Aggregator
         private readonly AnnotationAggregator annotationAggregator;
         private readonly ManualResetEvent stopEvent;
         private readonly DatagramParser datagramParser;
+        private readonly Uri uri;
         private UdpDatagramReader udpDatagramReader;
         private Timer publisherTimer;
+        private NancyHost nancyHost;
 
         public StatsifyAggregatorService(HostSettings hostSettings, ConfigurationManager configurationManager)
         {
@@ -28,6 +34,13 @@ namespace Statsify.Aggregator
             annotationAggregator = new AnnotationAggregator(configuration);
             
             datagramParser = new DatagramParser(new MetricParser());
+
+            var relativeUrl = configuration.ApiEndpoint.RelativeUrl;
+            if(!relativeUrl.EndsWith("/"))
+                relativeUrl += "/";
+
+            var uriBuilder = new UriBuilder("http", configuration.ApiEndpoint.Address, configuration.ApiEndpoint.Port, relativeUrl);
+            uri = uriBuilder.Uri;
         }
 
         public bool Start(HostControl hostControl)
@@ -40,6 +53,14 @@ namespace Statsify.Aggregator
             udpDatagramReader.DatagramHandler += UdpDatagramReaderHandler;                        
 
             publisherTimer = new Timer(PublisherTimerCallback, null, configuration.Storage.FlushInterval, configuration.Storage.FlushInterval);                       
+
+            NancyBootstrapperLocator.Bootstrapper = new Bootstrapper(/*configuration*/);
+
+            var hostConfiguration = new HostConfiguration();
+            hostConfiguration.UrlReservations.CreateAutomatically = true;
+            
+            nancyHost = new NancyHost(hostConfiguration, uri);
+            nancyHost.Start();
 
             return true;
         }
@@ -75,26 +96,13 @@ namespace Statsify.Aggregator
 
             if(udpDatagramReader != null)
                 udpDatagramReader.Dispose();
-            
-            /*if(httpServer != null)
-                httpServer.Dispose();*/
 
+            if(nancyHost != null)
+                nancyHost.Dispose();
+            
             hostControl.Stop();
 
             return true;
-        }
-
-        public void Shutdown(HostControl hostControl)
-        {
-            stopEvent.Set();
-
-            if(publisherTimer != null)
-                publisherTimer.Dispose();
-
-            if(udpDatagramReader != null)
-                udpDatagramReader.Dispose();
-
-            hostControl.Stop();
         }
 
         private void PublisherTimerCallback(object state)

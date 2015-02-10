@@ -9,10 +9,10 @@ namespace Statsify.Aggregator.Configuration
     {
         public StatsifyAggregatorConfigurationSection Configuration { get; private set; }
 
-        public ConfigurationManager() :
+        private ConfigurationManager() :
             this(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "statsify-aggregator.config")){}
 
-        public ConfigurationManager(string configurationFilePath)
+        private ConfigurationManager(string configurationFilePath)
         {
             using(var stream = File.OpenRead(configurationFilePath))
             {

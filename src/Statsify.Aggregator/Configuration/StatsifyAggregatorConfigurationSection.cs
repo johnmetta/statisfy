@@ -16,7 +16,7 @@ namespace Statsify.Aggregator.Configuration
         }
 
         [ConfigurationProperty(ApiEndpointPropertyName, IsRequired = true)]
-        public ApiEndpointElement ApiUdpEndpoint
+        public ApiEndpointElement ApiEndpoint
         {
             get { return (ApiEndpointElement)this[ApiEndpointPropertyName]; }
             set { this[ApiEndpointPropertyName] = value; }

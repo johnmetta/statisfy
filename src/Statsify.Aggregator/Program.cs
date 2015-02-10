@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using NLog;
 using Statsify.Aggregator.Configuration;
+using Statsify.Core.Expressions;
 using Statsify.Core.Storage;
 using Topshelf;
 
@@ -25,6 +26,8 @@ namespace Statsify.Aggregator
                 RetentionPolicyValidator.EnsureRetentionPolicyValid(retentionPolicy);
             } // foreach
 
+            Environment.RegisterFunctions(typeof(Functions));
+
             var host = 
                 HostFactory.New(x => {
 
@@ -32,7 +35,6 @@ namespace Statsify.Aggregator
                         sc.ConstructUsing(hostSettings => new StatsifyAggregatorService(hostSettings, configurationManager));
                         sc.WhenStarted((service, hostControl) => service.Start(hostControl));
                         sc.WhenStopped((service, hostControl) => service.Stop(hostControl));
-                        sc.WhenShutdown((service, hostControl) => service.Shutdown(hostControl));
                     });
 
                     x.SetServiceName("statsify-aggregator");
