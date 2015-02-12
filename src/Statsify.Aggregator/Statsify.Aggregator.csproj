@@ -63,6 +63,7 @@
     <Compile Include="AnnotationAggregator.cs" />
     <Compile Include="Api\ApiModule.cs" />
     <Compile Include="Api\Bootstrapper.cs" />
+    <Compile Include="Api\ContentModule.cs" />
     <Compile Include="Api\Models\AnnotationsQueryModel.cs" />
     <Compile Include="Api\Models\MetricInfo.cs" />
     <Compile Include="Api\Models\Series.cs" />
@@ -116,6 +117,12 @@
       <Project>{CE4BFA81-3B50-42BE-B96C-0A4E4A135187}</Project>
       <Name>Statsify.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Api\Content\metricsgraphics.css" />
+    <Content Include="Api\Content\metricsgraphics.min.js" />
+    <Content Include="Api\Content\statsify.css" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
