@@ -1,4 +1,8 @@
-﻿using Nancy;
+﻿using System;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using Nancy;
 
 namespace Statsify.Aggregator.Api
 {
@@ -14,12 +18,43 @@ namespace Statsify.Aggregator.Api
 
         private object GetStatsifyCss(dynamic r)
         {
-            throw new System.NotImplementedException();
+            var memoryStream = new MemoryStream();
+            using(var cs = GetContentStream("metricsgraphics.css"))
+                cs.CopyTo(memoryStream);
+
+            using(var cs = GetContentStream("statsify.css"))
+                cs.CopyTo(memoryStream);
+
+            memoryStream.Position = 0;
+
+            return Response.FromStream(memoryStream, "text/css");
         }
 
         private object GetStatsifyJs(dynamic r, bool min)
         {
-            throw new System.NotImplementedException();
+            var memoryStream = new MemoryStream();
+            using(var cs = GetContentStream(min ? "d3.min.js" : "d3.js"))
+                cs.CopyTo(memoryStream);
+
+            var spacer = Encoding.ASCII.GetBytes(";" + Environment.NewLine + Environment.NewLine);
+            memoryStream.Write(spacer, 0, spacer.Length);
+
+            using(var cs = GetContentStream(min ? "metricsgraphics.min.js" : "metricsgraphics.js"))
+                cs.CopyTo(memoryStream);
+
+            memoryStream.Write(spacer, 0, spacer.Length);
+
+            using(var cs = GetContentStream("statsify.js"))
+                cs.CopyTo(memoryStream);
+
+            memoryStream.Position = 0;
+
+            return Response.FromStream(memoryStream, "text/javascript");
+        }
+
+        private static Stream GetContentStream(string name)
+        {
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream("Statsify.Aggregator.Api.Content." + name);
         }
     }
 }

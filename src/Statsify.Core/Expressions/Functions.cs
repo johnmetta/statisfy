@@ -67,7 +67,7 @@ namespace Statsify.Core.Expressions
         }
 
         [Function("summarize")]
-        public static Metric[] Summarize(EvalContext context, Metric[] metrics, string aggregationFunction, string bucket, bool align = false)
+        public static Metric[] Summarize(EvalContext context, Metric[] metrics, string aggregationFunction, string bucket)
         {
             var bucketDuration = ParseTimeSpan(bucket);
             if(!bucketDuration.HasValue) return metrics;
