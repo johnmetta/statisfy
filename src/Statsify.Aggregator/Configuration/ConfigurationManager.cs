@@ -9,27 +9,6 @@ namespace Statsify.Aggregator.Configuration
     {
         public StatsifyAggregatorConfigurationSection Configuration { get; private set; }
 
-        private ConfigurationManager() :
-            this(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "statsify-aggregator.config")){}
-
-        private ConfigurationManager(string configurationFilePath)
-        {
-            using(var stream = File.OpenRead(configurationFilePath))
-            {
-                var xmlDocument = new XmlDocument();
-
-                xmlDocument.Load(stream);
-
-                if(xmlDocument.DocumentElement == null) return;
-
-                using(var xmlReader = new XmlNodeReader(xmlDocument.DocumentElement))
-                {
-                    var configuration = new StatsifyAggregatorConfigurationSection(xmlReader);
-                    Configuration = configuration;
-                }
-            }
-        }
-
         public static ConfigurationManager Instance
         {
             get
@@ -43,6 +22,23 @@ namespace Statsify.Aggregator.Configuration
                 if(configurationFilePath == null) throw new ApplicationException();
 
                 return new ConfigurationManager(configurationFilePath);
+            }
+        }
+
+        private ConfigurationManager(string configurationFilePath)
+        {
+            using(var stream = File.OpenRead(configurationFilePath))
+            {
+                var xmlDocument = new XmlDocument();
+                xmlDocument.Load(stream);
+
+                if(xmlDocument.DocumentElement == null) return;
+
+                using(var xmlReader = new XmlNodeReader(xmlDocument.DocumentElement))
+                {
+                    var configuration = new StatsifyAggregatorConfigurationSection(xmlReader);
+                    Configuration = configuration;
+                }
             }
         }
     }
