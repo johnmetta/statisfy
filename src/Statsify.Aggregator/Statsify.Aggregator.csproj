@@ -85,7 +85,7 @@
     <Compile Include="Configuration\UdpEndpointElement.cs" />
     <Compile Include="Configuration\EnumConfigurationConverter.cs" />
     <Compile Include="Configuration\StatsifyAggregatorConfigurationSection.cs" />
-    <Compile Include="Configuration\StorageConfigurationElement.cs" />
+    <Compile Include="Configuration\StoreConfigurationElement.cs" />
     <Compile Include="Configuration\StorageConfigurationElementCollection.cs" />
     <Compile Include="DatagramParser.cs" />
     <Compile Include="Datagrams\AnnotationDatagram.cs" />
