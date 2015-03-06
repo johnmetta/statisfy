@@ -75,6 +75,7 @@
     <Compile Include="Storage\DatabaseException.cs" />
     <Compile Include="Storage\DownsamplingMethod.cs" />
     <Compile Include="Storage\History.cs" />
+    <Compile Include="Storage\IRetentionDefinition.cs" />
     <Compile Include="Storage\Precision.cs" />
     <Compile Include="Storage\Retention.cs" />
     <Compile Include="Storage\RetentionPolicy.cs" />
