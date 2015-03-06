@@ -13,6 +13,15 @@ namespace Statsify.Core.Storage
         {
             get { return retentions.Count; }
         }
+
+        public RetentionPolicy()
+        {
+        }
+
+        public RetentionPolicy(IEnumerable<IRetentionDefinition> retentions)
+        {
+            this.retentions = new List<Retention>(retentions.Select(r => new Retention(r.Precision, r.History)));    
+        }
  
         public void Add(TimeSpan precision, TimeSpan history)
         {
