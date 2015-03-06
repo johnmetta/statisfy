@@ -66,9 +66,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="statsify-agent.config">
+    <EmbeddedResource Include="statsify-agent.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Statsify.Client\Statsify.Client.csproj">

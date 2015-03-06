@@ -7,19 +7,37 @@ namespace Statsify.Agent.Configuration
 {
     public class ConfigurationManager
     {
+        private const string ConfigurationFileName = "statsify-agent.config";
+
         public StatsifyAgentConfigurationSection Configuration { get; private set; }
 
         public static ConfigurationManager Instance
         {
             get
             {
+                var programDataDirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Statsify", "Agent");
+                var programDataConfigurationFilePath = Path.Combine(programDataDirectoryPath, ConfigurationFileName);
+                
                 var configurationFilePaths = new[] {
-                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Statsify", "Agent", "statsify-agent.config"),
-                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "statsify-agent.config")
+                    programDataConfigurationFilePath,
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationFileName)
                 };
 
                 var configurationFilePath = configurationFilePaths.FirstOrDefault(File.Exists);
-                if(configurationFilePath == null) throw new ApplicationException();
+                if(configurationFilePath == null)
+                {
+                    if(!Directory.Exists(programDataDirectoryPath))
+                        Directory.CreateDirectory(programDataDirectoryPath);
+
+                    using(var stream = typeof(ConfigurationManager).Assembly.GetManifestResourceStream("Statsify.Agent." + ConfigurationFileName))
+                    using(var fileStream = File.Create(programDataConfigurationFilePath))
+                    {
+                        if(stream != null) 
+                            stream.CopyTo(fileStream);
+                    } // using
+
+                    configurationFilePath = programDataConfigurationFilePath;
+                } // if
 
                 return new ConfigurationManager(configurationFilePath);
             }

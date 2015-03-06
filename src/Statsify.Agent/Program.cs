@@ -16,7 +16,7 @@ namespace Statsify.Agent
 
             Log.Info("starting up");
 
-            var configurationManager = new ConfigurationManager();
+            var configurationManager = ConfigurationManager.Instance;
 
             var host =
                 HostFactory.New(x => {
