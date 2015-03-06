@@ -20,9 +20,9 @@ namespace Statsify.Aggregator
             //
             // Validate configuration on startup
             var configurationManager = ConfigurationManager.Instance;
-            foreach(StorageConfigurationElement storage in configurationManager.Configuration.Storage)
+            foreach(StoreConfigurationElement storage in configurationManager.Configuration.Storage)
             {
-                var retentionPolicy = RetentionPolicy.Parse(storage.Retention);
+                var retentionPolicy = new RetentionPolicy(storage.Retentions);
                 RetentionPolicyValidator.EnsureRetentionPolicyValid(retentionPolicy);
             } // foreach
 
