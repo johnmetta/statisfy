@@ -8,9 +8,9 @@ namespace Statsify.Aggregator.Configuration
     [ConfigurationCollection(typeof(DownsampleConfigurationElement), CollectionType = ConfigurationElementCollectionType.BasicMap)]
     public class DownsampleConfigurationElementCollection : ConfigurationElementCollection, IEnumerable<DownsampleConfigurationElement>
     {
-        public StorageConfigurationElement this[int index]
+        public StoreConfigurationElement this[int index]
         {
-            get { return (StorageConfigurationElement)BaseGet(index); }
+            get { return (StoreConfigurationElement)BaseGet(index); }
             set
             {
                 if(BaseGet(index) != null)

@@ -258,7 +258,7 @@ namespace Statsify.Aggregator
             var storage = configuration.Storage.FirstOrDefault(a => Regex.IsMatch(metric, a.Pattern));
             if(storage == null) return null;
 
-            var retentonPolicy = RetentionPolicy.Parse(storage.Retention);
+            var retentonPolicy = new RetentionPolicy(storage.Retentions);
             var database = DatapointDatabase.OpenOrCreate(fullPath, downsampling.Factor, downsampling.Method, retentonPolicy);
 
             return database;
