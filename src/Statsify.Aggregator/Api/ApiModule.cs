@@ -20,14 +20,14 @@ namespace Statsify.Aggregator.Api
         {
             JsonSettings.MaxJsonLength = int.MaxValue;
 
-            Get["/api/find/{query}"] = x => {
+            Get["/api/v1/find/{query}"] = x => {
                 string query = x.query;
                 var metrics = metricService.Find(query);
 
                 return Response.AsJson(metrics);
             };
 
-            Get["/api/annotations"] = x => {
+            Get["/api/v1/annotations"] = x => {
 
                 var model = new AnnotationsQueryModel();
                 this.BindTo(model, new BindingConfig { BodyOnly = false });
@@ -45,7 +45,7 @@ namespace Statsify.Aggregator.Api
                 return Response.AsJson(annotations);
             };
 
-            Post["/api/annotations"] = x => {
+            Post["/api/v1/annotations"] = x => {
 
                 string title = Request.Form.title;
                 string message = Request.Form.message;
@@ -55,7 +55,7 @@ namespace Statsify.Aggregator.Api
                 return Response.AsJson(new { Success = true });
             };
 
-            Get["/api/series"] = x => {
+            Get["/api/v1/series"] = x => {
 
                 try
                 {
