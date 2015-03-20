@@ -68,7 +68,7 @@
           y_accessor: 'y',
           rollover_callback: function (d, i) {
             var df = d3.time.format("%b %d, %H:%M");
-            var html = legend[d.line_id - 1] + ': ' + df(d.x) + ' - ' + d3.format(',.2s')(d.y) + '%';
+            var html = legend[d.line_id - 1] + ': ' + df(d.x) + ' - ' + d3.format(',.2s')(d.y);
 
             $(target + ' svg .active_datapoint').html(html);
           }
