@@ -22,8 +22,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Agent", "Statsify.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Aggregator", "Statsify.Aggregator\Statsify.Aggregator.csproj", "{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statsify.Web.Api", "Statsify.Web.Api\Statsify.Web.Api.csproj", "{35460AA4-B94A-4B64-9418-7243EC3D2F01}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installers", "Installers", "{A126413E-E0DF-4387-9FB3-2852CD9778C9}"
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Statsify.Agent.Installer", "Statsify.Agent.Installer\Statsify.Agent.Installer.wixproj", "{A5E4F34D-1B91-48FA-973B-F62A34656319}"
@@ -96,16 +94,6 @@ Global
 		{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}.Release|x86.ActiveCfg = Release|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Release|Any CPU.Build.0 = Release|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{35460AA4-B94A-4B64-9418-7243EC3D2F01}.Release|x86.ActiveCfg = Release|Any CPU
 		{A5E4F34D-1B91-48FA-973B-F62A34656319}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{A5E4F34D-1B91-48FA-973B-F62A34656319}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{A5E4F34D-1B91-48FA-973B-F62A34656319}.Debug|Mixed Platforms.Build.0 = Debug|x86
