@@ -30,7 +30,7 @@
     if (from) qs.push('from=' + encodeURIComponent(from));
     if (until) qs.push('until=' + encodeURIComponent(until));
 
-    var url = endpointUrl + '/api/series?' + qs.join('&');
+    var url = endpointUrl + '/api/v1/series?' + qs.join('&');
 
     graphics.push({ target: target, url: url, options: options });
 
