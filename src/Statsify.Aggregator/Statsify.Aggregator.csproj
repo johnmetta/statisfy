@@ -82,6 +82,8 @@
     <Compile Include="Configuration\DownsampleConfigurationElement.cs" />
     <Compile Include="Configuration\DownsampleConfigurationElementCollection.cs" />
     <Compile Include="Configuration\EndpointElement.cs" />
+    <Compile Include="Configuration\RetentionConfigurationElement.cs" />
+    <Compile Include="Configuration\RetentionConfigurationElementCollection.cs" />
     <Compile Include="Configuration\UdpEndpointElement.cs" />
     <Compile Include="Configuration\EnumConfigurationConverter.cs" />
     <Compile Include="Configuration\StatsifyAggregatorConfigurationSection.cs" />

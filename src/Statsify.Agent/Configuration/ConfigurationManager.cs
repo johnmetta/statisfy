@@ -19,8 +19,8 @@ namespace Statsify.Agent.Configuration
                 var programDataConfigurationFilePath = Path.Combine(programDataDirectoryPath, ConfigurationFileName);
                 
                 var configurationFilePaths = new[] {
-                    programDataConfigurationFilePath,
-                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationFileName)
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigurationFileName),
+                    programDataConfigurationFilePath
                 };
 
                 var configurationFilePath = configurationFilePaths.FirstOrDefault(File.Exists);
