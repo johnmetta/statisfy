@@ -105,7 +105,7 @@ namespace Statsify.Aggregator.Api
                 }
                 catch (Exception e)
                 {
-                    return Response.AsJson(new { e.Message, e.StackTrace });
+                    return Response.AsJson(new { e.Message, e.StackTrace }, HttpStatusCode.InternalServerError);
                 }
             };
         }
