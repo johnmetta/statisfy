@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Globalization;
 using NUnit.Framework;
-using Statsify.Web.Api;
+using Statsify.Aggregator.Api;
 
-namespace Statsify.Tests.Web.Api
+namespace Statsify.Tests.Aggregator.Api
 {
     [TestFixture]
     public class ParserTests
