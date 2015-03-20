@@ -47,9 +47,9 @@ namespace Statsify.Aggregator
         {
             stopEvent.Reset();
 
-            var ipAddress = IPAddress.Parse(configuration.UdpUdpEndpoint.Address);
+            var ipAddress = IPAddress.Parse(configuration.UdpEndpoint.Address);
 
-            udpDatagramReader = new UdpDatagramReader(ipAddress, configuration.UdpUdpEndpoint.Port);
+            udpDatagramReader = new UdpDatagramReader(ipAddress, configuration.UdpEndpoint.Port);
             udpDatagramReader.DatagramHandler += UdpDatagramReaderHandler;                        
 
             publisherTimer = new Timer(PublisherTimerCallback, null, configuration.Storage.FlushInterval, configuration.Storage.FlushInterval);                       

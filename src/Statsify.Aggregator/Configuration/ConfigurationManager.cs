@@ -14,8 +14,8 @@ namespace Statsify.Aggregator.Configuration
             get
             {
                 var configurationFilePaths = new[] {
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "statsify-aggregator.config"),
                     Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Statsify", "Aggregator", "statsify-aggregator.config"),
-                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "statsify-aggregator.config")
                 };
 
                 var configurationFilePath = configurationFilePaths.FirstOrDefault(File.Exists);

@@ -41,7 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Agent\Configuration\StatsifyAgentConfigurationSectionTests.cs" />
     <Compile Include="Agent\Impl\MetricDefinitionFactoryTests.cs" />
+    <Compile Include="Aggregator\Configuration\ConfigurationManagerTests.cs" />
     <Compile Include="Aggregator\DatagramParserTests.cs" />
     <Compile Include="Aggregator\MetricParserTests.cs" />
     <Compile Include="Client\MetricNameBuilderTests.cs" />
@@ -81,6 +83,16 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Web\Api\Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="statsify-agent.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="statsify-aggregator.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

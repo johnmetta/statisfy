@@ -9,7 +9,7 @@ namespace Statsify.Aggregator.Configuration
         private const string ApiEndpointPropertyName = "api-endpoint";
 
         [ConfigurationProperty(UdpEndpointPropertyName, IsRequired = true)]
-        public UdpEndpointElement UdpUdpEndpoint
+        public UdpEndpointElement UdpEndpoint
         {
             get { return (UdpEndpointElement)this[UdpEndpointPropertyName]; }
             set { this[UdpEndpointPropertyName] = value; }
