@@ -21,7 +21,7 @@ namespace Statsify.Core.Expressions
         {
             foreach(var methodInfo in type.GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
-                foreach(var functionAttribute in methodInfo.GetCustomAttributes<FunctionAttribute>())
+                foreach(var functionAttribute in methodInfo.GetCustomAttributes(typeof(FunctionAttribute), false).OfType<FunctionAttribute>())
                 {
                     RegisterFunction(functionAttribute.Name, new Function(methodInfo));
                 } // foreach

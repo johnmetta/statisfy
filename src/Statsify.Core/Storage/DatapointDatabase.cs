@@ -82,7 +82,7 @@ namespace Statsify.Core.Storage
 
         private static DatapointDatabase Open(string path, Stream stream, Func<DateTime> currentTimeProvider = null)
         {
-            using(var binaryReader = new BinaryReader(stream, Encoding.UTF8, true))
+            using(var binaryReader = new Util.BinaryReader(stream, Encoding.UTF8, true))
             {
                 var signature = binaryReader.ReadBytes(Signature.Length);
                 if(!signature.SequenceEqual(Signature)) 
@@ -193,7 +193,7 @@ namespace Statsify.Core.Storage
             double?[] values = null;
 
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using(var binaryReader = new BinaryReader(fileStream, Encoding.UTF8, true))
+            using(var binaryReader = new Util.BinaryReader(fileStream, Encoding.UTF8, true))
             {
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
 
@@ -291,8 +291,8 @@ namespace Statsify.Core.Storage
             var myInterval = timestamp - (timestamp % archive.Retention.Precision);
 
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
-            using(var binaryWriter = new BinaryWriter(fileStream, Encoding.UTF8, true))
-            using(var binaryReader = new BinaryReader(fileStream, Encoding.UTF8, true))
+            using(var binaryWriter = new Util.BinaryWriter(fileStream, Encoding.UTF8, true))
+            using(var binaryReader = new Util.BinaryReader(fileStream, Encoding.UTF8, true))
             {
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
                 var baseInterval = binaryReader.ReadInt64();
