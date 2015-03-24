@@ -20,7 +20,7 @@ namespace Statsify.Core.Expressions
             var p = new List<object> { context };
 
             var pis = methodInfo.GetParameters();
-            var paramsPi = pis.SingleOrDefault(pi => pi.GetCustomAttribute<ParamArrayAttribute>() != null);
+            var paramsPi = pis.SingleOrDefault(pi => pi.GetCustomAttributes(typeof(ParamArrayAttribute), false).OfType<ParamArrayAttribute>().SingleOrDefault() != null);
             var hasParams = paramsPi != null;
             var hasMetric = pis.All(pi => pi.ParameterType != typeof(MetricSelector));
 

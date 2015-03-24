@@ -40,7 +40,7 @@ namespace Statsify.Core.Storage
 
         private static AnnotationDatabase Open(string path, FileStream stream)
         {
-            using(var binaryReader = new BinaryReader(stream, Encoding.UTF8, true))
+            using(var binaryReader = new Util.BinaryReader(stream, Encoding.UTF8, true))
             {
                 var signature = binaryReader.ReadBytes(Signature.Length);
                 if(!signature.SequenceEqual(Signature))
@@ -72,7 +72,7 @@ namespace Statsify.Core.Storage
         public void WriteAnnotation(DateTime timestamp, string title, string message, params string[] tags)
         {
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.Write, FileShare.Read))
-            using(var binaryWriter = new BinaryWriter(fileStream, Encoding.UTF8, true))
+            using(var binaryWriter = new Util.BinaryWriter(fileStream, Encoding.UTF8, true))
             {
                 fileStream.Seek(0, SeekOrigin.End);
 
@@ -106,7 +106,7 @@ namespace Statsify.Core.Storage
         public IList<Annotation> ReadAnnotations(DateTime from, DateTime until)
         {
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using(var binaryReader = new BinaryReader(fileStream, Encoding.UTF8, true))
+            using(var binaryReader = new Util.BinaryReader(fileStream, Encoding.UTF8, true))
             {
                 fileStream.Seek(HeaderSize, SeekOrigin.Begin);
 
