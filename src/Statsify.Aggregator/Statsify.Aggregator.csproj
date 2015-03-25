@@ -111,9 +111,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="statsify-aggregator.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="statsify-aggregator.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Statsify.Core\Statsify.Core.csproj">
