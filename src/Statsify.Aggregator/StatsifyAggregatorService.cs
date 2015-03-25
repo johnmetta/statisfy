@@ -35,11 +35,11 @@ namespace Statsify.Aggregator
             
             datagramParser = new DatagramParser(new MetricParser());
 
-            var relativeUrl = configuration.ApiEndpoint.RelativeUrl;
+            var relativeUrl = configuration.HttpEndpoint.RelativeUrl;
             if(!relativeUrl.EndsWith("/"))
                 relativeUrl += "/";
 
-            var uriBuilder = new UriBuilder("http", configuration.ApiEndpoint.Address, configuration.ApiEndpoint.Port, relativeUrl);
+            var uriBuilder = new UriBuilder("http", configuration.HttpEndpoint.Address, configuration.HttpEndpoint.Port, relativeUrl);
             uri = uriBuilder.Uri;
         }
 

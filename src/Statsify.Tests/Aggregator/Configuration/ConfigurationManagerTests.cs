@@ -18,8 +18,8 @@ namespace Statsify.Tests.Aggregator.Configuration
             Assert.AreEqual("192.168.0.1", configuration.Configuration.UdpEndpoint.Address);
             Assert.AreEqual(18125, configuration.Configuration.UdpEndpoint.Port);
 
-            Assert.AreEqual("192.168.0.1", configuration.Configuration.ApiEndpoint.Address);
-            Assert.AreEqual(8081, configuration.Configuration.ApiEndpoint.Port);
+            Assert.AreEqual("192.168.0.1", configuration.Configuration.HttpEndpoint.Address);
+            Assert.AreEqual(8081, configuration.Configuration.HttpEndpoint.Port);
 
             Assert.AreEqual(@"d:\statsify", configuration.Configuration.Storage.Path);
 

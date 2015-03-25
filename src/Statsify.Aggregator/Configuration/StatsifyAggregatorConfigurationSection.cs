@@ -6,7 +6,7 @@ namespace Statsify.Aggregator.Configuration
     public sealed class StatsifyAggregatorConfigurationSection : ConfigurationSection
     {
         private const string UdpEndpointPropertyName = "udp-endpoint";
-        private const string ApiEndpointPropertyName = "api-endpoint";
+        private const string HttpEndpointPropertyName = "http-endpoint";
 
         [ConfigurationProperty(UdpEndpointPropertyName, IsRequired = true)]
         public UdpEndpointElement UdpEndpoint
@@ -15,11 +15,11 @@ namespace Statsify.Aggregator.Configuration
             set { this[UdpEndpointPropertyName] = value; }
         }
 
-        [ConfigurationProperty(ApiEndpointPropertyName, IsRequired = true)]
-        public ApiEndpointElement ApiEndpoint
+        [ConfigurationProperty(HttpEndpointPropertyName, IsRequired = true)]
+        public HttpEndpointElement HttpEndpoint
         {
-            get { return (ApiEndpointElement)this[ApiEndpointPropertyName]; }
-            set { this[ApiEndpointPropertyName] = value; }
+            get { return (HttpEndpointElement)this[HttpEndpointPropertyName]; }
+            set { this[HttpEndpointPropertyName] = value; }
         }
 
         [ConfigurationProperty("storage", IsRequired = true)]

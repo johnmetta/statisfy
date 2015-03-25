@@ -78,7 +78,7 @@
     <Compile Include="Api\Services\ISeriesService.cs" />
     <Compile Include="Configuration\AggregationConfigurationElement.cs" />
     <Compile Include="Configuration\AggregationConfigurationElementCollection.cs" />
-    <Compile Include="Configuration\ApiEndpointElement.cs" />
+    <Compile Include="Configuration\HttpEndpointElement.cs" />
     <Compile Include="Configuration\ConfigurationManager.cs" />
     <Compile Include="Configuration\DownsampleConfigurationElement.cs" />
     <Compile Include="Configuration\DownsampleConfigurationElementCollection.cs" />
