@@ -1,26 +1,88 @@
 # Statsify
 
-Computer systems and applications monitoring tool.
+Statsify is collection of software for collecting, aggregating, storing, reporting, graphing and analysis of time series data. It can be used to monitor computer systems and applications alike.
+
+Statsify is built primarily for Microsoft Windows. 
+
+## Why Statsify?
+
+Lots of reasons. First of all, Windows platform has nothing like Graphite or StatsD
 
 ## Overview
 
-Statsify draws inspiration from [Graphite](https://github.com/graphite-project), [StatsD](https://github.com/etsy/statsd/)
+Statsify draws inspiration from [Graphite](https://github.com/graphite-project), [StatsD](https://github.com/etsy/statsd/), [Ganglia](http://ganglia.sourceforge.net/) and possibly other projects. If you
 
-### Statsify.Agent
+### 10,000 Feet View
 
-Statsify Agent collects server-level metrics (i.e. from Windows Performance Counters) and sends them off to Statsify Aggregator or any StatsD-compatible server.
+Conceptually, there are three sides to Statsify. 
 
-### Statsify.Aggregator
+First, there are Agent and Aggregator, two Windows Services that do all the grunt work of collecting, aggregating and storing metrics. 
 
-Statsify Aggregator aggregates and stores metrics sent to it.
+Second, there is a client library which you can use to feed data to the Aggregator.
 
-### Statsify.Client
+Third, there is an HTTP API which you can use to retrieve stored metrics.
 
-StatsD-compatible client for talking to Statsify Aggregator or any StatsD-compatible server.
+### Statsify Agent
 
-### Statsify.Core
+This is a Windows Service that runs in the background and collects various server-level metrics (i.e. from Windows Performance Counters) and sends them off to Statsify Aggregator or any StatsD-compatible server.
 
-Statsify Database implementation.
+### Statsify Aggregator
+
+This is too a Windows Service that is effectively a pure .NET implementation of a StatsD server. As such, it listens to StatsD-compatible UDP datagrams and then aggregates and stores metrics sent to it. 
+
+Additionally, it exposes an HTTP API which can be used to retrieve stored metrics and to apply interesting transformations to them.
+
+### Statsify Client
+
+This is a StatsD-compatible client for talking to Statsify Aggregator or any StatsD-compatible server. It is this assembly that enables your .NET application to send arbitrary metrics to Statsify Aggregator.
+
+## Getting Started
+
+At the bare minimum you'll need to get Aggregator up and running.
+
+### Prerequisites
+
+Statsify only requires Microsoft .NET Framework 4.0 or later. No other dependencies, really.
+
+### Running, Installing and Configuring Statsify Aggregator
+
+Statsify Aggregator supports two modes of operation: it can run as a standard console application, or it can be installed as a Windows Service. The former is useful for testing things out, while the latter is the only reliable option for production use.
+
+To get Aggregator up and running, just launch the `statsify.aggregator.exe`. When you do so for the first time, it will create a `statsify-aggregator.config` configuration file in `%PROGRAMDATA%\Statsify\Aggregator`.
+
+To install Aggregator as a Windows Service, open up Command Prompt and run the following command:
+
+    statsify.aggregator install --sudo
+    statsify.aggregator start
+    
+And that's it: now Statsify Aggregator is installed and is up and running in the background, waiting for the first UDP packed to arrive.
+
+#### Configuration
+
+If you open up `statsify-aggregator.config`, you'll see quite a few options that configure Aggregator's behavior.
+
+Statsify here borrows a lot  from Graphite, so when something's not clear enough, please refer to the [Configuring Carbon](http://graphite.readthedocs.org/en/latest/config-carbon.html) section of Graphite Documentation.
+
+* `udp-endpoint`: Sets `@address` and `@port` that Aggregator is listening on for UDP packets
+* `http-endpoint`: Sets `@address` and `@port` that Aggregator is listening on for incoming HTTP API requests
+* `storage`: Configures Aggregator's behavior when it comes to figuring out where and how to store metrics (See [storage-schemas.conf](http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-schemas-conf)):
+ * `@path`: An absolute path to where Aggregator will store Datapoint Databases
+ * `@flush-interval`: How often will Aggregator save metrics to disk
+ * `store`: Configures a single policy of how to store a particular set of metrics (matched by `@pattern`
+   * `retention`: Configures a single retention rule. Both `@precision` and `@history` can accept either standard .NET `TimeSpan` string representations (`hh:mm:ss`) or simpler strings like `10s`, `20m`, `1h`, `31d`, `1y`.
+* `downsampling`: Configures how Aggregator downsamples metrics (See [storage-aggregation.conf](http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-aggregation-conf)):
+ * `downsample`: Configures a single downsampling rule for s set of metrics matched by `@pattern`
+
+### Running, Installing and Configuring Statsify Agent
+
+Statsify Agent is very similar in it's nature to Statsify Aggregator. It supports exactly the same modes of operations, it too creates  and can be installed just as easy.
+
+When you first launch `statsify.agent.exe`, it will create a `statsify-agent.config` file in `%PROGRAMDATA%\Statsify\Agent`. It already has a few metrics that Agent starts collecting right away:
+
+* CPU Utilization (Total Time, Privileged Time, User Time)
+* Logical Disk Utilization
+ * Read and Write Queue Lengths
+ * Read and Write Bytes/sec
 
 ## Usage
 
