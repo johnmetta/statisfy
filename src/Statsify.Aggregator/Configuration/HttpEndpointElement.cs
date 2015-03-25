@@ -2,7 +2,7 @@
 
 namespace Statsify.Aggregator.Configuration
 {
-    public class ApiEndpointElement : EndpointElement
+    public class HttpEndpointElement : EndpointElement
     {
         [ConfigurationProperty("relative-url", IsRequired = true)]
         public string RelativeUrl
