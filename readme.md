@@ -1,16 +1,24 @@
 # Statsify
 
-Statsify is collection of software for collecting, aggregating, storing, reporting, graphing and analysis of time series data. It can be used to monitor computer systems and applications alike.
+Statsify is a set of software components for collecting, aggregating, storing, reporting, graphing and analysis of time series data. It can be used to monitor computer systems and applications alike.
 
-Statsify is built primarily for Microsoft Windows. 
+Stataify is built for Microsoft Windows using Microsoft .NET Framework.
 
 ## Why Statsify?
 
-Lots of reasons. First of all, Windows platform has nothing like Graphite or StatsD
+> Measurement is the first step that leads to control and eventually to improvement. If you can't measure something, you can't understand it. If you can't understand it, you can't control it. If you can't control it, you can't
+improve it.
+> ― H. James Harrington
+
+When it comes to collecting metrics on Windows, there's really very little choice: it's etiher Performance Counters or nothing. Or something custom-built, for that matter.
+
+Performance Counters are a disaster from a lot of standpoints. To create them, one has to remember about permissions, call into cumbersome API with lots of alien concepts like Performance Counter Categories, Performance Counter Types, and optionally do `installutil` invocations. While using them, one is again facing the same hostile API, overall brittleness, COM exceptions and the like. Finally, when it comes to actually viewing and analyzing them, `perfmon.msc` has very little to offer: suboptimal UI, no historical storage, no analytics, no graphing, no nothing.
+
+Linux has had Graphite and StatsD since forever, and the simplicity and sheer power of those seemingly simple tools is what led us to create Statsify.
 
 ## Overview
 
-Statsify draws inspiration from [Graphite](https://github.com/graphite-project), [StatsD](https://github.com/etsy/statsd/), [Ganglia](http://ganglia.sourceforge.net/) and possibly other projects. If you
+Statsify draws inspiration from [Graphite](https://github.com/graphite-project), [StatsD](https://github.com/etsy/statsd/), [Ganglia](http://ganglia.sourceforge.net/) and possibly other projects.
 
 ### 10,000 Feet View
 
@@ -24,17 +32,16 @@ Third, there is an HTTP API which you can use to retrieve stored metrics.
 
 ### Statsify Agent
 
-This is a Windows Service that runs in the background and collects various server-level metrics (i.e. from Windows Performance Counters) and sends them off to Statsify Aggregator or any StatsD-compatible server.
+This is a Windows Service that runs in the background and collects various server-level metrics (i.e. from Windows Performance Counters) and sends them off to Aggregator or any StatsD-compatible server.
 
 ### Statsify Aggregator
 
 This is too a Windows Service that is effectively a pure .NET implementation of a StatsD server. As such, it listens to StatsD-compatible UDP datagrams and then aggregates and stores metrics sent to it. 
-
 Additionally, it exposes an HTTP API which can be used to retrieve stored metrics and to apply interesting transformations to them.
 
 ### Statsify Client
 
-This is a StatsD-compatible client for talking to Statsify Aggregator or any StatsD-compatible server. It is this assembly that enables your .NET application to send arbitrary metrics to Statsify Aggregator.
+This is a StatsD-compatible client for talking to Aggregator or any StatsD-compatible server. It is this assembly that enables your .NET application to send arbitrary metrics to Aggregator.
 
 ## Getting Started
 
@@ -55,7 +62,7 @@ To install Aggregator as a Windows Service, open up Command Prompt and run the f
     statsify.aggregator install --sudo
     statsify.aggregator start
     
-And that's it: now Statsify Aggregator is installed and is up and running in the background, waiting for the first UDP packed to arrive.
+And that's it: now Aggregator is installed and is up and running in the background, waiting for the first UDP packed to arrive.
 
 #### Configuration
 
@@ -75,7 +82,7 @@ Statsify here borrows a lot  from Graphite, so when something's not clear enough
 
 ### Running, Installing and Configuring Statsify Agent
 
-Statsify Agent is very similar in it's nature to Statsify Aggregator. It supports exactly the same modes of operations, it too creates  and can be installed just as easy.
+Agent is very similar in it's nature to Aggregator. It supports exactly the same modes of operations and can be installed just as trivially.
 
 When you first launch `statsify.agent.exe`, it will create a `statsify-agent.config` file in `%PROGRAMDATA%\Statsify\Agent`. It already has a few metrics that Agent starts collecting right away:
 
@@ -84,7 +91,13 @@ When you first launch `statsify.agent.exe`, it will create a `statsify-agent.con
  * Read and Write Queue Lengths
  * Read and Write Bytes/sec
 
+### Collecting Data from Your Applications
+
+To start collecting data from your .NET application, you'll have to use Statsify Client to talk to Aggregator.
+
 ## Usage
+
+It's all very simple: reference `Statsify.Client.dll`, initialize an `IStatsifyClient` and start firing off metrics.
 
 ### Configuration
 
@@ -107,60 +120,14 @@ Before using `IStatsifyClient` instance, you need to add the following entries t
 ### Initialization
 
     var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
-    IStatsifyClient statsifyClient = 
-        new UdpStatsifyClient(
-            configuration.Host, 
-            configuration.Port, 
-            configuration.Namespace);
+    var statsifyClient = 
+        new UdpStatsifyClient(configuration.Host, configuration.Port, configuration.Namespace);
 
 ### Usage
 
 The `statsifyClient` object is not guaranteed to be thread-safe, so each thread must get its own instance.
 
-## Practical Guide
-
-> This is taken from http://matt.aimonetti.net/posts/2013/06/26/practical-guide-to-graphite-monitoring/
-
-### Namespacing
-
-Always namespace your collected data, even if you only have one app for now. If your app does two things at the same time like serving HTML and providing an API, you might want to create two clients which you would namespace differently.
-
-#### Naming metrics
-
-Properly naming your metrics is critical to avoid conflicts, confusing data and potentially wrong interpretation later on. 
-I like to organize metrics using the following schema:
-    
-    <namespace>.<instrumented section>.<target (noun)>.<action (past tense verb)>
-
-Example:
-
-    accounts.authentication.password.attempted
-    accounts.authentication.password.succeeded
-    accounts.authentication.password.failed
-
-I use nouns to define the target and past tense verbs to define the action. This becomes a useful convention when you need to nest metrics. In the above example, let’s say I want to monitor the reasons for the failed password authentications. Here is how I would organize the extra stats:
-
-    accounts.authentication.password.failure.no_email_found
-    accounts.authentication.password.failure.password_check_failed
-    accounts.authentication.password.failure.password_reset_required
-
-As you can see, I used `failure` instead of `failed` in the stat name. The main reason is to avoid conflicting data. `failed` is an action and already has a data series allocated, if I were to add nested data using `failed`, the data would be collected but the result would be confusing. The other reason is because when we will graph the data, we will often want to use a wildcard * to collect all nested data in a series.
-
-Graphite wild card usage example on counters:
-
-    accounts.authentication.password.failure.*
-
-This should give us the same value as `accounts.authentication.password.failed`, so really, we should just collect the more detailed version and get rid of accounts.authentication.password.failed.
-
-Following this naming convention should really help your data stay clean and easy to manage.
-
-### Counters and metrics
-
-Use counters for metrics when you don’t care about how long the code your are instrumenting takes to run. Usually counters are used for data that have more of a direct business value. Examples include sales, authentication, signups, etc.
-
-Timers are more powerful because they can be used to analyze the time spent in a piece of code but also be used as a counters. Most of my work involves timers because I want to detect system anomalies including performance changes and trends in the way code is being used.
-
-### Glossary
+## Glossary
 
 _Datapoint_ is a tuple which consists of a _Timestamp_ and a (possibly undefined) _Value_.
 
