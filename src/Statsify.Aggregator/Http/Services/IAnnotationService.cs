@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Statsify.Core.Storage;
 
-namespace Statsify.Aggregator.Api.Services
+namespace Statsify.Aggregator.Http.Services
 {
     public interface IAnnotationService
     {

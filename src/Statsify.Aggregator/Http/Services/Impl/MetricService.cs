@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Statsify.Aggregator.Api.Models;
 using Statsify.Aggregator.Configuration;
+using Statsify.Aggregator.Http.Models;
 
-namespace Statsify.Aggregator.Api.Services.Impl
+namespace Statsify.Aggregator.Http.Services.Impl
 {
     internal class MetricService : IMetricService
     {
