@@ -33,7 +33,7 @@
   <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
     <div class="container">
       <div class="navbar-header">
-        <a class="navbar-brand" href="#">Statsify v@Model.Version</a>
+        <a class="navbar-brand" href="@Path['~/']">Statsify v@Model.Version</a>
       </div>
     </div>
   </nav>
@@ -44,7 +44,7 @@
       <div class="col-lg-12 text-center">
         <form class="form-inline" action="@Path['~/']" method="get">
           <div class="form-group">
-            <input type="text" class="form-control" id="expression" name="expression" placeholder="Expression" style="width: 600px;" value="@!Model.Expression" />
+            <input type="text" class="form-control" id="expression" name="expression" placeholder="Expression" style="width: 800px;" value="@!Model.Expression" />
             <input type="text" class="form-control" id="from" name="from" placeholder="Expression" style="width: 60px;" value="@!Model.From" />
           </div>
           <button type="submit" class="btn btn-default">Go!</button>
@@ -68,7 +68,7 @@
   @If.HasExpression
   <script type="text/javascript">
     $(window).load(function() {
-      statsify.init({ endpointUrl: 'http://localhost:8080/statsify' });
+      statsify.init({ endpointUrl: '@Path['~/']' });
       statsify.data_graphic('#data-graphic', '@Model.Expression', '@Model.From', null, { y_scale_type: 'linear', width: 1150, interpolate: 'monotone', legend_target: '#data-graphic-legend' });
     });
   </script>
