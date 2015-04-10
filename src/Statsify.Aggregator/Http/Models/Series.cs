@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Statsify.Core.Model;
 
-namespace Statsify.Aggregator.Api.Models
+namespace Statsify.Aggregator.Http.Models
 {
     public class Series : Core.Model.Series
     {

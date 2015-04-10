@@ -1,4 +1,4 @@
-﻿namespace Statsify.Aggregator.Api.Models
+﻿namespace Statsify.Aggregator.Http.Models
 {
     public class AnnotationsQueryModel
     {

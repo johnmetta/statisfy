@@ -2,12 +2,13 @@
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
-using Statsify.Aggregator.Api.Services;
-using Statsify.Aggregator.Api.Services.Impl;
+using Nancy.ViewEngines;
 using Statsify.Aggregator.Configuration;
+using Statsify.Aggregator.Http.Services;
+using Statsify.Aggregator.Http.Services.Impl;
 using Statsify.Core.Components.Impl;
 
-namespace Statsify.Aggregator.Api
+namespace Statsify.Aggregator.Http
 {
     public class Bootstrapper : AutofacNancyBootstrapper 
     {
@@ -37,6 +38,23 @@ namespace Statsify.Aggregator.Api
                         WithHeader("Access-Control-Allow-Methods", "POST, GET").
                         WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-Type");
                 });
+        }
+
+        protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
+        {
+            base.ConfigureApplicationContainer(existingContainer);
+
+            ResourceViewLocationProvider.RootNamespaces.Add(GetType().Assembly, "Statsify.Aggregator.Content.Views");
+        }
+
+        protected override NancyInternalConfiguration InternalConfiguration
+        {
+            get { return NancyInternalConfiguration.WithOverrides(ConfigurationBuilder); }
+        }
+
+        private static void ConfigurationBuilder(NancyInternalConfiguration x)
+        {
+            x.ViewLocationProvider = typeof(ResourceViewLocationProvider);
         }
     }
 }

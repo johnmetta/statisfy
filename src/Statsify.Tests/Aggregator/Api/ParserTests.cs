@@ -1,6 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
-using Statsify.Aggregator.Api;
+using Statsify.Aggregator.Http;
 
 namespace Statsify.Tests.Aggregator.Api
 {

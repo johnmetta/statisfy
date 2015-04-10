@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Statsify.Core.Storage;
 
-namespace Statsify.Aggregator.Api
+namespace Statsify.Aggregator.Http
 {
     public class Parser
     {

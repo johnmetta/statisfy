@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Statsify.Aggregator.Api.Models
+namespace Statsify.Aggregator.Http.Models
 {
     public sealed class MetricInfo
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Statsify.Aggregator.Configuration;
 using Statsify.Core.Storage;
 
-namespace Statsify.Aggregator.Api.Services.Impl
+namespace Statsify.Aggregator.Http.Services.Impl
 {
     internal class AnnotationService : IAnnotationService
     {

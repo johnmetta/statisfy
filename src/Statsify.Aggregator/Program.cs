@@ -4,6 +4,7 @@ using Statsify.Aggregator.Configuration;
 using Statsify.Core.Expressions;
 using Statsify.Core.Storage;
 using Topshelf;
+using Environment = Statsify.Core.Expressions.Environment;
 
 namespace Statsify.Aggregator
 {
@@ -13,8 +14,6 @@ namespace Statsify.Aggregator
 
         static int Main(string[] args)
         {
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-
             Log.Info("starting up");
 
             //
@@ -38,7 +37,7 @@ namespace Statsify.Aggregator
                     });
 
                     x.SetServiceName("statsify-aggregator");
-                    x.SetDisplayName("Statsify Aggregator " + version.ToString(2));
+                    x.SetDisplayName("Statsify Aggregator " + Application.Version.ToString(2));
                     x.SetDescription("Listens to StatsD-compatible UDP datagrams and aggregates and stores metrics sent to it.");
 
                     x.StartAutomaticallyDelayed();

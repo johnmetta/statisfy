@@ -1,7 +1,7 @@
 ﻿using System;
 using Statsify.Core.Model;
 
-namespace Statsify.Aggregator.Api.Services
+namespace Statsify.Aggregator.Http.Services
 {
     public interface ISeriesService
     {

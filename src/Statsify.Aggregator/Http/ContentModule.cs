@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Text;
 using Nancy;
 
-namespace Statsify.Aggregator.Api
+namespace Statsify.Aggregator.Http
 {
     public class ContentModule : NancyModule
     {
@@ -54,7 +54,7 @@ namespace Statsify.Aggregator.Api
 
         private static Stream GetContentStream(string name)
         {
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream("Statsify.Aggregator.Api.Content." + name);
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream("Statsify.Aggregator.Http.Content." + name);
         }
     }
 }

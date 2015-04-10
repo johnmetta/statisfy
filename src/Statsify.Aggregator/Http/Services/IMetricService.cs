@@ -1,6 +1,6 @@
-﻿using Statsify.Aggregator.Api.Models;
+﻿using Statsify.Aggregator.Http.Models;
 
-namespace Statsify.Aggregator.Api.Services
+namespace Statsify.Aggregator.Http.Services
 {
     public interface IMetricService
     {

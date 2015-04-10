@@ -62,20 +62,22 @@
       <Link>Properties\AssemblyVersion.cs</Link>
     </Compile>
     <Compile Include="AnnotationAggregator.cs" />
-    <Compile Include="Api\ApiModule.cs" />
-    <Compile Include="Api\Bootstrapper.cs" />
-    <Compile Include="Api\ContentModule.cs" />
-    <Compile Include="Api\Models\AnnotationsQueryModel.cs" />
-    <Compile Include="Api\Models\MetricInfo.cs" />
-    <Compile Include="Api\Models\Series.cs" />
-    <Compile Include="Api\Models\SeriesQueryModel.cs" />
-    <Compile Include="Api\Models\SeriesView.cs" />
-    <Compile Include="Api\Parser.cs" />
-    <Compile Include="Api\Services\IAnnotationService.cs" />
-    <Compile Include="Api\Services\IMetricService.cs" />
-    <Compile Include="Api\Services\Impl\AnnotationService.cs" />
-    <Compile Include="Api\Services\Impl\MetricService.cs" />
-    <Compile Include="Api\Services\ISeriesService.cs" />
+    <Compile Include="Application.cs" />
+    <Compile Include="Http\ApiModule.cs" />
+    <Compile Include="Http\Bootstrapper.cs" />
+    <Compile Include="Http\ContentModule.cs" />
+    <Compile Include="Http\IndexModule.cs" />
+    <Compile Include="Http\Models\AnnotationsQueryModel.cs" />
+    <Compile Include="Http\Models\MetricInfo.cs" />
+    <Compile Include="Http\Models\Series.cs" />
+    <Compile Include="Http\Models\SeriesQueryModel.cs" />
+    <Compile Include="Http\Models\SeriesView.cs" />
+    <Compile Include="Http\Parser.cs" />
+    <Compile Include="Http\Services\IAnnotationService.cs" />
+    <Compile Include="Http\Services\IMetricService.cs" />
+    <Compile Include="Http\Services\Impl\AnnotationService.cs" />
+    <Compile Include="Http\Services\Impl\MetricService.cs" />
+    <Compile Include="Http\Services\ISeriesService.cs" />
     <Compile Include="Configuration\AggregationConfigurationElement.cs" />
     <Compile Include="Configuration\AggregationConfigurationElementCollection.cs" />
     <Compile Include="Configuration\HttpEndpointElement.cs" />
@@ -120,15 +122,19 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Api\Content\statsify.js" />
+    <EmbeddedResource Include="Http\Content\statsify.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Api\Content\d3.js" />
-    <EmbeddedResource Include="Api\Content\d3.min.js" />
-    <EmbeddedResource Include="Api\Content\metricsgraphics.css" />
-    <EmbeddedResource Include="Api\Content\metricsgraphics.js" />
-    <EmbeddedResource Include="Api\Content\metricsgraphics.min.js" />
-    <EmbeddedResource Include="Api\Content\statsify.css" />
+    <EmbeddedResource Include="Http\Content\d3.js" />
+    <EmbeddedResource Include="Http\Content\d3.min.js" />
+    <EmbeddedResource Include="Http\Content\metricsgraphics.css" />
+    <EmbeddedResource Include="Http\Content\metricsgraphics.js" />
+    <EmbeddedResource Include="Http\Content\metricsgraphics.min.js" />
+    <EmbeddedResource Include="Http\Content\statsify.css" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Content\Views\index.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
