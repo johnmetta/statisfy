@@ -16,6 +16,7 @@ namespace Statsify.Aggregator
 {
     public class MetricAggregator
     {
+        private readonly IDictionary<string, DatapointDatabase> databaseCache = new Dictionary<string, DatapointDatabase>(); 
         private readonly Logger log = LogManager.GetCurrentClassLogger();
         private readonly StatsifyAggregatorConfigurationSection configuration;
         private readonly ManualResetEvent stopEvent;
@@ -248,6 +249,11 @@ namespace Statsify.Aggregator
         private DatapointDatabase GetDatabase(string root, string metric)
         {
             var fullPath = Path.Combine(root, metric.Replace(".", @"\") + ".db");
+            var databaseCacheKey = fullPath.ToLowerInvariant();
+
+            if(databaseCache.ContainsKey(databaseCacheKey))
+                return databaseCache[databaseCacheKey];
+
             var directory = Path.GetDirectoryName(fullPath);
             if(directory != null && !Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
@@ -260,6 +266,8 @@ namespace Statsify.Aggregator
 
             var retentonPolicy = new RetentionPolicy(storage.Retentions);
             var database = DatapointDatabase.OpenOrCreate(fullPath, downsampling.Factor, downsampling.Method, retentonPolicy);
+
+            databaseCache[databaseCacheKey] = database;
 
             return database;
         }
