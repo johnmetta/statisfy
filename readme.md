@@ -12,7 +12,7 @@ improve it.
 
 When it comes to collecting metrics on Windows, there's really very little choice: it's etiher Performance Counters or nothing. Or something custom-built, for that matter.
 
-Performance Counters are a disaster from a lot of standpoints. To create them, one has to remember about permissions, call into cumbersome API with lots of alien concepts like Performance Counter Categories, Performance Counter Types, and optionally do `installutil` invocations. While using them, one is again facing the same hostile API, overall brittleness, COM exceptions and the like. Finally, when it comes to actually viewing and analyzing them, `perfmon.msc` has very little to offer: suboptimal UI, no historical storage, no analytics, no graphing, no nothing.
+Performance Counters are a disaster from a lot of standpoints. To create them, one has to remember about permissions, call into cumbersome API with lots of alien concepts like Performance Counter Categories, Performance Counter Types, and optionally do `installutil` invocations. While using them, one is again facing the same hostile API, overall brittleness, COM exceptions and the like. Finally, when it comes to actually viewing and analyzing them, `perfmon.msc` has very little to offer: suboptimal UI, no historical storage, no analytics, no graphing, no nothing. All in all, Performance Counters offer very little gain for _a lot_ of effort.
 
 Linux has had Graphite and StatsD since forever, and the simplicity and sheer power of those seemingly simple tools is what led us to create Statsify.
 
@@ -63,6 +63,8 @@ To install Aggregator as a Windows Service, open up Command Prompt and run the f
     statsify.aggregator start
     
 And that's it: now Aggregator is installed and is up and running in the background, waiting for the first UDP packed to arrive.
+
+At this point, you can navigate to [http://localhost:8080/statsify](http://localhost:8080/statsify) (adjust accordingly) and if everything went well, you'll see a nice graph overviewing what's your CPU has been up to for the past hour.
 
 #### Configuration
 
