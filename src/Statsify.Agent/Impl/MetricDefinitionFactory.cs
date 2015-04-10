@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using NLog;
 using Statsify.Agent.Configuration;
@@ -24,9 +26,24 @@ namespace Statsify.Agent.Impl
             {
                 case "performance-counter":
                     return CreatePerformanceCounterMetricDefinition(metric);
+                case "number-of-files":
+                    return CreateNumberOfFilesDefinition(metric);
                 default:
                     throw new ArgumentOutOfRangeException("type");
             }
+        }
+
+        private MetricDefinition CreateNumberOfFilesDefinition(MetricConfigurationElement metric)
+        {
+            var path = metric.Path;
+            if(!Directory.Exists(path)) return null;
+
+            return new MetricDefinition(
+                metric.Name, 
+                () => {
+                    var numberOfFiles = new DirectoryInfo(path).EnumerateFiles("*.*", SearchOption.TopDirectoryOnly).Count();
+                    return numberOfFiles;
+                }, metric.AggregationStrategy);
         }
 
         private MetricDefinition CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
