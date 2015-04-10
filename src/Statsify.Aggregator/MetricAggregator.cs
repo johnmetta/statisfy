@@ -70,7 +70,7 @@ namespace Statsify.Aggregator
                 } // while
 
                 if(n > 0)
-                    log.Info("completed flushing {0} entries in {1} ({2:N2} per second)", n, sw.Elapsed, n / sw.Elapsed.TotalSeconds);               
+                    log.Trace("completed flushing {0} entries in {1} ({2:N2} per second)", n, sw.Elapsed, n / sw.Elapsed.TotalSeconds);               
             } // while
         }
 
