@@ -264,6 +264,8 @@ namespace Statsify.Aggregator
             var storage = configuration.Storage.FirstOrDefault(a => Regex.IsMatch(metric, a.Pattern));
             if(storage == null) return null;
 
+            log.Info("creating Datapoint Database for Metric '{0}' using Downsampling settings '{1}' and Storage settings '{2}'", metric, downsampling.Name, storage.Name);
+
             var retentonPolicy = new RetentionPolicy(storage.Retentions);
             var database = DatapointDatabase.OpenOrCreate(fullPath, downsampling.Factor, downsampling.Method, retentonPolicy);
 
