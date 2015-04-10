@@ -12,9 +12,12 @@ namespace Statsify.Agent
 
         static int Main(string[] args)
         {
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            AppDomain.CurrentDomain.UnhandledException += AppDomainUnhandledExceptionHandler;
 
-            Log.Info("starting up");
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            var serviceDisplayName = "Statsify Agent v" + version.ToString(2);
+
+            Log.Info("starting up " + serviceDisplayName);
 
             var configurationManager = ConfigurationManager.Instance;
 
@@ -28,7 +31,7 @@ namespace Statsify.Agent
                     });
 
                     x.SetServiceName("statsify-agent");
-                    x.SetDisplayName("Statsify Agent v" + version.ToString(2));
+                    x.SetDisplayName(serviceDisplayName);
                     x.SetDescription("Collects machine-level metrics and sends them off to Statsify Aggregator or any StatsD-compatible server.");
 
                     x.StartAutomaticallyDelayed();
@@ -37,6 +40,11 @@ namespace Statsify.Agent
                 });
 
             return (int)host.Run();
+        }
+
+        private static void AppDomainUnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            Log.FatalException("unhandled exception", e.ExceptionObject as Exception);
         }
     }
 }

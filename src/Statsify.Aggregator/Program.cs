@@ -1,10 +1,9 @@
-﻿using System.Reflection;
+﻿using System;
 using NLog;
 using Statsify.Aggregator.Configuration;
 using Statsify.Core.Expressions;
 using Statsify.Core.Storage;
 using Topshelf;
-using Environment = Statsify.Core.Expressions.Environment;
 
 namespace Statsify.Aggregator
 {
@@ -14,7 +13,11 @@ namespace Statsify.Aggregator
 
         static int Main(string[] args)
         {
-            Log.Info("starting up");
+            AppDomain.CurrentDomain.UnhandledException += AppDomainUnhandledExceptionHandler;
+
+            var serviceDisplayName = "Statsify Aggregator v" + Application.Version.ToString(2);
+
+            Log.Info("starting up " + serviceDisplayName);
 
             //
             // Validate configuration on startup
@@ -25,7 +28,7 @@ namespace Statsify.Aggregator
                 RetentionPolicyValidator.EnsureRetentionPolicyValid(retentionPolicy);
             } // foreach
 
-            Environment.RegisterFunctions(typeof(Functions));
+            Core.Expressions.Environment.RegisterFunctions(typeof(Functions));
 
             var host = 
                 HostFactory.New(x => {
@@ -37,7 +40,7 @@ namespace Statsify.Aggregator
                     });
 
                     x.SetServiceName("statsify-aggregator");
-                    x.SetDisplayName("Statsify Aggregator v" + Application.Version.ToString(2));
+                    x.SetDisplayName(serviceDisplayName);
                     x.SetDescription("Listens to StatsD-compatible UDP datagrams and aggregates and stores metrics sent to it.");
 
                     x.StartAutomaticallyDelayed();
@@ -46,6 +49,11 @@ namespace Statsify.Aggregator
                 });
 
             return (int)host.Run();
+        }
+
+        private static void AppDomainUnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            Log.FatalException("unhandled exception", e.ExceptionObject as Exception);
         }
     }
 }
