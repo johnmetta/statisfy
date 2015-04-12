@@ -64,7 +64,7 @@ To install Aggregator as a Windows Service, open up Command Prompt and run the f
     
 And that's it: now Aggregator is installed and is up and running in the background, waiting for the first UDP packed to arrive.
 
-At this point, you can navigate to [http://localhost:8080/statsify](http://localhost:8080/statsify) (adjust accordingly) and if everything went well, you'll see a nice graph overviewing what's your CPU has been up to for the past hour.
+At this point, you can navigate to [http://localhost:8080/statsify](http://localhost:8080/statsify) (adjust according to what you've configured in `http-endpoint`) and if everything went well, you'll see a nice graph overviewing what's your CPU has been up to for the past hour.
 
 #### Configuration
 
@@ -92,16 +92,18 @@ When you first launch `statsify.agent.exe`, it will create a `statsify-agent.con
 * Logical Disk Utilization
  * Read and Write Queue Lengths
  * Read and Write Bytes/sec
+* Memory Statistics (Page Reads, Writes and Faults)
+* Process and Thread counts
 
 ### Collecting Data from Your Applications
 
 To start collecting data from your .NET application, you'll have to use Statsify Client to talk to Aggregator.
 
-## Usage
+#### Usage
 
 It's all very simple: reference `Statsify.Client.dll`, initialize an `IStatsifyClient` and start firing off metrics.
 
-### Configuration
+#### Configuration
 
 Before using `IStatsifyClient` instance, you need to add the following entries to your `App.config`/`Web.config` file:
 
@@ -115,19 +117,75 @@ Before using `IStatsifyClient` instance, you need to add the following entries t
       <statsify host="127.0.0.1" port="" namespace="" />
     </configuration>
     
-* `@host` is the address (preferably an IP address) of the Statsify Aggregator.
-* `@port` is the port the Statsify Aggregator is listening on. This is optional and defaults to `8125`.
+* `@host` is the address (preferably an IP address) of the Aggregator.
+* `@port` is the port the Aggregator is listening on. This is optional and defaults to `8125`.
 * `@namespace` is the prefix for all metrics. This is usually set to a lowercased underscore-delimited name of the application, like `production.application_name`
 
-### Initialization
+#### Initialization
 
     var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
     var statsifyClient = 
         new UdpStatsifyClient(configuration.Host, configuration.Port, configuration.Namespace);
 
-### Usage
-
 The `statsifyClient` object is not guaranteed to be thread-safe, so each thread must get its own instance.
+
+### Retrieving, Graphing and Analyzing Metrics
+
+To start things off, you can play around from within the Aggregator's Web UI
+
+Aggregator exposes an HTTP API which can be used to retrieve series information. It's available at `(RELATIVE_URL)/api/v1/series` and expects the following query string parameters:
+
+* `expression`: Specifies one or several metrics, optionally with functions acting on those metrics. See [Paths and Wildcards](https://graphite.readthedocs.org/en/latest/render_api.html#paths-and-wildcards) for more information.
+* `from`: Specifies the beginning of a relative or absolute time instant to graph. Defaults to "now minus one hour" if missing. See [from/until](https://graphite.readthedocs.org/en/latest/render_api.html#from-until) for more information.
+* `until`: Specifies the end of a relative or absolute time instant to graph. Defaults to the current date and time if missing.
+
+Data is returned in the following format:
+
+    [
+      {
+        "target": "processes", 
+        "datapoints": [ [129, 1428751150], [125.83333333333333, 1428751210], ... ]
+      },
+      {
+        "target": "threads",
+        "datapoints": [ [1713.6666666666667, 1428751150], [1667, 1428751210], ... ]
+      }
+    ]
+
+`target` is the name of the series, and `datapoints` represent actual datapoints with first item in the array being a datapoint value and the second being a UTC timestamp in Unix format (that is, number of seconds since 1970-01-01).
+
+#### Graphing Metrics
+
+Statsify comes with a built-in [MetricsGraphics.js](http://metricsgraphicsjs.org/)-based renderer. To use it, you'll need to include jQuery, reference Statsify's CSS and JS files:
+
+    <link href="(RELATIVE_URL)/content/statsify.css" type="text/css" rel="stylesheet">
+    <script src="(RELATIVE_URL)/content/statsify.js"></script>
+
+Add `div`s for your data charts:
+
+    <div id="data-graphic">
+      <svg />
+      <div id="data-graphic-legend"></div>
+    </div>
+
+Initialize Statsify with a correct `endpointUrl` (see `http-endpoint` configuration setting in `statsify-aggregator.config`):
+
+    statsify.init({ endpointUrl: 'http://localhost/statsify' });
+
+And render charts:
+
+    statsify.data_graphic(
+      /*  '#data-graphic', 
+      'sort_by_name(alias_by_fragment(summarize(servers.*.system.processor.*, "max", "1m"), 1, 4))',
+      '-1h', null, 
+      { interpolate: 'monotone', legend_target: '#data-graphic-legend' });
+
+#### Analyzing Metrics
+
+Statsify supports several interesting functions to apply to your metrics:
+
+* `timeshift(metric, offset)`: Timeshifts `metric` by `offset`
+* `abs(metrics)`:
 
 ## Glossary
 
