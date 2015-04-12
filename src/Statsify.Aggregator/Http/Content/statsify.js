@@ -4,7 +4,6 @@
   var graphics = [];
 
   statsify.init = function(settings) {
-    debugger;
     endpointUrl = settings.endpointUrl || endpointUrl;
   };
 
