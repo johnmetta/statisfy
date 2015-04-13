@@ -76,7 +76,7 @@ Statsify here borrows a lot  from Graphite, so when something's not clear enough
 * `http-endpoint`: Sets `@address` and `@port` that Aggregator is listening on for incoming HTTP API requests
 * `storage`: Configures Aggregator's behavior when it comes to figuring out where and how to store metrics (See [storage-schemas.conf](http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-schemas-conf)):
  * `@path`: An absolute path to where Aggregator will store Datapoint Databases
- * `@flush-interval`: How often will Aggregator save metrics to disk
+ * `@flush-interval`: How often will Aggregator save metrics to disk. Make sure this is equal to the smallest `@precision` down below.
  * `store`: Configures a single policy of how to store a particular set of metrics (matched by `@pattern`
    * `retention`: Configures a single retention rule. Both `@precision` and `@history` can accept either standard .NET `TimeSpan` string representations (`hh:mm:ss`) or simpler strings like `10s`, `20m`, `1h`, `31d`, `1y`.
 * `downsampling`: Configures how Aggregator downsamples metrics (See [storage-aggregation.conf](http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-aggregation-conf)):
@@ -94,6 +94,17 @@ When you first launch `statsify.agent.exe`, it will create a `statsify-agent.con
  * Read and Write Bytes/sec
 * Memory Statistics (Page Reads, Writes and Faults)
 * Process and Thread counts
+
+To install Agent as a Windows Service, open up Command Prompt and run the following command:
+
+    statsify.agent install --sudo
+    statsify.agent start
+
+#### Configuration
+
+* `statsify`: Set `@host` and `@port` to point wherever Aggregator is listening. `@namespace` is the prefix for all metrics.
+* `metrics`: Lists all metrics collected by Agent. Make sure that `@collection-interval` is equal to `@flush-interval`.
+ * `metric`: Configures a single metric. `@name` is what gets suffuxed to `@namespace` and eventually sent to the Aggregator. `@type` specifies the type; currently, the only supported option is `performance-counters`. `@path` is, well, "path" to the Performance Counter (naming is a disaster). `@aggregation-strategy` most of the time will be set to `gauge.
 
 ### Collecting Data from Your Applications
 
