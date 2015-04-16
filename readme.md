@@ -4,6 +4,8 @@ Statsify is a set of software components for collecting, aggregating, storing, r
 
 Stataify is built for Microsoft Windows using Microsoft .NET Framework.
 
+![statsify.png](https://bitbucket.org/repo/jG6axn/images/1506353309-statsify.png)
+
 ## Why Statsify?
 
 > Measurement is the first step that leads to control and eventually to improvement. If you can't measure something, you can't understand it. If you can't understand it, you can't control it. If you can't control it, you can't
@@ -76,7 +78,7 @@ Statsify here borrows a lot  from Graphite, so when something's not clear enough
 * `http-endpoint`: Sets `@address` and `@port` that Aggregator is listening on for incoming HTTP API requests
 * `storage`: Configures Aggregator's behavior when it comes to figuring out where and how to store metrics (See [storage-schemas.conf](http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-schemas-conf)):
  * `@path`: An absolute path to where Aggregator will store Datapoint Databases
- * `@flush-interval`: How often will Aggregator save metrics to disk. Make sure this is equal to the smallest `@precision` down below.
+ * `@flush-interval`: How often will Aggregator save metrics to disk
  * `store`: Configures a single policy of how to store a particular set of metrics (matched by `@pattern`
    * `retention`: Configures a single retention rule. Both `@precision` and `@history` can accept either standard .NET `TimeSpan` string representations (`hh:mm:ss`) or simpler strings like `10s`, `20m`, `1h`, `31d`, `1y`.
 * `downsampling`: Configures how Aggregator downsamples metrics (See [storage-aggregation.conf](http://graphite.readthedocs.org/en/latest/config-carbon.html#storage-aggregation-conf)):
@@ -94,17 +96,6 @@ When you first launch `statsify.agent.exe`, it will create a `statsify-agent.con
  * Read and Write Bytes/sec
 * Memory Statistics (Page Reads, Writes and Faults)
 * Process and Thread counts
-
-To install Agent as a Windows Service, open up Command Prompt and run the following command:
-
-    statsify.agent install --sudo
-    statsify.agent start
-
-#### Configuration
-
-* `statsify`: Set `@host` and `@port` to point wherever Aggregator is listening. `@namespace` is the prefix for all metrics.
-* `metrics`: Lists all metrics collected by Agent. Make sure that `@collection-interval` is equal to `@flush-interval`.
- * `metric`: Configures a single metric. `@name` is what gets suffuxed to `@namespace` and eventually sent to the Aggregator. `@type` specifies the type; currently, the only supported option is `performance-counters`. `@path` is, well, "path" to the Performance Counter (naming is a disaster). `@aggregation-strategy` most of the time will be set to `gauge.
 
 ### Collecting Data from Your Applications
 
@@ -186,18 +177,29 @@ Initialize Statsify with a correct `endpointUrl` (see `http-endpoint` configurat
 And render charts:
 
     statsify.data_graphic(
-      /*  '#data-graphic', 
+      '#data-graphic', 
       'sort_by_name(alias_by_fragment(summarize(servers.*.system.processor.*, "max", "1m"), 1, 4))',
       '-1h', null, 
       { interpolate: 'monotone', legend_target: '#data-graphic-legend' });
 
 #### Analyzing Metrics
 
-Statsify supports several interesting functions to apply to your metrics:
+Statsify supports several interesting functions to apply to your metrics. See [Functions](https://graphite.readthedocs.org/en/latest/functions.html) page in Graphite documentation for a description.
 
-* `timeshift(metric, offset)`: Timeshifts `metric` by `offset`
-* `abs(metrics)`:
-
+* `timeshift(metric, offset)`
+* `abs(metrics)`
+* `scale(metrics, scale)`
+* `integral(metrics)`
+* `alias_by_fragment(metrics, fragments)`
+* `alias(metrics, alias)`
+* `summarize(metrics, aggregate, bucket)`
+* `aggregated_above(metrics, aggregate, threshold)`
+* `aggregated_below(metrics, aggregate, threshold)`
+* `sort_by_name(metrics)`
+* `sort_by_fragment(merics, fragment)`
+* `derivative(metrics)`
+* `nonnegative_derivative(merics)`
+* `keep_last_value(metrics)`
 ## Glossary
 
 _Datapoint_ is a tuple which consists of a _Timestamp_ and a (possibly undefined) _Value_.
@@ -211,4 +213,3 @@ _Database_ is a named and ordered collection of _Archives_.
 _Metric_ is a _Series_ with a name.
 
 _Sample_ is a _Datapoint_ with a name and type.
-
