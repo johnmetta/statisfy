@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>statsify.client</id>
+    <title>Statsify Client</title>
+    <version>$version$</version>
+    <authors>Aeroclub IT</authors>
+    <projectUrl>https://bitbucket.org/aeroclub-it/statsify</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>StatsD-compatible client for talking to Statsify Aggregator or any StatsD-compatible server</description>
+    <summary>StatsD-compatible client for talking to Statsify Aggregator or any StatsD-compatible server</summary>
+    <language>en-US</language>    
+  </metadata>  
+  <files>
+    <file src=".\..\src\Statsify.Client\bin\Release\Statsify.Client.dll" target="lib\net40" />
+    <file src=".\..\src\Statsify.Client\bin\Release\Statsify.Client.pdb" target="lib\net40" />
+  </files>  
+</package>
