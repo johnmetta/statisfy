@@ -8,6 +8,18 @@ namespace Statsify.Client
     /// <summary>
     /// Provides a simplified interface to Statsify by creating and configuring <see cref="UdpStatsifyClient"/> with settings from <c>App.config</c>/<c>Web.config</c> behind the scenes. 
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>Stats</c> expects a configuration section named <c>statsify</c>. <see cref="StatsifyConfigurationSection.Host"/> and <see cref="StatsifyConfigurationSection.Namespace"/> can use
+    /// environment variables - for example:
+    /// <code>
+    /// &lt;statsify host="%STATSIFY_HOST%" ... />
+    /// </code>
+    /// </para>
+    /// <para>
+    /// If a <see cref="UdpStatsifyClient"/> cannot be configured properly, a no-op <see cref="NullStatsifyClient"/> is returned.
+    /// </para>
+    /// </remarks>
     public static class Stats
     {
         private static readonly ThreadLocal<IStatsifyClient> StatsifyClient = new ThreadLocal<IStatsifyClient>(GetStatsifyClient);
