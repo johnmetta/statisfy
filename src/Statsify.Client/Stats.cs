@@ -57,7 +57,10 @@ namespace Statsify.Client
             var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
             if(configuration == null) throw new ConfigurationErrorsException();
 
-            var statsify = new UdpStatsifyClient(configuration.Host, configuration.Port, configuration.Namespace);
+            var host = configuration.Host;
+            var @namespace = configuration.Namespace;
+
+            var statsify = new UdpStatsifyClient(host, configuration.Port, @namespace);
             return statsify;
         }
     }
