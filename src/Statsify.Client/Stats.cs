@@ -58,8 +58,8 @@ namespace Statsify.Client
             if(configuration == null)
                 return new NullStatsifyClient();
 
-            var host = configuration.Host;
-            var @namespace = configuration.Namespace;
+            var host = Environment.ExpandEnvironmentVariables(configuration.Host);
+            var @namespace = Environment.ExpandEnvironmentVariables(configuration.Namespace);
 
             var statsify = new UdpStatsifyClient(host, configuration.Port, @namespace);
             return statsify;
