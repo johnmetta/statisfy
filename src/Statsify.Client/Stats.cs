@@ -55,7 +55,8 @@ namespace Statsify.Client
         private static IStatsifyClient GetStatsifyClient()
         {
             var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
-            if(configuration == null) throw new ConfigurationErrorsException();
+            if(configuration == null)
+                return new NullStatsifyClient();
 
             var host = configuration.Host;
             var @namespace = configuration.Namespace;
