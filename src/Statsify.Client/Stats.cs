@@ -61,6 +61,9 @@ namespace Statsify.Client
             var host = Environment.ExpandEnvironmentVariables(configuration.Host);
             var @namespace = Environment.ExpandEnvironmentVariables(configuration.Namespace);
 
+            if(string.IsNullOrWhiteSpace(host))
+                return new NullStatsifyClient();
+
             var statsify = new UdpStatsifyClient(host, configuration.Port, @namespace);
             return statsify;
         }
