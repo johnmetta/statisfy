@@ -24,7 +24,7 @@
 
   <Target Name="Publish" DependsOnTargets="Package">
     <Exec Command="hg commit -m 'v$(SemanticVersion)'" />
-    <Exec Command="hg tag 'v$(SemanticVersion)' --force" />
+    <Exec Command="hg tag v$(SemanticVersion) --force" />
     <Exec Command="nuget.exe push .\statsify.client.$(Version).nupkg" />
   </Target>
 </Project>
