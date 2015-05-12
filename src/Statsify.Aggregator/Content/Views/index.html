@@ -35,6 +35,9 @@
       <div class="navbar-header">
         <a class="navbar-brand" href="@Path['~/']">Statsify v@Model.Version</a>
       </div>
+      <div class="collapse navbar-collapse">
+        <p class="navbar-text navbar-right">Queue Backlog: @Model.QueueBacklog</p>
+      </div>
     </div>
   </nav>
 
