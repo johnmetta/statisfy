@@ -54,7 +54,7 @@ namespace Statsify.Aggregator
 
             publisherTimer = new Timer(PublisherTimerCallback, null, configuration.Storage.FlushInterval, configuration.Storage.FlushInterval);                       
 
-            NancyBootstrapperLocator.Bootstrapper = new Bootstrapper(/*configuration*/);
+            NancyBootstrapperLocator.Bootstrapper = new Bootstrapper(/*configuration*/) { MetricAggregator = metricAggregator };
 
             var hostConfiguration = new HostConfiguration();
             hostConfiguration.UrlReservations.CreateAutomatically = true;
