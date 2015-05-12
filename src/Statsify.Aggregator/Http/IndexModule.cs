@@ -1,12 +1,17 @@
-﻿using Nancy;
+﻿using System.Globalization;
+using Nancy;
 using Nancy.ModelBinding;
+using Statsify.Aggregator.ComponentModel;
 
 namespace Statsify.Aggregator.Http
 {
     public class IndexModule : NancyModule
     {
-        public IndexModule()
+        private readonly IMetricAggregator metricAggregator;
+
+        public IndexModule(IMetricAggregator metricAggregator)
         {
+            this.metricAggregator = metricAggregator;
             Get["/"] = GetIndex;
         }
 
@@ -22,6 +27,8 @@ namespace Statsify.Aggregator.Http
 
             if(string.IsNullOrWhiteSpace(model.From))
                 model.From = "-1h";
+
+            model.QueueBacklog = metricAggregator.QueueBacklog.ToString("N0", CultureInfo.InvariantCulture);
 
             return View["index.html", model];
         }
@@ -39,5 +46,7 @@ namespace Statsify.Aggregator.Http
         }
 
         public string Version { get; set; }
+
+        public string QueueBacklog { get; set; }
     }
 }
