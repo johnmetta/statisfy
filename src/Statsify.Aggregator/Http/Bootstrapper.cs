@@ -27,7 +27,8 @@ namespace Statsify.Aggregator.Http
             builder.RegisterType<AnnotationService>().As<IAnnotationService>().SingleInstance();
             builder.Register(c => new MetricRegistry(c.Resolve<StatsifyAggregatorConfigurationSection>().Storage.Path)).AsImplementedInterfaces().SingleInstance();
             builder.Register(c => new AnnotationRegistry(c.Resolve<StatsifyAggregatorConfigurationSection>().Storage.Path)).AsImplementedInterfaces().SingleInstance();
-            
+
+            builder.RegisterInstance(MetricAggregator).As<IMetricAggregator>();
 
             builder.Update(container.ComponentRegistry);            
         }
