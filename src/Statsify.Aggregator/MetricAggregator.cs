@@ -8,13 +8,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NLog;
+using Statsify.Aggregator.ComponentModel;
 using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Extensions;
 using Statsify.Core.Storage;
 
 namespace Statsify.Aggregator
 {
-    public class MetricAggregator
+    public class MetricAggregator : IMetricAggregator
     {
         private readonly IDictionary<string, DatapointDatabase> databaseCache = new Dictionary<string, DatapointDatabase>(); 
         private readonly Logger log = LogManager.GetCurrentClassLogger();
@@ -272,6 +273,11 @@ namespace Statsify.Aggregator
             databaseCache[databaseCacheKey] = database;
 
             return database;
+        }
+
+        public int QueueBacklog
+        {
+            get { return flushQueue.Count; }
         }
     }
 }
