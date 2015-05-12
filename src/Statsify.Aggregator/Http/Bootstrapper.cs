@@ -3,6 +3,7 @@ using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Bootstrappers.Autofac;
 using Nancy.ViewEngines;
+using Statsify.Aggregator.ComponentModel;
 using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Http.Services;
 using Statsify.Aggregator.Http.Services.Impl;
@@ -12,6 +13,8 @@ namespace Statsify.Aggregator.Http
 {
     public class Bootstrapper : AutofacNancyBootstrapper 
     {
+        public IMetricAggregator MetricAggregator { get; set; }
+
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)
         {
             base.ConfigureRequestContainer(container, context);
