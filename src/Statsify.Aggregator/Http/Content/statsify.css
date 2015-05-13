@@ -80,46 +80,46 @@
 .mg-hover-line39-color { fill: #bdc3c7; }
 .mg-hover-line40-color { fill: #7f8c8d; }
 
-.mg-line1-legend-color { color: #1abc9c; }
-.mg-line2-legend-color { color: #7f8c8d; }
-.mg-line3-legend-color { color: #e74c3c; }
-.mg-line4-legend-color { color: #ecf0f1; color: #999; }
-.mg-line5-legend-color { color: #95a5a6; }
-.mg-line6-legend-color { color: #f39c12; }
-.mg-line7-legend-color { color: #d35400; }
-.mg-line8-legend-color { color: #c0392b; }
-.mg-line9-legend-color { color: #bdc3c7; }
-.mg-line10-legend-color { color: #2c3e50; }
-.mg-line11-legend-color { color: #f1c40f; }
-.mg-line12-legend-color { color: #e67e22; }
-.mg-line13-legend-color { color: #3498db; }
-.mg-line14-legend-color { color: #9b59b6; }
-.mg-line15-legend-color { color: #34495e; }
-.mg-line16-legend-color { color: #16a085; }
-.mg-line17-legend-color { color: #27ae60; }
-.mg-line18-legend-color { color: #2980b9; }
-.mg-line19-legend-color { color: #8e44ad; }
-.mg-line20-legend-color { color: #2ecc71; }
-.mg-line21-legend-color { color: #1abc9c; }
-.mg-line22-legend-color { color: #2ecc71; }
-.mg-line23-legend-color { color: #3498db; }
-.mg-line24-legend-color { color: #9b59b6; }
-.mg-line25-legend-color { color: #34495e; }
-.mg-line26-legend-color { color: #16a085; }
-.mg-line27-legend-color { color: #27ae60; }
-.mg-line28-legend-color { color: #2980b9; }
-.mg-line29-legend-color { color: #8e44ad; }
-.mg-line30-legend-color { color: #2c3e50; }
-.mg-line31-legend-color { color: #f1c40f; }
-.mg-line32-legend-color { color: #e67e22; }
-.mg-line33-legend-color { color: #e74c3c; }
-.mg-line34-legend-color { color: #ecf0f1; color: #999; }
-.mg-line35-legend-color { color: #95a5a6; }
-.mg-line36-legend-color { color: #f39c12; }
-.mg-line37-legend-color { color: #d35400; }
-.mg-line38-legend-color { color: #c0392b; }
-.mg-line39-legend-color { color: #bdc3c7; }
-.mg-line40-legend-color { color: #7f8c8d; }
+.mg-line1-legend-color { color: #1abc9c; fill: #1abc9c; }
+.mg-line2-legend-color { color: #7f8c8d; fill: #7f8c8d; }
+.mg-line3-legend-color { color: #e74c3c; fill: #e74c3c; }
+.mg-line4-legend-color { color: #ecf0f1; fill: #ecf0f1; }
+.mg-line5-legend-color { color: #95a5a6; fill: #95a5a6; }
+.mg-line6-legend-color { color: #f39c12; fill: #f39c12; }
+.mg-line7-legend-color { color: #d35400; fill: #d35400; }
+.mg-line8-legend-color { color: #c0392b; fill: #c0392b; }
+.mg-line9-legend-color { color: #bdc3c7; fill: #bdc3c7; }
+.mg-line10-legend-color { color: #2c3e50; fill: #2c3e50; }
+.mg-line11-legend-color { color: #f1c40f; fill: #f1c40f; }
+.mg-line12-legend-color { color: #e67e22; fill: #e67e22; }
+.mg-line13-legend-color { color: #3498db; fill: #3498db; }
+.mg-line14-legend-color { color: #9b59b6; fill: #9b59b6; }
+.mg-line15-legend-color { color: #34495e; fill: #34495e; }
+.mg-line16-legend-color { color: #16a085; fill: #16a085; }
+.mg-line17-legend-color { color: #27ae60; fill: #27ae60; }
+.mg-line18-legend-color { color: #2980b9; fill: #2980b9; }
+.mg-line19-legend-color { color: #8e44ad; fill: #8e44ad; }
+.mg-line20-legend-color { color: #2ecc71; fill: #2ecc71; }
+.mg-line21-legend-color { color: #1abc9c; fill: #1abc9c; }
+.mg-line22-legend-color { color: #2ecc71; fill: #2ecc71; }
+.mg-line23-legend-color { color: #3498db; fill: #3498db; }
+.mg-line24-legend-color { color: #9b59b6; fill: #9b59b6; }
+.mg-line25-legend-color { color: #34495e; fill: #34495e; }
+.mg-line26-legend-color { color: #16a085; fill: #16a085; }
+.mg-line27-legend-color { color: #27ae60; fill: #27ae60; }
+.mg-line28-legend-color { color: #2980b9; fill: #2980b9; }
+.mg-line29-legend-color { color: #8e44ad; fill: #8e44ad; }
+.mg-line30-legend-color { color: #2c3e50; fill: #2c3e50; }
+.mg-line31-legend-color { color: #f1c40f; fill: #f1c40f; }
+.mg-line32-legend-color { color: #e67e22; fill: #e67e22; }
+.mg-line33-legend-color { color: #e74c3c; fill: #e74c3c; }
+.mg-line34-legend-color { color: #ecf0f1; fill: #ecf0f1; }
+.mg-line35-legend-color { color: #95a5a6; fill: #95a5a6; }
+.mg-line36-legend-color { color: #f39c12; fill: #f39c12; }
+.mg-line37-legend-color { color: #d35400; fill: #d35400; }
+.mg-line38-legend-color { color: #c0392b; fill: #c0392b; }
+.mg-line39-legend-color { color: #bdc3c7; fill: #bdc3c7; }
+.mg-line40-legend-color { color: #7f8c8d; fill: #7f8c8d; }
 
 .mg-area1-color { fill: #1abc9c; }
 .mg-area2-color { fill: #7f8c8d; }
