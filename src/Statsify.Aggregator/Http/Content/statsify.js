@@ -58,11 +58,14 @@
         var _options = {
           data: series,
           legend: legend,
-          width: 1100,
-          height: 250,
-          right: 30,
+          full_width: true,
+          height: 350,
+          right: 150,
           target: target,
           transition_on_update: false,
+          animate_on_load: true,
+          aggregate_rollover: true,
+          y_extended_ticks: true,
           x_accessor: 'x',
           y_accessor: 'y',
           rollover_callback: function (d, i) {
