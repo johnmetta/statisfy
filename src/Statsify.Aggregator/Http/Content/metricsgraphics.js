@@ -9,7 +9,7 @@
         root.MG = factory(root.d3, root.jQuery);
       }
     }(this, function(d3, $) {
-    window.MG = {version: '2.1.0'};
+    window.MG = {version: '2.4.0'};
 
     var charts = {};
 
@@ -27,6 +27,7 @@
         var defaults = {};
         defaults.all = {
             missing_is_zero: false,       // if true, missing values will be treated as zeros
+            missing_is_hidden: false,     // if true, missing values will appear as broken segments
             legend: '' ,                  // an array identifying the labels for a chart's lines
             legend_target: '',            // if set, the specified element is populated with a legend
             error: '',                    // if set, a graph will show an error icon and log the error to the console
@@ -45,6 +46,7 @@
             small_text: false,            // coerces small text regardless of graphic size
             xax_count: 6,                 // number of x axis ticks
             xax_tick_length: 5,           // x axis tick length
+            xax_start_at_min: false,
             yax_count: 5,                 // number of y axis ticks
             yax_tick_length: 5,           // y axis tick length
             x_extended_ticks: false,      // extends x axis ticks across chart - useful for tall charts
@@ -84,12 +86,15 @@
             markers: null,                // sets the marker lines
             scalefns: {},
             scales: {},
+            show_year_markers: false,
             show_secondary_x_label: true,
             target: '#viz',
             interpolate: 'cardinal',       // interpolation method to use when rendering lines
+            interpolate_tension: 0.7,      // its range is from 0 to 1; increase if your data is irregular and you notice artifacts
             custom_line_color_map: [],     // allows arbitrary mapping of lines to colors, e.g. [2,3] will map line 1 to color 2 and line 2 to color 3
             max_data_size: null,           // explicitly specify the the max number of line series, for use with custom_line_color_map
-            aggregate_rollover: false      // links the lines in a multi-line chart
+            aggregate_rollover: false,     // links the lines in a multi-line chart
+            show_tooltips: true            // if enabled, a chart's description will appear in a tooltip (requires jquery)
         };
 
         defaults.point = {
@@ -108,8 +113,8 @@
 
         defaults.histogram = {
             mouseover: function(d, i) {
-                $('#histogram svg .mg-active-datapoint')
-                    .html('Frequency Count: ' + d.y);
+                d3.select('#histogram svg .mg-active-datapoint')
+                    .text('Frequency Count: ' + d.y);
             },
             binned: false,
             bins: null,
@@ -147,6 +152,7 @@
             missing_text: 'Data currently missing or unavailable',
             scalefns: {},
             scales: {},
+            show_tooltips: true,
             show_missing_background: true,
             interpolate: 'cardinal'
         };
@@ -213,674 +219,660 @@
         }
         else {
             args = merge_with_defaults(args, defaults.all);
-            charts.line(args).mainPlot().markers().rollover().windowListeners();
+            charts.line(args).markers().mainPlot().rollover().windowListeners();
         }
 
         return args.data;
     };
 
-    /*!
-     * Bootstrap v3.3.1 (http://getbootstrap.com)
-     * Copyright 2011-2014 Twitter, Inc.
-     * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
-     */
-
-    /*!
-     * Generated using the Bootstrap Customizer (http://getbootstrap.com/customize/?id=698666b23215c58f23d4)
-     * Config saved to config.json and https://gist.github.com/698666b23215c58f23d4
-     */
-    if (typeof jQuery === 'undefined') {
-      throw new Error('Bootstrap\'s JavaScript requires jQuery')
-    }
-    +function ($) {
-      var version = $.fn.jquery.split(' ')[0].split('.')
-      if ((version[0] < 2 && version[1] < 9) || (version[0] == 1 && version[1] == 9 && version[2] < 1)) {
-        throw new Error('Bootstrap\'s JavaScript requires jQuery version 1.9.1 or higher')
-      }
-    }(jQuery);
-
-    /* ========================================================================
-     * Bootstrap: tooltip.js v3.3.1
-     * http://getbootstrap.com/javascript/#tooltip
-     * Inspired by the original jQuery.tipsy by Jason Frame
-     * ========================================================================
-     * Copyright 2011-2014 Twitter, Inc.
-     * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
-     * ======================================================================== */
-
-
-    +function ($) {
-      'use strict';
-      
-      if(typeof $().tooltip == 'function')
-        return true;
-
-      // TOOLTIP PUBLIC CLASS DEFINITION
-      // ===============================
-
-      var Tooltip = function (element, options) {
-        this.type       =
-        this.options    =
-        this.enabled    =
-        this.timeout    =
-        this.hoverState =
-        this.$element   = null
-
-        this.init('tooltip', element, options)
-      }
-
-      Tooltip.VERSION  = '3.3.1'
-
-      Tooltip.TRANSITION_DURATION = 150
-
-      Tooltip.DEFAULTS = {
-        animation: true,
-        placement: 'top',
-        selector: false,
-        template: '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
-        trigger: 'hover focus',
-        title: '',
-        delay: 0,
-        html: false,
-        container: false,
-        viewport: {
-          selector: 'body',
-          padding: 0
-        }
-      }
-
-      Tooltip.prototype.init = function (type, element, options) {
-        this.enabled   = true
-        this.type      = type
-        this.$element  = $(element)
-        this.options   = this.getOptions(options)
-        this.$viewport = this.options.viewport && $(this.options.viewport.selector || this.options.viewport)
-
-        var triggers = this.options.trigger.split(' ')
-
-        for (var i = triggers.length; i--;) {
-          var trigger = triggers[i]
-
-          if (trigger == 'click') {
-            this.$element.on('click.' + this.type, this.options.selector, $.proxy(this.toggle, this))
-          } else if (trigger != 'manual') {
-            var eventIn  = trigger == 'hover' ? 'mouseenter' : 'focusin'
-            var eventOut = trigger == 'hover' ? 'mouseleave' : 'focusout'
-
-            this.$element.on(eventIn  + '.' + this.type, this.options.selector, $.proxy(this.enter, this))
-            this.$element.on(eventOut + '.' + this.type, this.options.selector, $.proxy(this.leave, this))
-          }
-        }
-
-        this.options.selector ?
-          (this._options = $.extend({}, this.options, { trigger: 'manual', selector: '' })) :
-          this.fixTitle()
-      }
-
-      Tooltip.prototype.getDefaults = function () {
-        return Tooltip.DEFAULTS
-      }
-
-      Tooltip.prototype.getOptions = function (options) {
-        options = $.extend({}, this.getDefaults(), this.$element.data(), options)
-
-        if (options.delay && typeof options.delay == 'number') {
-          options.delay = {
-            show: options.delay,
-            hide: options.delay
-          }
-        }
-
-        return options
-      }
-
-      Tooltip.prototype.getDelegateOptions = function () {
-        var options  = {}
-        var defaults = this.getDefaults()
-
-        this._options && $.each(this._options, function (key, value) {
-          if (defaults[key] != value) options[key] = value
-        })
-
-        return options
-      }
-
-      Tooltip.prototype.enter = function (obj) {
-        var self = obj instanceof this.constructor ?
-          obj : $(obj.currentTarget).data('bs.' + this.type)
-
-        if (self && self.$tip && self.$tip.is(':visible')) {
-          self.hoverState = 'in'
-          return
-        }
-
-        if (!self) {
-          self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
-          $(obj.currentTarget).data('bs.' + this.type, self)
-        }
-
-        clearTimeout(self.timeout)
-
-        self.hoverState = 'in'
-
-        if (!self.options.delay || !self.options.delay.show) return self.show()
-
-        self.timeout = setTimeout(function () {
-          if (self.hoverState == 'in') self.show()
-        }, self.options.delay.show)
-      }
-
-      Tooltip.prototype.leave = function (obj) {
-        var self = obj instanceof this.constructor ?
-          obj : $(obj.currentTarget).data('bs.' + this.type)
-
-        if (!self) {
-          self = new this.constructor(obj.currentTarget, this.getDelegateOptions())
-          $(obj.currentTarget).data('bs.' + this.type, self)
-        }
-
-        clearTimeout(self.timeout)
-
-        self.hoverState = 'out'
-
-        if (!self.options.delay || !self.options.delay.hide) return self.hide()
-
-        self.timeout = setTimeout(function () {
-          if (self.hoverState == 'out') self.hide()
-        }, self.options.delay.hide)
-      }
-
-      Tooltip.prototype.show = function () {
-        var e = $.Event('show.bs.' + this.type)
-
-        if (this.hasContent() && this.enabled) {
-          this.$element.trigger(e)
-
-          var inDom = $.contains(this.$element[0].ownerDocument.documentElement, this.$element[0])
-          if (e.isDefaultPrevented() || !inDom) return
-          var that = this
-
-          var $tip = this.tip()
-
-          var tipId = this.getUID(this.type)
-
-          this.setContent()
-          $tip.attr('id', tipId)
-          this.$element.attr('aria-describedby', tipId)
-
-          if (this.options.animation) $tip.addClass('fade')
-
-          var placement = typeof this.options.placement == 'function' ?
-            this.options.placement.call(this, $tip[0], this.$element[0]) :
-            this.options.placement
-
-          var autoToken = /\s?auto?\s?/i
-          var autoPlace = autoToken.test(placement)
-          if (autoPlace) placement = placement.replace(autoToken, '') || 'top'
-
-          $tip
-            .detach()
-            .css({ top: 0, left: 0, display: 'block' })
-            .addClass(placement)
-            .data('bs.' + this.type, this)
-
-          this.options.container ? $tip.appendTo(this.options.container) : $tip.insertAfter(this.$element)
-
-          var pos          = this.getPosition()
-          var actualWidth  = $tip[0].offsetWidth
-          var actualHeight = $tip[0].offsetHeight
-
-          if (autoPlace) {
-            var orgPlacement = placement
-            var $container   = this.options.container ? $(this.options.container) : this.$element.parent()
-            var containerDim = this.getPosition($container)
-
-            placement = placement == 'bottom' && pos.bottom + actualHeight > containerDim.bottom ? 'top'    :
-                        placement == 'top'    && pos.top    - actualHeight < containerDim.top    ? 'bottom' :
-                        placement == 'right'  && pos.right  + actualWidth  > containerDim.width  ? 'left'   :
-                        placement == 'left'   && pos.left   - actualWidth  < containerDim.left   ? 'right'  :
-                        placement
-
-            $tip
-              .removeClass(orgPlacement)
-              .addClass(placement)
-          }
-
-          var calculatedOffset = this.getCalculatedOffset(placement, pos, actualWidth, actualHeight)
-
-          this.applyPlacement(calculatedOffset, placement)
-
-          var complete = function () {
-            var prevHoverState = that.hoverState
-            that.$element.trigger('shown.bs.' + that.type)
-            that.hoverState = null
-
-            if (prevHoverState == 'out') that.leave(that)
-          }
-
-          $.support.transition && this.$tip.hasClass('fade') ?
-            $tip
-              .one('bsTransitionEnd', complete)
-              .emulateTransitionEnd(Tooltip.TRANSITION_DURATION) :
-            complete()
-        }
-      }
-
-      Tooltip.prototype.applyPlacement = function (offset, placement) {
-        var $tip   = this.tip()
-        var width  = $tip[0].offsetWidth
-        var height = $tip[0].offsetHeight
-
-        // manually read margins because getBoundingClientRect includes difference
-        var marginTop = parseInt($tip.css('margin-top'), 10)
-        var marginLeft = parseInt($tip.css('margin-left'), 10)
-
-        // we must check for NaN for ie 8/9
-        if (isNaN(marginTop))  marginTop  = 0
-        if (isNaN(marginLeft)) marginLeft = 0
-
-        offset.top  = offset.top  + marginTop
-        offset.left = offset.left + marginLeft
-
-        // $.fn.offset doesn't round pixel values
-        // so we use setOffset directly with our own function B-0
-        $.offset.setOffset($tip[0], $.extend({
-          using: function (props) {
-            $tip.css({
-              top: Math.round(props.top),
-              left: Math.round(props.left)
-            })
-          }
-        }, offset), 0)
-
-        $tip.addClass('in')
-
-        // check to see if placing tip in new offset caused the tip to resize itself
-        var actualWidth  = $tip[0].offsetWidth
-        var actualHeight = $tip[0].offsetHeight
-
-        if (placement == 'top' && actualHeight != height) {
-          offset.top = offset.top + height - actualHeight
-        }
-
-        var delta = this.getViewportAdjustedDelta(placement, offset, actualWidth, actualHeight)
-
-        if (delta.left) offset.left += delta.left
-        else offset.top += delta.top
-
-        var isVertical          = /top|bottom/.test(placement)
-        var arrowDelta          = isVertical ? delta.left * 2 - width + actualWidth : delta.top * 2 - height + actualHeight
-        var arrowOffsetPosition = isVertical ? 'offsetWidth' : 'offsetHeight'
-
-        $tip.offset(offset)
-        this.replaceArrow(arrowDelta, $tip[0][arrowOffsetPosition], isVertical)
-      }
-
-      Tooltip.prototype.replaceArrow = function (delta, dimension, isHorizontal) {
-        this.arrow()
-          .css(isHorizontal ? 'left' : 'top', 50 * (1 - delta / dimension) + '%')
-          .css(isHorizontal ? 'top' : 'left', '')
-      }
-
-      Tooltip.prototype.setContent = function () {
-        var $tip  = this.tip()
-        var title = this.getTitle()
-
-        $tip.find('.tooltip-inner')[this.options.html ? 'html' : 'text'](title)
-        $tip.removeClass('fade in top bottom left right')
-      }
-
-      Tooltip.prototype.hide = function (callback) {
-        var that = this
-        var $tip = this.tip()
-        var e    = $.Event('hide.bs.' + this.type)
-
-        function complete() {
-          if (that.hoverState != 'in') $tip.detach()
-          that.$element
-            .removeAttr('aria-describedby')
-            .trigger('hidden.bs.' + that.type)
-          callback && callback()
-        }
-
-        this.$element.trigger(e)
-
-        if (e.isDefaultPrevented()) return
-
-        $tip.removeClass('in')
-
-        $.support.transition && this.$tip.hasClass('fade') ?
-          $tip
-            .one('bsTransitionEnd', complete)
-            .emulateTransitionEnd(Tooltip.TRANSITION_DURATION) :
-          complete()
-
-        this.hoverState = null
-
-        return this
-      }
-
-      Tooltip.prototype.fixTitle = function () {
-        var $e = this.$element
-        if ($e.attr('title') || typeof ($e.attr('data-original-title')) != 'string') {
-          $e.attr('data-original-title', $e.attr('title') || '').attr('title', '')
-        }
-      }
-
-      Tooltip.prototype.hasContent = function () {
-        return this.getTitle()
-      }
-
-      Tooltip.prototype.getPosition = function ($element) {
-        $element   = $element || this.$element
-
-        var el     = $element[0]
-        var isBody = el.tagName == 'BODY'
-
-        var elRect    = el.getBoundingClientRect()
-        if (elRect.width == null) {
-          // width and height are missing in IE8, so compute them manually; see https://github.com/twbs/bootstrap/issues/14093
-          elRect = $.extend({}, elRect, { width: elRect.right - elRect.left, height: elRect.bottom - elRect.top })
-        }
-        var elOffset  = isBody ? { top: 0, left: 0 } : $element.offset()
-        var scroll    = { scroll: isBody ? document.documentElement.scrollTop || document.body.scrollTop : $element.scrollTop() }
-        var outerDims = isBody ? { width: $(window).width(), height: $(window).height() } : null
-
-        return $.extend({}, elRect, scroll, outerDims, elOffset)
-      }
-
-      Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {
-        return placement == 'bottom' ? { top: pos.top + pos.height,   left: pos.left + pos.width / 2 - actualWidth / 2  } :
-               placement == 'top'    ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2  } :
-               placement == 'left'   ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
-            /* placement == 'right' */ { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width   }
-
-      }
-
-      Tooltip.prototype.getViewportAdjustedDelta = function (placement, pos, actualWidth, actualHeight) {
-        var delta = { top: 0, left: 0 }
-        if (!this.$viewport) return delta
-
-        var viewportPadding = this.options.viewport && this.options.viewport.padding || 0
-        var viewportDimensions = this.getPosition(this.$viewport)
-
-        if (/right|left/.test(placement)) {
-          var topEdgeOffset    = pos.top - viewportPadding - viewportDimensions.scroll
-          var bottomEdgeOffset = pos.top + viewportPadding - viewportDimensions.scroll + actualHeight
-          if (topEdgeOffset < viewportDimensions.top) { // top overflow
-            delta.top = viewportDimensions.top - topEdgeOffset
-          } else if (bottomEdgeOffset > viewportDimensions.top + viewportDimensions.height) { // bottom overflow
-            delta.top = viewportDimensions.top + viewportDimensions.height - bottomEdgeOffset
-          }
-        } else {
-          var leftEdgeOffset  = pos.left - viewportPadding
-          var rightEdgeOffset = pos.left + viewportPadding + actualWidth
-          if (leftEdgeOffset < viewportDimensions.left) { // left overflow
-            delta.left = viewportDimensions.left - leftEdgeOffset
-          } else if (rightEdgeOffset > viewportDimensions.width) { // right overflow
-            delta.left = viewportDimensions.left + viewportDimensions.width - rightEdgeOffset
-          }
-        }
-
-        return delta
-      }
-
-      Tooltip.prototype.getTitle = function () {
-        var title
-        var $e = this.$element
-        var o  = this.options
-
-        title = $e.attr('data-original-title')
-          || (typeof o.title == 'function' ? o.title.call($e[0]) :  o.title)
-
-        return title
-      }
-
-      Tooltip.prototype.getUID = function (prefix) {
-        do prefix += ~~(Math.random() * 1000000)
-        while (document.getElementById(prefix))
-        return prefix
-      }
-
-      Tooltip.prototype.tip = function () {
-        return (this.$tip = this.$tip || $(this.options.template))
-      }
-
-      Tooltip.prototype.arrow = function () {
-        return (this.$arrow = this.$arrow || this.tip().find('.tooltip-arrow'))
-      }
-
-      Tooltip.prototype.enable = function () {
-        this.enabled = true
-      }
-
-      Tooltip.prototype.disable = function () {
-        this.enabled = false
-      }
-
-      Tooltip.prototype.toggleEnabled = function () {
-        this.enabled = !this.enabled
-      }
-
-      Tooltip.prototype.toggle = function (e) {
-        var self = this
-        if (e) {
-          self = $(e.currentTarget).data('bs.' + this.type)
-          if (!self) {
-            self = new this.constructor(e.currentTarget, this.getDelegateOptions())
-            $(e.currentTarget).data('bs.' + this.type, self)
-          }
-        }
-
-        self.tip().hasClass('in') ? self.leave(self) : self.enter(self)
-      }
-
-      Tooltip.prototype.destroy = function () {
-        var that = this
-        clearTimeout(this.timeout)
-        this.hide(function () {
-          that.$element.off('.' + that.type).removeData('bs.' + that.type)
-        })
-      }
-
-
-      // TOOLTIP PLUGIN DEFINITION
-      // =========================
-
-      function Plugin(option) {
-        return this.each(function () {
-          var $this    = $(this)
-          var data     = $this.data('bs.tooltip')
-          var options  = typeof option == 'object' && option
-          var selector = options && options.selector
-
-          if (!data && option == 'destroy') return
-          if (selector) {
-            if (!data) $this.data('bs.tooltip', (data = {}))
-            if (!data[selector]) data[selector] = new Tooltip(this, options)
-          } else {
-            if (!data) $this.data('bs.tooltip', (data = new Tooltip(this, options)))
-          }
-          if (typeof option == 'string') data[option]()
-        })
-      }
-
-      var old = $.fn.tooltip
-
-      $.fn.tooltip             = Plugin
-      $.fn.tooltip.Constructor = Tooltip
-
-
-      // TOOLTIP NO CONFLICT
-      // ===================
-
-      $.fn.tooltip.noConflict = function () {
-        $.fn.tooltip = old
-        return this
-      }
-
-    }(jQuery);
-
-    /* ========================================================================
-     * Bootstrap: popover.js v3.3.1
-     * http://getbootstrap.com/javascript/#popovers
-     * ========================================================================
-     * Copyright 2011-2014 Twitter, Inc.
-     * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
-     * ======================================================================== */
-
-
-    +function ($) {
-      'use strict';
-
-      if(typeof $().popover == 'function')
-        return true;
+    if (typeof jQuery !== 'undefined') {
+        /*!
+         * Bootstrap v3.3.1 (http://getbootstrap.com)
+         * Copyright 2011-2014 Twitter, Inc.
+         * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+         */
+
+        /*!
+         * Generated using the Bootstrap Customizer (http://getbootstrap.com/customize/?id=698666b23215c58f23d4)
+         * Config saved to config.json and https://gist.github.com/698666b23215c58f23d4
+         */
+
+        /* ========================================================================
+         * Bootstrap: tooltip.js v3.3.1
+         * http://getbootstrap.com/javascript/#tooltip
+         * Inspired by the original jQuery.tipsy by Jason Frame
+         * ========================================================================
+         * Copyright 2011-2014 Twitter, Inc.
+         * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+         * ======================================================================== */
+
+
+        +function ($) {
+          'use strict';
           
-      // POPOVER PUBLIC CLASS DEFINITION
-      // ===============================
+          if(typeof $().tooltip == 'function')
+            return true;
 
-      var Popover = function (element, options) {
-        this.init('popover', element, options)
-      }
+          // TOOLTIP PUBLIC CLASS DEFINITION
+          // ===============================
 
-      if (!$.fn.tooltip) throw new Error('Popover requires tooltip.js')
+          var Tooltip = function (element, options) {
+            this.type       =
+            this.options    =
+            this.enabled    =
+            this.timeout    =
+            this.hoverState =
+            this.$element   = null;
 
-      Popover.VERSION  = '3.3.1'
+            this.init('tooltip', element, options);
+          };
 
-      Popover.DEFAULTS = $.extend({}, $.fn.tooltip.Constructor.DEFAULTS, {
-        placement: 'right',
-        trigger: 'click',
-        content: '',
-        template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
-      })
+          Tooltip.VERSION  = '3.3.1';
+
+          Tooltip.TRANSITION_DURATION = 150;
+
+          Tooltip.DEFAULTS = {
+            animation: true,
+            placement: 'top',
+            selector: false,
+            template: '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+            trigger: 'hover focus',
+            title: '',
+            delay: 0,
+            html: false,
+            container: false,
+            viewport: {
+              selector: 'body',
+              padding: 0
+            }
+          };
+
+          Tooltip.prototype.init = function (type, element, options) {
+            this.enabled   = true;
+            this.type      = type;
+            this.$element  = $(element);
+            this.options   = this.getOptions(options);
+            this.$viewport = this.options.viewport && $(this.options.viewport.selector || this.options.viewport);
+
+            var triggers = this.options.trigger.split(' ');
+
+            for (var i = triggers.length; i--;) {
+              var trigger = triggers[i];
+
+              if (trigger == 'click') {
+                this.$element.on('click.' + this.type, this.options.selector, $.proxy(this.toggle, this));
+              } else if (trigger != 'manual') {
+                var eventIn  = trigger == 'hover' ? 'mouseenter' : 'focusin';
+                var eventOut = trigger == 'hover' ? 'mouseleave' : 'focusout';
+
+                this.$element.on(eventIn  + '.' + this.type, this.options.selector, $.proxy(this.enter, this));
+                this.$element.on(eventOut + '.' + this.type, this.options.selector, $.proxy(this.leave, this));
+              }
+            }
+
+            this.options.selector ?
+              (this._options = $.extend({}, this.options, { trigger: 'manual', selector: '' })) :
+              this.fixTitle();
+          };
+
+          Tooltip.prototype.getDefaults = function () {
+            return Tooltip.DEFAULTS;
+          };
+
+          Tooltip.prototype.getOptions = function (options) {
+            options = $.extend({}, this.getDefaults(), this.$element.data(), options);
+
+            if (options.delay && typeof options.delay == 'number') {
+              options.delay = {
+                show: options.delay,
+                hide: options.delay
+              };
+            }
+
+            return options;
+          };
+
+          Tooltip.prototype.getDelegateOptions = function () {
+            var options  = {};
+            var defaults = this.getDefaults();
+
+            this._options && $.each(this._options, function (key, value) {
+              if (defaults[key] != value) options[key] = value;
+            });
+
+            return options;
+          };
+
+          Tooltip.prototype.enter = function (obj) {
+            var self = obj instanceof this.constructor ?
+              obj : $(obj.currentTarget).data('bs.' + this.type);
+
+            if (self && self.$tip && self.$tip.is(':visible')) {
+              self.hoverState = 'in';
+              return;
+            }
+
+            if (!self) {
+              self = new this.constructor(obj.currentTarget, this.getDelegateOptions());
+              $(obj.currentTarget).data('bs.' + this.type, self);
+            }
+
+            clearTimeout(self.timeout);
+
+            self.hoverState = 'in';
+
+            if (!self.options.delay || !self.options.delay.show) return self.show();
+
+            self.timeout = setTimeout(function () {
+              if (self.hoverState == 'in') self.show();
+            }, self.options.delay.show);
+          };
+
+          Tooltip.prototype.leave = function (obj) {
+            var self = obj instanceof this.constructor ?
+              obj : $(obj.currentTarget).data('bs.' + this.type);
+
+            if (!self) {
+              self = new this.constructor(obj.currentTarget, this.getDelegateOptions());
+              $(obj.currentTarget).data('bs.' + this.type, self);
+            }
+
+            clearTimeout(self.timeout);
+
+            self.hoverState = 'out';
+
+            if (!self.options.delay || !self.options.delay.hide) return self.hide();
+
+            self.timeout = setTimeout(function () {
+              if (self.hoverState == 'out') self.hide();
+            }, self.options.delay.hide);
+          };
+
+          Tooltip.prototype.show = function () {
+            var e = $.Event('show.bs.' + this.type);
+
+            if (this.hasContent() && this.enabled) {
+              this.$element.trigger(e);
+
+              var inDom = $.contains(this.$element[0].ownerDocument.documentElement, this.$element[0]);
+              if (e.isDefaultPrevented() || !inDom) return;
+              var that = this;
+
+              var $tip = this.tip();
+
+              var tipId = this.getUID(this.type);
+
+              this.setContent();
+              $tip.attr('id', tipId);
+              this.$element.attr('aria-describedby', tipId);
+
+              if (this.options.animation) $tip.addClass('fade');
+
+              var placement = typeof this.options.placement == 'function' ?
+                this.options.placement.call(this, $tip[0], this.$element[0]) :
+                this.options.placement;
+
+              var autoToken = /\s?auto?\s?/i;
+              var autoPlace = autoToken.test(placement);
+              if (autoPlace) placement = placement.replace(autoToken, '') || 'top';
+
+              $tip
+                .detach()
+                .css({ top: 0, left: 0, display: 'block' })
+                .addClass(placement)
+                .data('bs.' + this.type, this);
+
+              this.options.container ? $tip.appendTo(this.options.container) : $tip.insertAfter(this.$element);
+
+              var pos          = this.getPosition();
+              var actualWidth  = $tip[0].offsetWidth;
+              var actualHeight = $tip[0].offsetHeight;
+
+              if (autoPlace) {
+                var orgPlacement = placement;
+                var $container   = this.options.container ? $(this.options.container) : this.$element.parent();
+                var containerDim = this.getPosition($container);
+
+                placement = placement == 'bottom' && pos.bottom + actualHeight > containerDim.bottom ? 'top'    :
+                            placement == 'top'    && pos.top    - actualHeight < containerDim.top    ? 'bottom' :
+                            placement == 'right'  && pos.right  + actualWidth  > containerDim.width  ? 'left'   :
+                            placement == 'left'   && pos.left   - actualWidth  < containerDim.left   ? 'right'  :
+                            placement;
+
+                $tip
+                  .removeClass(orgPlacement)
+                  .addClass(placement);
+              }
+
+              var calculatedOffset = this.getCalculatedOffset(placement, pos, actualWidth, actualHeight);
+
+              this.applyPlacement(calculatedOffset, placement);
+
+              var complete = function () {
+                var prevHoverState = that.hoverState;
+                that.$element.trigger('shown.bs.' + that.type);
+                that.hoverState = null;
+
+                if (prevHoverState == 'out') that.leave(that);
+              };
+
+              $.support.transition && this.$tip.hasClass('fade') ?
+                $tip
+                  .one('bsTransitionEnd', complete)
+                  .emulateTransitionEnd(Tooltip.TRANSITION_DURATION) :
+                complete();
+            }
+          };
+
+          Tooltip.prototype.applyPlacement = function (offset, placement) {
+            var $tip   = this.tip();
+            var width  = $tip[0].offsetWidth;
+            var height = $tip[0].offsetHeight;
+
+            // manually read margins because getBoundingClientRect includes difference
+            var marginTop = parseInt($tip.css('margin-top'), 10);
+            var marginLeft = parseInt($tip.css('margin-left'), 10);
+
+            // we must check for NaN for ie 8/9
+            if (isNaN(marginTop))  marginTop  = 0;
+            if (isNaN(marginLeft)) marginLeft = 0;
+
+            offset.top  = offset.top  + marginTop;
+            offset.left = offset.left + marginLeft;
+
+            // $.fn.offset doesn't round pixel values
+            // so we use setOffset directly with our own function B-0
+            $.offset.setOffset($tip[0], $.extend({
+              using: function (props) {
+                $tip.css({
+                  top: Math.round(props.top),
+                  left: Math.round(props.left)
+                });
+              }
+            }, offset), 0);
+
+            $tip.addClass('in');
+
+            // check to see if placing tip in new offset caused the tip to resize itself
+            var actualWidth  = $tip[0].offsetWidth;
+            var actualHeight = $tip[0].offsetHeight;
+
+            if (placement == 'top' && actualHeight != height) {
+              offset.top = offset.top + height - actualHeight;
+            }
+
+            var delta = this.getViewportAdjustedDelta(placement, offset, actualWidth, actualHeight);
+
+            if (delta.left) offset.left += delta.left;
+            else offset.top += delta.top;
+
+            var isVertical          = /top|bottom/.test(placement);
+            var arrowDelta          = isVertical ? delta.left * 2 - width + actualWidth : delta.top * 2 - height + actualHeight;
+            var arrowOffsetPosition = isVertical ? 'offsetWidth' : 'offsetHeight';
+
+            $tip.offset(offset);
+            this.replaceArrow(arrowDelta, $tip[0][arrowOffsetPosition], isVertical);
+          };
+
+          Tooltip.prototype.replaceArrow = function (delta, dimension, isHorizontal) {
+            this.arrow()
+              .css(isHorizontal ? 'left' : 'top', 50 * (1 - delta / dimension) + '%')
+              .css(isHorizontal ? 'top' : 'left', '');
+          };
+
+          Tooltip.prototype.setContent = function () {
+            var $tip  = this.tip();
+            var title = this.getTitle();
+
+            $tip.find('.tooltip-inner')[this.options.html ? 'html' : 'text'](title);
+            $tip.removeClass('fade in top bottom left right');
+          };
+
+          Tooltip.prototype.hide = function (callback) {
+            var that = this;
+            var $tip = this.tip();
+            var e    = $.Event('hide.bs.' + this.type);
+
+            function complete() {
+              if (that.hoverState != 'in') $tip.detach();
+              that.$element
+                .removeAttr('aria-describedby')
+                .trigger('hidden.bs.' + that.type);
+              callback && callback();
+            }
+
+            this.$element.trigger(e);
+
+            if (e.isDefaultPrevented()) return;
+
+            $tip.removeClass('in');
+
+            $.support.transition && this.$tip.hasClass('fade') ?
+              $tip
+                .one('bsTransitionEnd', complete)
+                .emulateTransitionEnd(Tooltip.TRANSITION_DURATION) :
+              complete();
+
+            this.hoverState = null;
+
+            return this;
+          };
+
+          Tooltip.prototype.fixTitle = function () {
+            var $e = this.$element;
+            if ($e.attr('title') || typeof ($e.attr('data-original-title')) != 'string') {
+              $e.attr('data-original-title', $e.attr('title') || '').attr('title', '');
+            }
+          };
+
+          Tooltip.prototype.hasContent = function () {
+            return this.getTitle();
+          };
+
+          Tooltip.prototype.getPosition = function ($element) {
+            $element   = $element || this.$element;
+
+            var el     = $element[0];
+            var isBody = el.tagName == 'BODY';
+
+            var elRect    = el.getBoundingClientRect();
+            if (elRect.width == null) {
+              // width and height are missing in IE8, so compute them manually; see https://github.com/twbs/bootstrap/issues/14093
+              elRect = $.extend({}, elRect, { width: elRect.right - elRect.left, height: elRect.bottom - elRect.top });
+            }
+            var elOffset  = isBody ? { top: 0, left: 0 } : $element.offset();
+            var scroll    = { scroll: isBody ? document.documentElement.scrollTop || document.body.scrollTop : $element.scrollTop() };
+            var outerDims = isBody ? { width: $(window).width(), height: $(window).height() } : null;
+
+            return $.extend({}, elRect, scroll, outerDims, elOffset);
+          };
+
+          Tooltip.prototype.getCalculatedOffset = function (placement, pos, actualWidth, actualHeight) {
+            return placement == 'bottom' ? { top: pos.top + pos.height,   left: pos.left + pos.width / 2 - actualWidth / 2  } :
+                   placement == 'top'    ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2  } :
+                   placement == 'left'   ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
+                /* placement == 'right' */ { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width   };
+
+          };
+
+          Tooltip.prototype.getViewportAdjustedDelta = function (placement, pos, actualWidth, actualHeight) {
+            var delta = { top: 0, left: 0 };
+            if (!this.$viewport) return delta;
+
+            var viewportPadding = this.options.viewport && this.options.viewport.padding || 0;
+            var viewportDimensions = this.getPosition(this.$viewport);
+
+            if (/right|left/.test(placement)) {
+              var topEdgeOffset    = pos.top - viewportPadding - viewportDimensions.scroll;
+              var bottomEdgeOffset = pos.top + viewportPadding - viewportDimensions.scroll + actualHeight;
+              if (topEdgeOffset < viewportDimensions.top) { // top overflow
+                delta.top = viewportDimensions.top - topEdgeOffset;
+              } else if (bottomEdgeOffset > viewportDimensions.top + viewportDimensions.height) { // bottom overflow
+                delta.top = viewportDimensions.top + viewportDimensions.height - bottomEdgeOffset;
+              }
+            } else {
+              var leftEdgeOffset  = pos.left - viewportPadding;
+              var rightEdgeOffset = pos.left + viewportPadding + actualWidth;
+              if (leftEdgeOffset < viewportDimensions.left) { // left overflow
+                delta.left = viewportDimensions.left - leftEdgeOffset;
+              } else if (rightEdgeOffset > viewportDimensions.width) { // right overflow
+                delta.left = viewportDimensions.left + viewportDimensions.width - rightEdgeOffset;
+              }
+            }
+
+            return delta;
+          };
+
+          Tooltip.prototype.getTitle = function () {
+            var title;
+            var $e = this.$element;
+            var o  = this.options;
+
+            title = $e.attr('data-original-title')
+              || (typeof o.title == 'function' ? o.title.call($e[0]) :  o.title);
+
+            return title;
+          };
+
+          Tooltip.prototype.getUID = function (prefix) {
+            do prefix += ~~(Math.random() * 1000000);
+            while (document.getElementById(prefix));
+            return prefix;
+          };
+
+          Tooltip.prototype.tip = function () {
+            return (this.$tip = this.$tip || $(this.options.template));
+          };
+
+          Tooltip.prototype.arrow = function () {
+            return (this.$arrow = this.$arrow || this.tip().find('.tooltip-arrow'));
+          };
+
+          Tooltip.prototype.enable = function () {
+            this.enabled = true;
+          };
+
+          Tooltip.prototype.disable = function () {
+            this.enabled = false;
+          };
+
+          Tooltip.prototype.toggleEnabled = function () {
+            this.enabled = !this.enabled;
+          };
+
+          Tooltip.prototype.toggle = function (e) {
+            var self = this;
+            if (e) {
+              self = $(e.currentTarget).data('bs.' + this.type);
+              if (!self) {
+                self = new this.constructor(e.currentTarget, this.getDelegateOptions());
+                $(e.currentTarget).data('bs.' + this.type, self);
+              }
+            }
+
+            self.tip().hasClass('in') ? self.leave(self) : self.enter(self);
+          };
+
+          Tooltip.prototype.destroy = function () {
+            var that = this;
+            clearTimeout(this.timeout);
+            this.hide(function () {
+              that.$element.off('.' + that.type).removeData('bs.' + that.type);
+            });
+          };
 
 
-      // NOTE: POPOVER EXTENDS tooltip.js
-      // ================================
+          // TOOLTIP PLUGIN DEFINITION
+          // =========================
 
-      Popover.prototype = $.extend({}, $.fn.tooltip.Constructor.prototype)
+          function Plugin(option) {
+            return this.each(function () {
+              var $this    = $(this);
+              var data     = $this.data('bs.tooltip');
+              var options  = typeof option == 'object' && option;
+              var selector = options && options.selector;
 
-      Popover.prototype.constructor = Popover
-
-      Popover.prototype.getDefaults = function () {
-        return Popover.DEFAULTS
-      }
-
-      Popover.prototype.setContent = function () {
-        var $tip    = this.tip()
-        var title   = this.getTitle()
-        var content = this.getContent()
-
-        $tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title)
-        $tip.find('.popover-content').children().detach().end()[ // we use append for html objects to maintain js events
-          this.options.html ? (typeof content == 'string' ? 'html' : 'append') : 'text'
-        ](content)
-
-        $tip.removeClass('fade top bottom left right in')
-
-        // IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
-        // this manually by checking the contents.
-        if (!$tip.find('.popover-title').html()) $tip.find('.popover-title').hide()
-      }
-
-      Popover.prototype.hasContent = function () {
-        return this.getTitle() || this.getContent()
-      }
-
-      Popover.prototype.getContent = function () {
-        var $e = this.$element
-        var o  = this.options
-
-        return $e.attr('data-content')
-          || (typeof o.content == 'function' ?
-                o.content.call($e[0]) :
-                o.content)
-      }
-
-      Popover.prototype.arrow = function () {
-        return (this.$arrow = this.$arrow || this.tip().find('.arrow'))
-      }
-
-      Popover.prototype.tip = function () {
-        if (!this.$tip) this.$tip = $(this.options.template)
-        return this.$tip
-      }
-
-
-      // POPOVER PLUGIN DEFINITION
-      // =========================
-
-      function Plugin(option) {
-        return this.each(function () {
-          var $this    = $(this)
-          var data     = $this.data('bs.popover')
-          var options  = typeof option == 'object' && option
-          var selector = options && options.selector
-
-          if (!data && option == 'destroy') return
-          if (selector) {
-            if (!data) $this.data('bs.popover', (data = {}))
-            if (!data[selector]) data[selector] = new Popover(this, options)
-          } else {
-            if (!data) $this.data('bs.popover', (data = new Popover(this, options)))
+              if (!data && option == 'destroy') return;
+              if (selector) {
+                if (!data) $this.data('bs.tooltip', (data = {}));
+                if (!data[selector]) data[selector] = new Tooltip(this, options);
+              } else {
+                if (!data) $this.data('bs.tooltip', (data = new Tooltip(this, options)));
+              }
+              if (typeof option == 'string') data[option]();
+            });
           }
-          if (typeof option == 'string') data[option]()
-        })
-      }
 
-      var old = $.fn.popover
+          var old = $.fn.tooltip;
 
-      $.fn.popover             = Plugin
-      $.fn.popover.Constructor = Popover
+          $.fn.tooltip             = Plugin;
+          $.fn.tooltip.Constructor = Tooltip;
 
 
-      // POPOVER NO CONFLICT
-      // ===================
+          // TOOLTIP NO CONFLICT
+          // ===================
 
-      $.fn.popover.noConflict = function () {
-        $.fn.popover = old
-        return this
-      }
+          $.fn.tooltip.noConflict = function () {
+            $.fn.tooltip = old;
+            return this;
+          };
 
-    }(jQuery);
+        }(jQuery);
 
+        /* ========================================================================
+         * Bootstrap: popover.js v3.3.1
+         * http://getbootstrap.com/javascript/#popovers
+         * ========================================================================
+         * Copyright 2011-2014 Twitter, Inc.
+         * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+         * ======================================================================== */
+
+
+        +function ($) {
+          'use strict';
+
+          if(typeof $().popover == 'function')
+            return true;
+              
+          // POPOVER PUBLIC CLASS DEFINITION
+          // ===============================
+
+          var Popover = function (element, options) {
+            this.init('popover', element, options);
+          };
+
+          if (!$.fn.tooltip) throw new Error('Popover requires tooltip.js');
+
+          Popover.VERSION  = '3.3.1';
+
+          Popover.DEFAULTS = $.extend({}, $.fn.tooltip.Constructor.DEFAULTS, {
+            placement: 'right',
+            trigger: 'click',
+            content: '',
+            template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
+          });
+
+
+          // NOTE: POPOVER EXTENDS tooltip.js
+          // ================================
+
+          Popover.prototype = $.extend({}, $.fn.tooltip.Constructor.prototype);
+
+          Popover.prototype.constructor = Popover;
+
+          Popover.prototype.getDefaults = function () {
+            return Popover.DEFAULTS;
+          };
+
+          Popover.prototype.setContent = function () {
+            var $tip    = this.tip();
+            var title   = this.getTitle();
+            var content = this.getContent();
+
+            $tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title);
+            $tip.find('.popover-content').children().detach().end()[ // we use append for html objects to maintain js events
+              this.options.html ? (typeof content == 'string' ? 'html' : 'append') : 'text'
+            ](content);
+
+            $tip.removeClass('fade top bottom left right in');
+
+            // IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
+            // this manually by checking the contents.
+            if (!$tip.find('.popover-title').html()) $tip.find('.popover-title').hide();
+          };
+
+          Popover.prototype.hasContent = function () {
+            return this.getTitle() || this.getContent();
+          };
+
+          Popover.prototype.getContent = function () {
+            var $e = this.$element;
+            var o  = this.options;
+
+            return $e.attr('data-content')
+              || (typeof o.content == 'function' ?
+                    o.content.call($e[0]) :
+                    o.content);
+          };
+
+          Popover.prototype.arrow = function () {
+            return (this.$arrow = this.$arrow || this.tip().find('.arrow'));
+          };
+
+          Popover.prototype.tip = function () {
+            if (!this.$tip) this.$tip = $(this.options.template);
+            return this.$tip;
+          };
+
+
+          // POPOVER PLUGIN DEFINITION
+          // =========================
+
+          function Plugin(option) {
+            return this.each(function () {
+              var $this    = $(this);
+              var data     = $this.data('bs.popover');
+              var options  = typeof option == 'object' && option;
+              var selector = options && options.selector;
+
+              if (!data && option == 'destroy') return;
+              if (selector) {
+                if (!data) $this.data('bs.popover', (data = {}));
+                if (!data[selector]) data[selector] = new Popover(this, options);
+              } else {
+                if (!data) $this.data('bs.popover', (data = new Popover(this, options)));
+              }
+              if (typeof option == 'string') data[option]();
+            });
+          }
+
+          var old = $.fn.popover;
+
+          $.fn.popover             = Plugin;
+          $.fn.popover.Constructor = Popover;
+
+
+          // POPOVER NO CONFLICT
+          // ===================
+
+          $.fn.popover.noConflict = function () {
+            $.fn.popover = old;
+            return this;
+          };
+
+        }(jQuery);
+    }
     function chart_title(args) {
         'use strict';
 
-        //is the chart title different than existing one? If so, clear the fine 
-        //gentleman. Otherwise, move along.
-        var currentTitle = $(args.target).find('h2.mg-chart-title');
-        if (args.title && args.title !== currentTitle.text()) {
-            currentTitle.remove();
-        //if title hasn't been specified or if it's blank, remove the title
-        } else if (!args.title || args.title === '') {
-            currentTitle.remove();
-        } else
-            return;
+        var container = d3.select(args.target);
+
+        // remove the current title if it exists
+        container.select('.mg-chart-title').remove();
 
         if (args.target && args.title) {
-            var newTitle;
             //only show question mark if there's a description
-            var optional_question_mark = (args.description)
+            var optional_question_mark = (args.show_tooltips && args.description)
                 ? '<i class="fa fa-question-circle fa-inverse description"></i>'
                 : '';
-        
-            $(args.target).prepend('<h2 class="mg-chart-title">' 
-                + args.title + optional_question_mark + '</h2>');
+
+            container.insert('h2', ':first-child')
+                .attr('class', 'mg-chart-title')
+                .html(args.title + optional_question_mark);
 
             //activate the question mark if we have a description
-            if (args.description) {
-                newTitle = $(args.target).find('h2.mg-chart-title');
+            if (args.show_tooltips && args.description) {
+                var $newTitle = $(container.node()).find('h2.mg-chart-title');
 
-                newTitle.popover({
+                $newTitle.popover({
                     html: true,
                     animation: false,
                     content: args.description,
                     trigger: 'hover',
                     placement: 'top',
-                    container: newTitle
+                    container: $newTitle
                 });
-            }   
+            }
         }
 
         if (args.error) {
@@ -890,7 +882,8 @@
 
     function y_rug(args) {
         'use strict';
-        var svg = d3.select($(args.target).find('svg').get(0));
+        var svg = mg_get_svg_child_of(args.target);
+
         var buffer_size = args.chart_type === 'point'
             ? args.buffer / 2
             : args.buffer * 2 / 3;
@@ -935,14 +928,19 @@
             args.processed = {};
         }
 
-        var svg = d3.select($(args.target).find('svg').get(0));
-        var $svg = $($(args.target).find('svg').get(0));
+        var svg = mg_get_svg_child_of(args.target);
+
         var g;
 
         var min_y,
             max_y;
 
         args.scalefns.yf = function(di) {
+            //since we want to show actual zeros when missing_is_hidden is on
+            if(args.missing_is_hidden && di['missing']) {
+                return args.scales.Y(di[args.y_accessor]) + 42.1234;
+            }
+
             return args.scales.Y(di[args.y_accessor]);
         };
 
@@ -1052,14 +1050,14 @@
                 };
             } else { //percentage
                 yax_format = function(d_) {
-                    var n = d3.format('%p');
+                    var n = d3.format('2p');
                     return n(d_);
                 };
             }
         }
 
         //remove the old y-axis, add new one
-        $svg.find('.mg-y-axis').remove();
+        svg.selectAll('.mg-y-axis').remove();
 
         if (!args.y_axis) {
             return this;
@@ -1116,8 +1114,8 @@
 
         //is our data object all ints?
         var data_is_int = true;
-        $.each(args.data, function(i, d) {
-            $.each(d, function(i, d) {
+        args.data.forEach(function(d, i) {
+            d.forEach(function(d, i) {
                 if (d[args.y_accessor] % 1 !== 0) {
                     data_is_int = false;
                     return false;
@@ -1186,11 +1184,10 @@
             return args.scales.Y(di[args.y_accessor]);
         };
 
-        var svg = d3.select($(args.target).find('svg').get(0));
-        var $svg = $($(args.target).find('svg').get(0));
+        var svg = mg_get_svg_child_of(args.target);
 
         //remove the old y-axis, add new one
-        $svg.find('.mg-y-axis').remove();
+        svg.selectAll('.mg-y-axis').remove();
 
         var g = svg.append('g')
             .classed('mg-y-axis', true)
@@ -1218,15 +1215,15 @@
         var buffer_size = args.chart_type === 'point'
             ? args.buffer / 2
             : args.buffer;
+        var svg = mg_get_svg_child_of(args.target);
 
-        var svg = d3.select($(args.target).find('svg').get(0));
-        var all_data=[];
-        for (var i=0; i<args.data.length; i++) {
-            for (var j=0; j<args.data[i].length; j++) {
-                all_data.push(args.data[i][j]);
-            }
-        }
-
+        var all_data = mg_flatten_array(args.data)
+        // for (var i=0; i<args.data.length; i++) {
+        //     for (var j=0; j<args.data[i].length; j++) {
+        //         all_data.push(args.data[i][j]);
+        //     }
+        // }
+        
         var rug = svg.selectAll('line.mg-x-rug').data(all_data);
 
         //set the attributes that do not change after initialization, per
@@ -1249,8 +1246,7 @@
         if (args.color_accessor) {
             rug.attr('stroke', args.scalefns.color);
             rug.classed('mg-x-rug-mono', false);
-        }
-        else {
+        } else {
             rug.attr('stroke', null);
             rug.classed('mg-x-rug-mono', true);
         }
@@ -1258,14 +1254,18 @@
 
     function x_axis(args) {
         'use strict';
-        var svg = d3.select($(args.target).find('svg').get(0));
-        var $svg = $($(args.target).find('svg').get(0));
-        args.processed = {};
-
+        var svg = mg_get_svg_child_of(args.target);
         var g;
         var min_x;
         var max_x;
 
+        args.processed = {};
+        var all_data = [];
+        for (var i = 0; i < args.data.length; i++) {
+            for (var j = 0; j < args.data[i].length; j++) {
+                all_data.push(args.data[i][j]);
+            }
+        }
         args.scalefns.xf = function(di) {
             return args.scales.X(di[args.x_accessor]);
         };
@@ -1280,12 +1280,13 @@
         args.scales.X = (args.time_series)
             ? d3.time.scale()
             : d3.scale.linear();
+
         args.scales.X
             .domain([args.processed.min_x, args.processed.max_x])
             .range([args.left + args.buffer, args.width - args.right - args.buffer - args.additional_buffer]);
 
         //remove the old x-axis, add new one
-        $svg.find('.mg-x-axis').remove();
+        svg.selectAll('.mg-x-axis').remove();
 
         if (!args.x_axis) {
             return this;
@@ -1314,6 +1315,8 @@
     }
 
     function x_axis_categorical(args) {
+        var svg = mg_get_svg_child_of(args.target);
+
         var svg_width = args.width,
             additional_buffer = 0;
 
@@ -1329,11 +1332,8 @@
             return args.scales.X(di[args.x_accessor]);
         };
 
-        var svg = d3.select($(args.target).find('svg').get(0));
-        var $svg = $($(args.target).find('svg').get(0));
-
         //remove the old x-axis, add new one
-        $svg.find('.mg-x-axis').remove();
+        svg.selectAll('.mg-x-axis').remove();
 
         var g = svg.append('g')
             .classed('mg-x-axis', true)
@@ -1460,9 +1460,7 @@
         g.append('text')
             .attr('class', 'label')
             .attr('x', function() {
-                return args.left + args.buffer
-                    + ((args.width - args.right - args.buffer)
-                        - (args.left + args.buffer)) / 2;
+                return (args.left + args.width - args.right) / 2;
             })
             .attr('y', (args.height - args.bottom / 2).toFixed(2))
             .attr('dy', '.50em')
@@ -1480,23 +1478,7 @@
         return function(f) {
             if (f < 1.0) {
                 //don't scale tiny values
-                return args.yax_units + d3.round(f, args.decimals);
-            } else {
-                var pf = d3.formatPrefix(f);
-                return args.xax_units + pf.scale(f) + pf.symbol;
-            }
-        };
-    }
-
-    function mg_default_histogram_xax_format(args) {
-        if (args.xax_format) {
-            return args.xax_format;
-        }
-
-        return function(f) {
-            if (f < 1.0) {
-                //don't scale tiny values
-                return args.yax_units + d3.round(f, args.decimals);
+                return args.xax_units + d3.round(f, args.decimals);
             } else {
                 var pf = d3.formatPrefix(f);
                 return args.xax_units + pf.scale(f) + pf.symbol;
@@ -1508,44 +1490,45 @@
         if (args.xax_format) {
             return args.xax_format;
         }
-
-        var diff,
-            main_time_format,
-            time_frame;
-
-        if (args.time_series) {
-            diff = (args.processed.max_x - args.processed.min_x) / 1000;
-
-            if (diff < 60) {
-                main_time_format = d3.time.format('%M:%S');
-                time_frame = 'seconds';
-            } else if (diff / (60 * 60) <= 24) {
-                main_time_format = d3.time.format('%H:%M');
-                time_frame = 'less-than-a-day';
-            } else if (diff / (60 * 60) <= 24 * 4) {
-                main_time_format = d3.time.format('%H:%M');
-                time_frame = 'four-days';
-            } else {
-                main_time_format = d3.time.format('%b %d');
-                time_frame = 'default';
-            }
-        }
-
-        args.processed.main_x_time_format = main_time_format;
-        args.processed.x_time_frame = time_frame;
+        var test_point = mg_flatten_array(args.data)[0][args.x_accessor]
 
         return function(d) {
+            var diff;
+            var main_time_format;
+            var time_frame;
+
+            if (args.time_series) {
+                diff = (args.processed.max_x - args.processed.min_x) / 1000;
+
+                if (diff < 60) {
+                    main_time_format = d3.time.format('%M:%S');
+                    time_frame = 'seconds';
+                } else if (diff / (60 * 60) <= 24) {
+                    main_time_format = d3.time.format('%H:%M');
+                    time_frame = 'less-than-a-day';
+                } else if (diff / (60 * 60) <= 24 * 4) {
+                    main_time_format = d3.time.format('%H:%M');
+                    time_frame = 'four-days';
+                } else {
+                    main_time_format = d3.time.format('%b %d');
+                    time_frame = 'default';
+                }
+            }
+
+            args.processed.main_x_time_format = main_time_format;
+            args.processed.x_time_frame = time_frame;
+
             var df = d3.time.format('%b %d');
             var pf = d3.formatPrefix(d);
 
             // format as date or not, of course user can pass in
             // a custom function if desired
-            if($.type(args.data[0][0][args.x_accessor]) === 'date') {
-                return args.processed.main_x_time_format(d);
-            } else if($.type(args.data[0][0][args.x_accessor]) === 'number') {
+            if(test_point instanceof Date) {
+                return args.processed.main_x_time_format(new Date(d));
+            } else if (typeof test_point === 'number') {
                 if (d < 1.0) {
                     //don't scale tiny values
-                    return args.yax_units + d3.round(d, args.decimals);
+                    return args.xax_units + d3.round(d, args.decimals);
                 } else {
                     pf = d3.formatPrefix(d);
                     return args.xax_units + pf.scale(d) + pf.symbol;
@@ -1558,17 +1541,32 @@
 
     function mg_add_x_ticks(g, args) {
         var last_i = args.scales.X.ticks(args.xax_count).length - 1;
+        var ticks = args.scales.X.ticks(args.xax_count);
+
+        //force min to be the first tick rather than the first element in ticks
+        if(args.xax_start_at_min) {
+            ticks[0] = args.processed.min_x;
+        }
 
         if (args.chart_type !== 'bar' && !args.x_extended_ticks && !args.y_extended_ticks) {
             //extend axis line across bottom, rather than from domain's min..max
             g.append('line')
-                .attr('x1',
-                    (args.concise === false || args.xax_count === 0)
-                        ? args.left + args.buffer
-                        : (args.scales.X(args.scales.X.ticks(args.xax_count)[0])).toFixed(2)
-                )
+                .attr('x1', function() {
+                    //start the axis line from the beginning, domain's min, or the auto-generated
+                    //ticks' first element, depending on whether xax_count is set to 0 or 
+                    //xax_start_at_min is set to true
+                    if (args.xax_count === 0) {
+                        return args.left + args.buffer;
+                    }
+                    else if (args.xax_start_at_min) {
+                        return args.scales.X(args.processed.min_x).toFixed(2)
+                    }
+                    else {
+                        return (args.scales.X(args.scales.X.ticks(args.xax_count)[0])).toFixed(2);
+                    }
+                })
                 .attr('x2',
-                    (args.concise === false || args.xax_count === 0)
+                    (args.xax_count === 0)
                         ? args.width - args.right - args.buffer
                         : (args.scales.X(args.scales.X.ticks(args.xax_count)[last_i])).toFixed(2)
                 )
@@ -1577,7 +1575,7 @@
         }
 
         g.selectAll('.mg-xax-ticks')
-            .data(args.scales.X.ticks(args.xax_count)).enter()
+            .data(ticks).enter()
                 .append('line')
                     .attr('x1', function(d) { return args.scales.X(d).toFixed(2); })
                     .attr('x2', function(d) { return args.scales.X(d).toFixed(2); })
@@ -1595,8 +1593,15 @@
     }
 
     function mg_add_x_tick_labels(g, args) {
+        var ticks = args.scales.X.ticks(args.xax_count);
+
+        //force min to be the first tick rather than the first element in ticks
+        if(args.xax_start_at_min) {
+            ticks[0] = args.processed.min_x;
+        }
+
         g.selectAll('.mg-xax-labels')
-            .data(args.scales.X.ticks(args.xax_count)).enter()
+            .data(ticks).enter()
                 .append('text')
                     .attr('x', function(d) { return args.scales.X(d).toFixed(2); })
                     .attr('y', (args.height - args.bottom + args.xax_tick_length * 7 / 3).toFixed(2))
@@ -1632,7 +1637,11 @@
 
             var years = secondary_function(args.processed.min_x, args.processed.max_x);
 
-            if (years.length === 0) {
+            //if xax_start_at_min is set
+            if (args.xax_start_at_min && years.length === 0) {
+                var first_tick = ticks[0];
+                years = [first_tick];
+            } else if (years.length === 0) {
                 var first_tick = args.scales.X.ticks(args.xax_count)[0];
                 years = [first_tick];
             }
@@ -1642,7 +1651,7 @@
                 .classed('mg-year-marker', true)
                 .classed('mg-year-marker-small', args.use_small_class);
 
-            if (time_frame === 'default') {
+            if (time_frame === 'default' && args.show_year_markers) {
                 g.selectAll('.mg-year-marker')
                     .data(years).enter()
                         .append('line')
@@ -1655,63 +1664,55 @@
             g.selectAll('.mg-year-marker')
                 .data(years).enter()
                     .append('text')
-                        .attr('x', function(d) { return args.scales.X(d).toFixed(2); })
+                        .attr('x', function(d, i) {
+                            if (args.xax_start_at_min && i == 0) {
+                                d = ticks[0];
+                            }
+
+                            return args.scales.X(d).toFixed(2);
+                        })
                         .attr('y', (args.height - args.bottom + args.xax_tick_length * 7 / 1.3).toFixed(2))
-                        .attr('dy', args.use_small_class ? -3 : 0)//(args.y_extended_ticks) ? 0 : 0 )
+                        .attr('dy', args.use_small_class ? -3 : 0)
                         .attr('text-anchor', 'middle')
                         .text(function(d) {
-                            return yformat(d);
+                            return yformat(new Date(d));
                         });
         }
     }
 
     function mg_find_min_max_x(args) {
         var last_i,
+            extent_x = [],
             min_x,
-            max_x;
+            max_x,
+            all_data = [].concat.apply([], args.data),
+            mapDtoX = function(d) { return d[args.x_accessor]; };
 
-        if (args.chart_type === 'line') {
-            for (var i = 0; i < args.data.length; i++) {
-                last_i = args.data[i].length-1;
+        // clear the cached xax_format in case we need to recalculate
+        if(args.xax_format === null) {
+            delete args.xax_format;
+        }
 
-                if (args.data[i][0][args.x_accessor] < min_x || !min_x) {
-                    min_x = args.data[i][0][args.x_accessor];
-                }
-
-                if (args.data[i][last_i][args.x_accessor] > max_x || !max_x) {
-                    max_x = args.data[i][last_i][args.x_accessor];
-                }
-            }
-        } else if (args.chart_type === 'point') {
-            max_x = d3.max(args.data[0], function(d) { return d[args.x_accessor]; });
-            min_x = d3.min(args.data[0], function(d) { return d[args.x_accessor]; });
-        } else if (args.chart_type === 'histogram') {
-            min_x = d3.min(args.data[0], function(d) { return d[args.x_accessor]; });
-            max_x = d3.max(args.data[0], function(d) { return d[args.x_accessor]; });
+        if (args.chart_type === 'line' || args.chart_type === 'point' || args.chart_type === 'histogram') {
+            extent_x = d3.extent(all_data, mapDtoX);
+            min_x = extent_x[0];
+            max_x = extent_x[1];
 
         } else if (args.chart_type === 'bar') {
             min_x = 0;
-            max_x = d3.max(args.data[0], function(d) {
-                var trio = [];
-                trio.push(d[args.x_accessor]);
-
-                if (args.baseline_accessor !== null) {
-                    trio.push(d[args.baseline_accessor]);
-                }
-
-                if (args.predictor_accessor !== null) {
-                    trio.push(d[args.predictor_accessor]);
-                }
-
+            max_x = d3.max(all_data, function(d) {
+                var trio = [
+                    d[args.x_accessor],
+                    (d[args.baseline_accessor]) ? d[args.baseline_accessor] : 0,
+                    (d[args.predictor_accessor]) ? d[args.predictor_accessor] : 0
+                ];
                 return Math.max.apply(null, trio);
             });
         }
-
         //if data set is of length 1, expand the range so that we can build the x-axis
-        //of course, a line chart doesn't make sense in this case, so the preferred
-        //method would be to check for said object's length and, if appropriate,
-        //change the chart type to 'point'
-        if (min_x === max_x) {
+        if (min_x === max_x 
+                && !(args.min_x && args.max_x) 
+            ) {
             if (min_x instanceof Date) {
                 var yesterday = MG.clone(min_x).setDate(min_x.getDate() - 1);
                 var tomorrow = MG.clone(min_x).setDate(min_x.getDate() + 1);
@@ -1768,6 +1769,10 @@
             description: null
         };
 
+        // If you pass in a dom element for args.target, the expectation
+        // of a string elsewhere will break.
+
+        args = arguments[0];
         if (!args) { args = {}; }
         args = merge_with_defaults(args, defaults);
 
@@ -1776,26 +1781,32 @@
             return;
         }
 
+        var container = d3.select(args.target);
+        var svg = container.selectAll('svg');
+
         //this is how we're dealing with passing in a single array of data,
         //but with the intention of using multiple values for multilines, etc.
 
         //do we have a time_series?
-        if($.type(args.data[0][0][args.x_accessor]) === 'date') {
-            args.time_series = true;
-        } else {
-            args.time_series = false;
+
+        function is_time_series(args) {
+            var flat_data = [];
+            var first_elem = mg_flatten_array(args.data)[0];
+            return first_elem[args.x_accessor] instanceof Date;
         }
+
+        args.time_series = is_time_series(args);
 
         var svg_width = args.width;
         var svg_height = args.height;
 
-         //are we setting the aspect ratio
+        //are we setting the aspect ratio
         if (args.full_width) {
             // get parent element
             svg_width = get_width(args.target);
         }
 
-        if (args.fill_height) {
+        if (args.full_height) {
             svg_height = get_height(args.target);
         }
 
@@ -1804,21 +1815,19 @@
         }
 
         //remove the svg if the chart type has changed
-        var svg = $(args.target).find('svg');
-
-        if((svg.find('.mg-main-line').length > 0 && args.chart_type !== 'line')
-                || (svg.find('.mg-points').length > 0 && args.chart_type !== 'point')
-                || (svg.find('.mg-histogram').length > 0 && args.chart_type !== 'histogram')
-                || (svg.find('.mg-barplot').length > 0 && args.chart_type !== 'bar')
+        if ((!svg.selectAll('.mg-main-line').empty() && args.chart_type !== 'line')
+                || (!svg.selectAll('.mg-points').empty() && args.chart_type !== 'point')
+                || (!svg.selectAll('.mg-histogram').empty() && args.chart_type !== 'histogram')
+                || (!svg.selectAll('.mg-barplot').empty() && args.chart_type !== 'bar')
             ) {
-            $(args.target).empty();
+            svg.remove();
         }
 
         //add svg if it doesn't already exist
         //using trim on html rather than :empty to ignore white spaces if they exist
-        if($.trim($(args.target).html()) === '') {
+        if (mg_get_svg_child_of(args.target).empty()) {
             //add svg
-            d3.select(args.target)
+            svg = d3.select(args.target)
                 .append('svg')
                     .classed('linked', args.linked)
                     .attr('width', svg_width)
@@ -1828,10 +1837,11 @@
         args.width = svg_width;
         args.height = svg_height;
 
-        svg = d3.select(args.target).selectAll('svg');
+        // add clip path element to svg
+        svg.selectAll('.mg-clip-path').remove();
 
-        // add clip path element to svg.
         svg.append('defs')
+            .attr('class', 'mg-clip-path')
             .append('clipPath')
                 .attr('id', 'mg-plot-window-' + mg_strip_punctuation(args.target))
             .append('svg:rect')
@@ -1849,7 +1859,7 @@
             svg.attr('height', svg_height);
         }
 
-        // This is an unfinished feature. Need to reconsider how we handle automatic scaling.
+        // @todo need to reconsider how we handle automatic scaling
         svg.attr('viewBox', '0 0 ' + svg_width + ' ' + svg_height);
 
         if (args.full_width || args.full_height) {
@@ -1875,14 +1885,14 @@
         //before, remove the outdated lines, e.g. if we had 3 lines, and we're calling
         //data_graphic() on the same target with 2 lines, remove the 3rd line
 
-        var i;
-        if(args.data.length < $(args.target).find('svg .mg-main-line').length) {
+        var i = 0;
+        if (svg.selectAll('.mg-main-line')[0].length >= args.data.length) {
             //now, the thing is we can't just remove, say, line3 if we have a custom
             //line-color map, instead, see which are the lines to be removed, and delete those
-            if(args.custom_line_color_map.length > 0) {
+            if (args.custom_line_color_map.length > 0) {
                 var array_full_series = function(len) {
                     var arr = new Array(len);
-                    for(i = 0; i < arr.length; i++) { arr[i] = i + 1; }
+                    for (var i = 0; i < arr.length; i++) { arr[i] = i + 1; }
                     return arr;
                 };
 
@@ -1891,18 +1901,19 @@
                     array_full_series(args.max_data_size),
                     args.custom_line_color_map);
 
-                for(i = 0; i<lines_to_remove.length; i++) {
-                    $(args.target).find('svg .mg-main-line.mg-line' + lines_to_remove[i] + '-color')
+                for (i = 0; i < lines_to_remove.length; i++) {
+                    svg.selectAll('.mg-main-line.mg-line' + lines_to_remove[i] + '-color')
                         .remove();
                 }
             }
             //if we don't have a customer line-color map, just remove the lines from the end
             else {
                 var num_of_new = args.data.length;
-                var num_of_existing = $(args.target).find('svg .mg-main-line').length;
+                var num_of_existing = svg.selectAll('.mg-main-line')[0].length;
 
-                for(i = num_of_existing; i>num_of_new; i--) {
-                    $(args.target).find('svg .mg-main-line.mg-line' + i + '-color').remove();
+                for (i = num_of_existing; i > num_of_new; i--) {
+                    svg.selectAll('.mg-main-line.mg-line' + i + '-color')
+                        .remove();
                 }
             }
         }
@@ -1910,33 +1921,28 @@
         return this;
     }
 
+
+
     function markers(args) {
         'use strict';
-        var svg = d3.select($(args.target).find('svg').get(0));
+        var svg = mg_get_svg_child_of(args.target);
         var gm;
         var gb;
 
         //remove existing markers and baselines
-        $(args.target).find('svg .mg-markers').remove();
-        $(args.target).find('svg .mg-baselines').remove();
+        svg.selectAll('.mg-markers').remove();
+        svg.selectAll('.mg-baselines').remove();
 
         if (args.markers) {
             gm = svg.append('g')
                 .attr('class', 'mg-markers');
 
             gm.selectAll('.mg-markers')
-                .data(args.markers.filter(function(d){
-                    return (args.scales.X(d[args.x_accessor]) > args.buffer + args.left)
-                        && (args.scales.X(d[args.x_accessor]) < args.width - args.buffer - args.right);
-                }))
+                .data(args.markers.filter(inRange))
                 .enter()
                 .append('line')
-                    .attr('x1', function(d) {
-                        return args.scales.X(d[args.x_accessor]).toFixed(2);
-                    })
-                    .attr('x2', function(d) {
-                        return args.scales.X(d[args.x_accessor]).toFixed(2);
-                    })
+                    .attr('x1', xPositionFixed)
+                    .attr('x2', xPositionFixed)
                     .attr('y1', args.top)
                     .attr('y2', function() {
                         return args.height - args.bottom - args.buffer;
@@ -1944,20 +1950,32 @@
                     .attr('stroke-dasharray', '3,1');
 
             gm.selectAll('.mg-markers')
-                .data(args.markers.filter(function(d){
-                    return (args.scales.X(d[args.x_accessor]) > args.buffer + args.left)
-                        && (args.scales.X(d[args.x_accessor]) < args.width - args.buffer - args.right);
-                }))
+                .data(args.markers.filter(inRange))
                 .enter()
                 .append('text')
-                    .attr('x', function(d) {
-                        return args.scales.X(d[args.x_accessor]);
-                    })
+                    .attr('class', 'mg-marker-text')
+                    .attr('x', xPosition)
                     .attr('y', args.top - 8)
                     .attr('text-anchor', 'middle')
                     .text(function(d) {
                         return d.label;
                     });
+
+            preventHorizontalOverlap(gm.selectAll('.mg-marker-text')[0], args);
+        }
+
+        
+        function xPosition(d) {
+            return args.scales.X(d[args.x_accessor]);
+        }
+
+        function xPositionFixed(d) {
+            return xPosition(d).toFixed(2);
+        }
+
+        function inRange(d) {
+            return (args.scales.X(d[args.x_accessor]) > args.buffer + args.left)
+                && (args.scales.X(d[args.x_accessor]) < args.width - args.buffer - args.right);
         }
 
         if (args.baselines) {
@@ -2001,201 +2019,193 @@
         // If we've asked the svg to fill a div, resize with div.
         if (args.full_width || args.full_height){
             window.addEventListener('resize', function(){
-                // var svg_width = 
-                // var svg_height = 
-                // args.width = svg_width;
-                // args.height = svg_height;
-                d3.select(args.target).select('svg')
-                    .attr('width', get_width(args.target));
+                var svg = d3.select(args.target).select('svg');
+                var aspect = svg.attr('height') / svg.attr('width');
+                var newWidth = get_width(args.target);
+
+                svg.attr('width', newWidth);
+                svg.attr('height', aspect * newWidth);
             }, true);
         }
 
     }
-    /*!
-     * Bootstrap v3.3.1 (http://getbootstrap.com)
-     * Copyright 2011-2014 Twitter, Inc.
-     * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
-     */
+    if (typeof jQuery !== 'undefined') {
+        /*!
+         * Bootstrap v3.3.1 (http://getbootstrap.com)
+         * Copyright 2011-2014 Twitter, Inc.
+         * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+         */
 
-    /*!
-     * Generated using the Bootstrap Customizer (http://getbootstrap.com/customize/?id=c3834cc5b59ef727da53)
-     * Config saved to config.json and https://gist.github.com/c3834cc5b59ef727da53
-     */
-    if (typeof jQuery === 'undefined') {
-      throw new Error('Bootstrap\'s JavaScript requires jQuery')
-    }
-    +function ($) {
-      var version = $.fn.jquery.split(' ')[0].split('.')
-      if ((version[0] < 2 && version[1] < 9) || (version[0] == 1 && version[1] == 9 && version[2] < 1)) {
-        throw new Error('Bootstrap\'s JavaScript requires jQuery version 1.9.1 or higher')
-      }
-    }(jQuery);
+        /*!
+         * Generated using the Bootstrap Customizer (http://getbootstrap.com/customize/?id=c3834cc5b59ef727da53)
+         * Config saved to config.json and https://gist.github.com/c3834cc5b59ef727da53
+         */
 
-    /* ========================================================================
-     * Bootstrap: dropdown.js v3.3.1
-     * http://getbootstrap.com/javascript/#dropdowns
-     * ========================================================================
-     * Copyright 2011-2014 Twitter, Inc.
-     * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
-     * ======================================================================== */
+        /* ========================================================================
+         * Bootstrap: dropdown.js v3.3.1
+         * http://getbootstrap.com/javascript/#dropdowns
+         * ========================================================================
+         * Copyright 2011-2014 Twitter, Inc.
+         * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+         * ======================================================================== */
 
 
-    +function ($) {
-      'use strict';
+        +function ($) {
+          'use strict';
 
-      if(typeof $().dropdown == 'function')
-        return true;
+          if(typeof $().dropdown == 'function')
+            return true;
 
-      // DROPDOWN CLASS DEFINITION
-      // =========================
+          // DROPDOWN CLASS DEFINITION
+          // =========================
 
-      var backdrop = '.dropdown-backdrop'
-      var toggle   = '[data-toggle="dropdown"]'
-      var Dropdown = function (element) {
-        $(element).on('click.bs.dropdown', this.toggle)
-      }
+          var backdrop = '.dropdown-backdrop';
+          var toggle   = '[data-toggle="dropdown"]';
+          var Dropdown = function (element) {
+            $(element).on('click.bs.dropdown', this.toggle);
+          };
 
-      Dropdown.VERSION = '3.3.1'
+          Dropdown.VERSION = '3.3.1';
 
-      Dropdown.prototype.toggle = function (e) {
-        var $this = $(this)
+          Dropdown.prototype.toggle = function (e) {
+            var $this = $(this);
 
-        if ($this.is('.disabled, :disabled')) return
+            if ($this.is('.disabled, :disabled')) return;
 
-        var $parent  = getParent($this)
-        var isActive = $parent.hasClass('open')
+            var $parent  = getParent($this);
+            var isActive = $parent.hasClass('open');
 
-        clearMenus()
+            clearMenus();
 
-        if (!isActive) {
-          if ('ontouchstart' in document.documentElement && !$parent.closest('.navbar-nav').length) {
-            // if mobile we use a backdrop because click events don't delegate
-            $('<div class="dropdown-backdrop"/>').insertAfter($(this)).on('click', clearMenus)
+            if (!isActive) {
+              if ('ontouchstart' in document.documentElement && !$parent.closest('.navbar-nav').length) {
+                // if mobile we use a backdrop because click events don't delegate
+                $('<div class="dropdown-backdrop"/>').insertAfter($(this)).on('click', clearMenus);
+              }
+
+              var relatedTarget = { relatedTarget: this };
+              $parent.trigger(e = $.Event('show.bs.dropdown', relatedTarget));
+
+              if (e.isDefaultPrevented()) return;
+
+              $this
+                .trigger('focus')
+                .attr('aria-expanded', 'true');
+
+              $parent
+                .toggleClass('open')
+                .trigger('shown.bs.dropdown', relatedTarget);
+            }
+
+            return false;
+          };
+
+          Dropdown.prototype.keydown = function (e) {
+            if (!/(38|40|27|32)/.test(e.which) || /input|textarea/i.test(e.target.tagName)) return;
+
+            var $this = $(this);
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if ($this.is('.disabled, :disabled')) return;
+
+            var $parent  = getParent($this);
+            var isActive = $parent.hasClass('open');
+
+            if ((!isActive && e.which != 27) || (isActive && e.which == 27)) {
+              if (e.which == 27) $parent.find(toggle).trigger('focus');
+              return $this.trigger('click');
+            }
+
+            var desc = ' li:not(.divider):visible a';
+            var $items = $parent.find('[role="menu"]' + desc + ', [role="listbox"]' + desc);
+
+            if (!$items.length) return;
+
+            var index = $items.index(e.target);
+
+            if (e.which == 38 && index > 0)                 index--;                        // up
+            if (e.which == 40 && index < $items.length - 1) index++;                        // down
+            if (!~index)                                      index = 0;
+
+            $items.eq(index).trigger('focus');
+          };
+
+          function clearMenus(e) {
+            if (e && e.which === 3) return;
+            $(backdrop).remove();
+            $(toggle).each(function () {
+              var $this         = $(this);
+              var $parent       = getParent($this);
+              var relatedTarget = { relatedTarget: this };
+
+              if (!$parent.hasClass('open')) return;
+
+              $parent.trigger(e = $.Event('hide.bs.dropdown', relatedTarget));
+
+              if (e.isDefaultPrevented()) return;
+
+              $this.attr('aria-expanded', 'false');
+              $parent.removeClass('open').trigger('hidden.bs.dropdown', relatedTarget);
+            });
           }
 
-          var relatedTarget = { relatedTarget: this }
-          $parent.trigger(e = $.Event('show.bs.dropdown', relatedTarget))
+          function getParent($this) {
+            var selector = $this.attr('data-target');
 
-          if (e.isDefaultPrevented()) return
+            if (!selector) {
+              selector = $this.attr('href');
+              selector = selector && /#[A-Za-z]/.test(selector) && selector.replace(/.*(?=#[^\s]*$)/, ''); // strip for ie7
+            }
 
-          $this
-            .trigger('focus')
-            .attr('aria-expanded', 'true')
+            var $parent = selector && $(selector);
 
-          $parent
-            .toggleClass('open')
-            .trigger('shown.bs.dropdown', relatedTarget)
-        }
-
-        return false
-      }
-
-      Dropdown.prototype.keydown = function (e) {
-        if (!/(38|40|27|32)/.test(e.which) || /input|textarea/i.test(e.target.tagName)) return
-
-        var $this = $(this)
-
-        e.preventDefault()
-        e.stopPropagation()
-
-        if ($this.is('.disabled, :disabled')) return
-
-        var $parent  = getParent($this)
-        var isActive = $parent.hasClass('open')
-
-        if ((!isActive && e.which != 27) || (isActive && e.which == 27)) {
-          if (e.which == 27) $parent.find(toggle).trigger('focus')
-          return $this.trigger('click')
-        }
-
-        var desc = ' li:not(.divider):visible a'
-        var $items = $parent.find('[role="menu"]' + desc + ', [role="listbox"]' + desc)
-
-        if (!$items.length) return
-
-        var index = $items.index(e.target)
-
-        if (e.which == 38 && index > 0)                 index--                        // up
-        if (e.which == 40 && index < $items.length - 1) index++                        // down
-        if (!~index)                                      index = 0
-
-        $items.eq(index).trigger('focus')
-      }
-
-      function clearMenus(e) {
-        if (e && e.which === 3) return
-        $(backdrop).remove()
-        $(toggle).each(function () {
-          var $this         = $(this)
-          var $parent       = getParent($this)
-          var relatedTarget = { relatedTarget: this }
-
-          if (!$parent.hasClass('open')) return
-
-          $parent.trigger(e = $.Event('hide.bs.dropdown', relatedTarget))
-
-          if (e.isDefaultPrevented()) return
-
-          $this.attr('aria-expanded', 'false')
-          $parent.removeClass('open').trigger('hidden.bs.dropdown', relatedTarget)
-        })
-      }
-
-      function getParent($this) {
-        var selector = $this.attr('data-target')
-
-        if (!selector) {
-          selector = $this.attr('href')
-          selector = selector && /#[A-Za-z]/.test(selector) && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7
-        }
-
-        var $parent = selector && $(selector)
-
-        return $parent && $parent.length ? $parent : $this.parent()
-      }
+            return $parent && $parent.length ? $parent : $this.parent();
+          }
 
 
-      // DROPDOWN PLUGIN DEFINITION
-      // ==========================
+          // DROPDOWN PLUGIN DEFINITION
+          // ==========================
 
-      function Plugin(option) {
-        return this.each(function () {
-          var $this = $(this)
-          var data  = $this.data('bs.dropdown')
+          function Plugin(option) {
+            return this.each(function () {
+              var $this = $(this);
+              var data  = $this.data('bs.dropdown');
 
-          if (!data) $this.data('bs.dropdown', (data = new Dropdown(this)))
-          if (typeof option == 'string') data[option].call($this)
-        })
-      }
+              if (!data) $this.data('bs.dropdown', (data = new Dropdown(this)));
+              if (typeof option == 'string') data[option].call($this);
+            });
+          }
 
-      var old = $.fn.dropdown
+          var old = $.fn.dropdown;
 
-      $.fn.dropdown             = Plugin
-      $.fn.dropdown.Constructor = Dropdown
-
-
-      // DROPDOWN NO CONFLICT
-      // ====================
-
-      $.fn.dropdown.noConflict = function () {
-        $.fn.dropdown = old
-        return this
-      }
+          $.fn.dropdown             = Plugin;
+          $.fn.dropdown.Constructor = Dropdown;
 
 
-      // APPLY TO STANDARD DROPDOWN ELEMENTS
-      // ===================================
+          // DROPDOWN NO CONFLICT
+          // ====================
 
-      $(document)
-        .on('click.bs.dropdown.data-api', clearMenus)
-        .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation() })
-        .on('click.bs.dropdown.data-api', toggle, Dropdown.prototype.toggle)
-        .on('keydown.bs.dropdown.data-api', toggle, Dropdown.prototype.keydown)
-        .on('keydown.bs.dropdown.data-api', '[role="menu"]', Dropdown.prototype.keydown)
-        .on('keydown.bs.dropdown.data-api', '[role="listbox"]', Dropdown.prototype.keydown)
+          $.fn.dropdown.noConflict = function () {
+            $.fn.dropdown = old;
+            return this;
+          };
 
-    }(jQuery);
 
+          // APPLY TO STANDARD DROPDOWN ELEMENTS
+          // ===================================
+
+          $(document)
+            .on('click.bs.dropdown.data-api', clearMenus)
+            .on('click.bs.dropdown.data-api', '.dropdown form', function (e) { e.stopPropagation(); })
+            .on('click.bs.dropdown.data-api', toggle, Dropdown.prototype.toggle)
+            .on('keydown.bs.dropdown.data-api', toggle, Dropdown.prototype.keydown)
+            .on('keydown.bs.dropdown.data-api', '[role="menu"]', Dropdown.prototype.keydown)
+            .on('keydown.bs.dropdown.data-api', '[role="listbox"]', Dropdown.prototype.keydown);
+
+        }(jQuery);
+    }
     MG.button_layout = function(target) {
         'use strict';
         this.target = target;
@@ -2338,7 +2348,18 @@
         };
 
         this.mainPlot = function() {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
+            
+            //remove any old legends if they exist
+            svg.selectAll('.mg-line-legend').remove();
+
+            var legend_group;
+            var this_legend;
+            if (args.legend) {
+                legend_group = svg.append('g')
+                    .attr('class', 'mg-line-legend');
+            }
+
             var g;
             var data_median = 0;
             var updateTransitionDuration = (args.transition_on_update) ? 1000 : 0;
@@ -2351,16 +2372,12 @@
                 .x(args.scalefns.xf)
                 .y0(args.scales.Y.range()[0])
                 .y1(args.scalefns.yf)
-                .interpolate(args.interpolate);
+                .interpolate(args.interpolate)
+                .tension(args.interpolate_tension);
 
             //confidence band
             var confidence_area;
-
-            //if it already exists, remove it
-            var $existing_band = $(args.target).find('.mg-confidence-band');
-            if ($existing_band.length > 0) {
-                $existing_band.remove();
-            }
+            var existing_band = svg.select('.mg-confidence-band');
 
             if (args.show_confidence_band) {
                 confidence_area = d3.svg.area()
@@ -2373,25 +2390,28 @@
                         var u = args.show_confidence_band[1];
                         return args.scales.Y(d[u]);
                     })
-                    .interpolate(args.interpolate);
+                    .interpolate(args.interpolate)
+                    .tension(args.interpolate_tension);
             }
 
             //main line
             var line = d3.svg.line()
                 .x(args.scalefns.xf)
                 .y(args.scalefns.yf)
-                .interpolate(args.interpolate);
-
+                .interpolate(args.interpolate)
+                .tension(args.interpolate_tension);
             //for animating line on first load
             var flat_line = d3.svg.line()
                 .x(args.scalefns.xf)
                 .y(function() { return args.scales.Y(data_median); })
-                .interpolate(args.interpolate);
+                .interpolate(args.interpolate)
+                .tension(args.interpolate_tension);
 
 
             //for building the optional legend
             var legend = '';
             var this_data;
+            var confidenceBand;
 
             for (var i = args.data.length - 1; i >= 0; i--) {
                 this_data = args.data[i];
@@ -2406,41 +2426,63 @@
 
                 //add confidence band
                 if (args.show_confidence_band) {
-                    svg.append('path')
-                        .attr('class', 'mg-confidence-band')
-                        .attr('d', confidence_area(args.data[i]))
-                        .attr('clip-path', 'url(#mg-plot-window-' + mg_strip_punctuation(args.target) + ')');
+                    if (!existing_band.empty()) {
+                        confidenceBand = existing_band
+                            .transition()
+                            .duration(function() {
+                              return (args.transition_on_update) ? 1000 : 0;
+                            });
+                    } else {
+                        confidenceBand = svg.append('path')
+                            .attr('class', 'mg-confidence-band');
+                    }
+
+                  confidenceBand
+                      .attr('d', confidence_area(args.data[i]))
+                      .attr('clip-path', 'url(#mg-plot-window-'+ mg_strip_punctuation(args.target)+')');
                 }
 
                 //add the area
-                var $area = $(args.target).find('svg path.mg-area' + (line_id) + '-color');
-                if (args.area && !args.use_data_y_min && !args.y_axis_negative && args.data.length <= 1) {
+                //var $area = $(args.target).find('svg path.mg-area' + (line_id) + '-color');
+                var areas = svg.selectAll('.mg-area' + (line_id) + '-color');
+                var displayArea = args.area && !args.use_data_y_min && !args.y_axis_negative && args.data.length <= 1;
+                if (displayArea) {
                     //if area already exists, transition it
-                    if ($area.length > 0) {
-                        $(svg.node()).find('.mg-y-axis').after($area.detach());
-                        d3.select($area.get(0))
+                    if (!areas.empty()) {
+                        //$(svg.node()).find('.mg-y-axis').after($area.detach());
+                        svg.select('.mg-y-axis').node().parentNode.appendChild(areas.node());
+
+                        areas
                             .transition()
                                 .duration(updateTransitionDuration)
                                 .attr('d', area(args.data[i]))
-                                .attr('clip-path', 'url(#mg-plot-window)');
+                                .attr('clip-path', 'url(#mg-plot-window-'+ mg_strip_punctuation(args.target)+')');
                     } else { //otherwise, add the area
                         svg.append('path')
                             .attr('class', 'mg-main-area ' + 'mg-area' + (line_id) + '-color')
                             .attr('d', area(args.data[i]))
                             .attr('clip-path', 'url(#mg-plot-window-' + mg_strip_punctuation(args.target) + ')');
                     }
-                } else if ($area.length > 0) {
-                    $area.remove();
+                } else if (!areas.empty()) {
+                    areas.remove();
                 }
 
                 //add the line, if it already exists, transition the fine gentleman
-                var $existing_line = $(args.target).find('svg path.mg-main-line.mg-line' + (line_id) + '-color').first();
-                if ($existing_line.length > 0) {
-                    $(svg.node()).find('.mg-y-axis').after($existing_line.detach());
-                    d3.select($existing_line.get(0))
+                var existing_line = svg.select('path.mg-main-line.mg-line' + (line_id) + '-color');
+                if (!existing_line.empty()) {
+                    //$(svg.node()).find('.mg-y-axis').after($(existing_line.node()).detach());
+                    svg.select('.mg-y-axis').node().parentNode.appendChild(existing_line.node());
+
+                    var lineTransition = existing_line
                         .transition()
-                            .duration(updateTransitionDuration)
-                            .attr('d', line(args.data[i]));
+                        .duration(updateTransitionDuration);
+
+                    if (!displayArea) {
+                        lineTransition.attrTween('d', pathTween(line(args.data[i]), 4));
+                    } else {
+                        lineTransition.attr('d', line(args.data[i]));
+                    }
+
                 }
                 else { //otherwise...
                     //if we're animating on load, animate the line from its median value
@@ -2462,15 +2504,93 @@
                     }
                 }
 
+                var the_line = svg.select('.mg-line' + (line_id) + '-color');        
+                if (args.missing_is_hidden && the_line.attr('d') !== null) {
+                    var bits = the_line.attr('d').split('L');
+                    var zero = args.scales.Y(0) + 42.1234;
+                    var dasharray = [];
+                    var singleton_point_length = 2;
+
+                    var x_y, 
+                        x_y_plus_1,
+                        x,
+                        y,
+                        x_plus_1,
+                        y_plus_1,
+                        segment_length,
+                        cumulative_segment_length = 0;
+
+                    bits[0] = bits[0].replace('M', '');
+                    bits[bits.length - 1] = bits[bits.length - 1].replace('Z', '');
+
+                    //if we have a min_x, turn the line off first
+                    if (args.min_x) {
+                        dasharray.push(0);
+                    }
+
+                    //build the stroke-dasharray pattern
+                    for (var j = 0; j < bits.length - 1; j++) {
+                        x_y = bits[j].split(',');
+                        x_y_plus_1 = bits[j + 1].split(',');
+                        x = Number(x_y[0]);
+                        y = Number(x_y[1]);
+                        x_plus_1 = Number(x_y_plus_1[0]);
+                        y_plus_1 = Number(x_y_plus_1[1]);
+
+                        segment_length = Math.sqrt(Math.pow(x - x_plus_1, 2) + Math.pow(y - y_plus_1, 2));
+
+                        //do we need to either cover or clear the current stroke
+                        if (y_plus_1 == zero && y != zero) {
+                            dasharray.push(cumulative_segment_length || singleton_point_length);
+                            cumulative_segment_length = (cumulative_segment_length)
+                                ? segment_length
+                                : segment_length - singleton_point_length;
+                        } else if (y_plus_1 != zero && y == zero) { //switching on line
+                            dasharray.push(cumulative_segment_length += segment_length);
+                            cumulative_segment_length = 0;
+                        } else {
+                            cumulative_segment_length += segment_length;
+                        }
+                    }
+
+                    //fear not, end bit of line, ye too shall be covered
+                    if (dasharray.length > 0) {
+                        dasharray.push(the_line.node().getTotalLength() - dasharray[dasharray.length - 1]);
+
+                        svg.select('.mg-line' + (line_id) + '-color')
+                            .attr('stroke-dasharray', dasharray.join());
+                    }
+                }
+
                 //build legend
                 if (args.legend) {
-                    legend = "<span class='mg-line" + line_id  + "-legend-color'>&mdash; "
-                            + args.legend[i] + "&nbsp; </span>" + legend;
+                    if (is_array(args.legend)) {
+                        this_legend = args.legend[i];
+                    } else if (is_function(args.legend)) {
+                        this_legend = args.legend(this_data);
+                    }
+
+                    if (args.legend_target) {
+                        legend = "<span class='mg-line" + line_id  + "-legend-color'>&mdash; "
+                            + this_legend + "&nbsp; </span>" + legend;
+                    } else {
+                        var last_point = this_data[this_data.length-1];
+
+                        legend_group.append('svg:text')
+                            .classed('mg-line' + (line_id) + '-legend-color', true)
+                            .attr('x', args.scalefns.xf(last_point))
+                            .attr('dx', args.buffer)
+                            .attr('y', args.scalefns.yf(last_point))
+                            .attr('dy', '.35em')
+                            .text(this_legend);
+
+                        preventVerticalOverlap(legend_group.selectAll('.mg-line-legend text')[0], args);
+                    }
                 }
             }
 
-            if (args.legend) {
-                $(args.legend_target).html(legend);
+            if (args.legend_target) {
+                d3.select(args.legend_target).html(legend);
             }
 
             return this;
@@ -2482,17 +2602,17 @@
         };
 
         this.rollover = function() {
-            var svg = d3.select($(args.target).find('svg').get(0));
-            var $svg = $($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
             var g;
 
             //remove the old rollovers if they already exist
-            $svg.find('.mg-rollover-rect').remove();
-            $svg.find('.mg-voronoi').remove();
+            svg.selectAll('.mg-rollover-rect').remove();
+            svg.selectAll('.mg-voronoi').remove();
 
             //remove the old rollover text and circle if they already exist
-            $svg.find('.mg-active-datapoint').remove();
-            $svg.find('.mg-line-rollover-circle').remove();
+            svg.selectAll('.mg-active-datapoint').remove();
+            svg.selectAll('.mg-line-rollover-circle').remove();
+            svg.selectAll('.mg-active-datapoint-container').remove();
 
             //rollover text
             svg.append('g')
@@ -2566,6 +2686,7 @@
                     .data(voronoi(data_nested))
                     .enter()
                         .append('path')
+                            .filter(function(d) { return d !== undefined; })
                             .attr("d", function(d) { return "M" + d.join("L") + "Z"; })
                             .datum(function(d) { return d.point; }) //because of d3.nest, reassign d
                             .attr('class', function(d) {
@@ -2705,15 +2826,34 @@
 
             //if the dataset is of length 1, trigger the rollover for our solitary rollover rect
             if (args.data.length == 1 && args.data[0].length == 1) {
-                d3.select('.mg-rollover-rect .mg-line1-color')
+                svg.select('.mg-rollover-rect rect')
                     .on('mouseover')(args.data[0][0], 0);
+            } else if (args.data.length > 1) {
+                //otherwise, trigger it for an appropriate line in a multi-line chart
+                for (var i = 0; i < args.data.length; i++) {
+                    var j = i + 1;
+
+                    if (args.custom_line_color_map.length > 0 
+                            && args.custom_line_color_map[i] !== undefined
+                        ) {
+                        j = args.custom_line_color_map[i];
+                    }
+
+                    if (args.data[i].length == 1) {
+                        svg.selectAll('.mg-voronoi .mg-line' + j + '-color')
+                            .on('mouseover')(args.data[i][0], 0);
+
+                        svg.selectAll('.mg-voronoi .mg-line' + j + '-color')
+                            .on('mouseout')(args.data[i][0], 0);
+                    }
+                }
             }
 
             return this;
         };
 
         this.rolloverOn = function(args) {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
             var fmt;
             switch(args.processed.x_time_frame) {
                 case 'seconds':
@@ -2730,20 +2870,17 @@
             }
 
             return function(d, i) {
-
                 if (args.aggregate_rollover && args.data.length > 1) {
-
                     // hide the circles in case a non-contiguous series is present
                     svg.selectAll('circle.mg-line-rollover-circle')
                         .style('opacity', 0);
 
                     d.values.forEach(function(datum) {
-
                       if (datum[args.x_accessor] >= args.processed.min_x &&
                           datum[args.x_accessor] <= args.processed.max_x &&
                           datum[args.y_accessor] >= args.processed.min_y &&
                           datum[args.y_accessor] <= args.processed.max_y
-                      ){
+                      ) {
                         var circle = svg.select('circle.mg-line' + datum.line_id + '-color')
                             .attr({
                                 'cx': function() {
@@ -2757,15 +2894,21 @@
                             .style('opacity', 1);
                       }
                     });
-                } else {
+                } else if (args.missing_is_hidden 
+                        && d[args.y_accessor] == 0 
+                        && d['missing']
+                    ) {
 
+                    //disable rollovers for hidden parts of the line
+                    return;
+                } else {
                     //show circle on mouse-overed rect
                     if (d[args.x_accessor] >= args.processed.min_x &&
                         d[args.x_accessor] <= args.processed.max_x &&
                         d[args.y_accessor] >= args.processed.min_y &&
                         d[args.y_accessor] <= args.processed.max_y
-                    ){
-                        svg.selectAll('circle.mg-line-rollover-circle')
+                    ) {
+                        svg.selectAll('circle.mg-line-rollover-circle.mg-area' + d.line_id + '-color')
                             .attr('class', "")
                             .attr('class', 'mg-area' + d.line_id + '-color')
                             .classed('mg-line-rollover-circle', true)
@@ -2805,22 +2948,7 @@
                     })
                     .attr('opacity', 0.3);
 
-                var num;
-
-                if (args.format === 'count') {
-                    num = function(d_) {
-                        var is_float = d_ % 1 !== 0;
-                        var n = d3.format("0,000");
-                        d_ = is_float ? d3.round(d_, args.decimals) : d_;
-                        return n(d_);
-                    };
-                } else {
-                    num = function(d_) {
-                        var fmt_string = (args.decimals ? '.' + args.decimals : '' ) + '%';
-                        var n = d3.format(fmt_string);
-                        return n(d_);
-                    };
-                }
+                var num = rolloverNumberFormatter(args);
 
                 //update rollover text
                 if (args.show_rollover_text) {
@@ -2917,7 +3045,7 @@
         };
 
         this.rolloverOff = function(args) {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
 
             return function(d, i) {
                 if (args.linked && MG.globals.link) {
@@ -2937,16 +3065,33 @@
                         });
                 }
 
-                //remove active datapoint text on mouse out, except if we have a single
-                svg.selectAll('circle.mg-line-rollover-circle')
-                    .style('opacity', function() {
-                            if (args.data.length == 1 && args.data[0].length == 1) {
+                //remove all active data points when aggregate_rollover is enabled
+                if(args.aggregate_rollover) {
+                    svg.selectAll('circle.mg-line-rollover-circle')
+                        .style('opacity', function() {
+                            return 0;
+                        });
+                //remove active data point text on mouse out, except if we have a single point
+                } else {
+                    svg.selectAll('circle.mg-line-rollover-circle.mg-area' + (d.line_id) + '-color')
+                        .style('opacity', function() {
+                            var id = d.line_id - 1;
+
+                            if (args.custom_line_color_map.length > 0 
+                                    && args.custom_line_color_map.indexOf(d.line_id) !== undefined
+                                ) {
+                                id = args.custom_line_color_map.indexOf(d.line_id);
+                            }
+
+                            if (args.data[id].length == 1) {
+                            //if (args.data.length === 1 && args.data[0].length === 1) {
                                 return 1;
                             }
                             else {
                                 return 0;
                             }
                         });
+                }
 
                 svg.select('.mg-active-datapoint')
                     .text('');
@@ -2989,11 +3134,10 @@
         };
 
         this.mainPlot = function() {
-            var svg = d3.select($(args.target).find('svg').get(0));
-            var $svg = $($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
 
             //remove the old histogram, add new one
-            $svg.find('.mg-histogram').remove();
+            svg.selectAll('.mg-histogram').remove();
 
             var g = svg.append('g')
                 .attr('class', 'mg-histogram');
@@ -3003,7 +3147,7 @@
                     .enter().append('g')
                         .attr('class', 'mg-bar')
                         .attr('transform', function(d) {
-                            return "translate(" + args.scales.X(d[args.x_accessor]).toFixed(2) 
+                            return "translate(" + args.scales.X(d[args.x_accessor]).toFixed(2)
                                 + "," + args.scales.Y(d[args.y_accessor]).toFixed(2) + ")";
                         });
 
@@ -3012,7 +3156,7 @@
                 .attr('x', 1)
                 .attr('width', function(d, i) {
                     if (args.data[0].length === 1) {
-                            return (args.scalefns.xf(args.data[0][0]) 
+                            return (args.scalefns.xf(args.data[0][0])
                                 - args.bar_margin).toFixed(2);
                     } else {
                         return (args.scalefns.xf(args.data[0][1])
@@ -3038,12 +3182,11 @@
         };
 
         this.rollover = function() {
-            var svg = d3.select($(args.target).find('svg').get(0));
-            var $svg = $($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
 
             //remove the old rollovers if they already exist
-            $svg.find('.mg-rollover-rect').remove();
-            $svg.find('.mg-active-datapoint').remove();
+            svg.selectAll('.mg-rollover-rect').remove();
+            svg.selectAll('.mg-active-datapoint').remove();
 
             //rollover text
             svg.append('text')
@@ -3077,7 +3220,7 @@
                 .attr('width', function(d, i) {
                     //if data set is of length 1
                     if (args.data[0].length === 1) {
-                        return (args.scalefns.xf(args.data[0][0]) 
+                        return (args.scalefns.xf(args.data[0][0])
                             - args.bar_margin).toFixed(2);
                     } else if (i !== args.data[0].length - 1) {
                         return (args.scalefns.xf(args.data[0][i + 1])
@@ -3094,12 +3237,12 @@
                 .on('mouseover', this.rolloverOn(args))
                 .on('mouseout', this.rolloverOff(args))
                 .on('mousemove', this.rolloverMove(args));
-        
+
             return this;
         };
 
         this.rolloverOn = function(args) {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
             var x_formatter = d3.time.format('%Y-%m-%d');
 
             return function(d, i) {
@@ -3110,25 +3253,13 @@
                     .attr('opacity', 0.3);
 
                 var fmt = d3.time.format('%b %e, %Y');
-                var num;
-
-                if (args.format === 'count') {
-                    num = function(d_) {
-                        var is_float = d_ % 1 !== 0;
-                        var n = d3.format("0,000");
-                        d_ = is_float ? d3.round(d_, args.decimals) : d_;
-                        return n(d_);
-                    };
-                } else {
-                    num = function(d_) {
-                        var fmt_string = (args.decimals ? '.' + args.decimals : '' ) + '%';
-                        var n = d3.format(fmt_string);
-                        return n(d_);
-                    };
-                }
+                var num = rolloverNumberFormatter(args);
 
                 //highlight active bar
-                d3.selectAll($(args.target).find(' svg .mg-bar :eq(' + i + ')'))
+                svg.selectAll('.mg-bar rect')
+                    .filter(function(d, j) {
+                        return j === i;
+                    })
                     .classed('active', true);
 
                 //trigger mouseover on all matching bars
@@ -3141,7 +3272,7 @@
                             d3.select(this).on('mouseover')(d,i);
                         });
                 }
-                
+
                 //update rollover text
                 if (args.show_rollover_text) {
                     svg.select('.mg-active-datapoint')
@@ -3168,7 +3299,7 @@
         };
 
         this.rolloverOff = function(args) {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
 
             return function(d, i) {
                 if (args.linked && MG.globals.link) {
@@ -3180,9 +3311,9 @@
                             d3.select(this).on('mouseout')(d,i);
                         });
                 }
-                
+
                 //reset active bar
-                d3.selectAll($(args.target).find('svg .mg-bar :eq(' + i + ')'))
+                svg.selectAll('.mg-bar rect')
                     .classed('active', false);
 
                 //reset active data point text
@@ -3202,7 +3333,7 @@
                 }
             };
         };
-        
+
         this.windowListeners = function() {
             mg_window_listeners(this.args);
             return this;
@@ -3235,12 +3366,11 @@
         };
 
         this.mainPlot = function() {
-            var svg = d3.select($(args.target).find('svg').get(0));
-            var $svg = $($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
             var g;
 
             //remove the old points, add new one
-            $svg.find('.mg-points').remove();
+            svg.selectAll('.mg-points').remove();
 
             // plot the points, pretty straight-forward
             g = svg.append('g')
@@ -3271,14 +3401,13 @@
         };
 
         this.rollover = function() {
-            var svg = d3.select($(args.target).find('svg').get(0));
-            var $svg = $($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
 
             //remove the old rollovers if they already exist
-            $svg.find('.mg-voronoi').remove();
+            svg.selectAll('.mg-voronoi').remove();
 
             //remove the old rollover text and circle if they already exist
-            $svg.find('.mg-active-datapoint').remove();
+            svg.selectAll('.mg-active-datapoint').remove();
 
             //add rollover text
             svg.append('text')
@@ -3319,7 +3448,7 @@
         };
 
         this.rolloverOn = function(args) {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
 
             return function(d, i) {
                 svg.selectAll('.mg-points circle')
@@ -3338,8 +3467,8 @@
                 }
 
                 //trigger mouseover on all points for this class name in .linked charts
-                if (args.linked && !globals.link) {
-                    globals.link = true;
+                if (args.linked && !MG.globals.link) {
+                    MG.globals.link = true;
 
                     //trigger mouseover on matching point in .linked charts
                     d3.selectAll('.mg-voronoi .path-' + i)
@@ -3349,22 +3478,7 @@
                 }
 
                 var fmt = d3.time.format('%b %e, %Y');
-                var num;
-
-                if (args.format === 'count') {
-                    num = function(d_) {
-                        var is_float = d_ % 1 !== 0;
-                        var n = d3.format("0,000");
-                        d_ = is_float ? d3.round(d_, args.decimals) : d_;
-                        return n(d_);
-                    };
-                } else {
-                    num = function(d_) {
-                        var fmt_string = (args.decimals ? '.' + args.decimals : '' ) + '%';
-                        var n = d3.format(fmt_string);
-                        return n(d_);
-                    };
-                }
+                var num = rolloverNumberFormatter(args);
 
                 //update rollover text
                 if (args.show_rollover_text) {
@@ -3390,11 +3504,11 @@
         };
 
         this.rolloverOff = function(args) {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
 
             return function(d,i) {
-                if (args.linked && globals.link) {
-                    globals.link = false;
+                if (args.linked && MG.globals.link) {
+                    MG.globals.link = false;
 
                     d3.selectAll('.mg-voronoi .path-' + i)
                         .each(function() {
@@ -3475,9 +3589,9 @@
         };
 
         this.mainPlot = function() {
-            var svg = d3.select(args.target).select('svg');
+            var svg = mg_get_svg_child_of(args.target);
             var data = args.data[0];
-            var barplot = svg.select('.mg-barplot');
+            var barplot = svg.select('g.mg-barplot');
             var fresh_render = barplot.empty();
 
             var bars;
@@ -3490,69 +3604,84 @@
             var transition_duration = args.transition_duration || 1000;
 
             // draw the plot on first render
-            if (fresh_render) {
+            if (barplot.empty()) {
                 barplot = svg.append('g')
                     .classed('mg-barplot', true);
-
-                bars = barplot.selectAll('.mg-bar')
-                            .data(data)
-                            .enter()
-                        .append('rect')
-                            .classed('mg-bar', true);
-
-                if (args.predictor_accessor) {
-                    predictor_bars = barplot.selectAll('.mg-bar-prediction')
-                            .data(data)
-                            .enter()
-                        .append('rect')
-                            .classed('mg-bar-prediction', true);
-                }
-
-                if (args.baseline_accessor) {
-                    baseline_marks = barplot.selectAll('.mg-bar-baseline')
-                            .data(data)
-                            .enter()
-                        .append('line')
-                        .classed('mg-bar-baseline', true);
-                }
             }
-            // setup vars with the existing elements
-            // TODO: deal with changing data sets - i.e. more/less, different labels etc.
-            else {
-                barplot = svg.select('g.mg-barplot');
 
-                // move the barplot after the axes so it doesn't overlap
-                $(svg.node()).find('.mg-y-axis').after($(barplot.node()).detach());
+            bars = bars = barplot.selectAll('.mg-bar')
+                .data(data);
 
-                bars = barplot.selectAll('rect.mg-bar');
+            bars.exit().remove();
 
-                if (args.predictor_accessor) {
-                    predictor_bars = barplot.selectAll('.mg-bar-prediction');
-                }
+            bars.enter().append('rect')
+                .classed('mg-bar', true);
 
-                if (args.baseline_accessor) {
-                    baseline_marks = barplot.selectAll('.mg-bar-baseline');
-                }
+            if (args.predictor_accessor) {
+                predictor_bars = barplot.selectAll('.mg-bar-prediction')
+                    .data(data);
+
+                predictor_bars.exit().remove();
+
+                predictor_bars.enter().append('rect')
+                    .classed('mg-bar-prediction', true);
+            }
+
+            if (args.baseline_accessor) {
+                baseline_marks = barplot.selectAll('.mg-bar-baseline')
+                    .data(data);
+
+                baseline_marks.exit().remove();
+
+                baseline_marks.enter().append('line')
+                    .classed('mg-bar-baseline', true);
             }
 
             var appropriate_size;
+
+
+            // setup transitions
+            if (should_transition) {
+                bars = bars.transition()
+                    .duration(transition_duration);
+
+                if (predictor_bars) {
+                    predictor_bars = predictor_bars.transition()
+                        .duration(transition_duration);
+                }
+
+                if (baseline_marks) {
+                    baseline_marks = baseline_marks.transition()
+                        .duration(transition_duration);
+                }
+            }
+
 
             if (this.is_vertical) {
                 appropriate_size = args.scales.X.rangeBand()/1.5;
 
                 if (perform_load_animation) {
-                    bars.attr('height', 0)
-                        .attr('y', args.scales.Y(0));
+                    bars.attr({
+                        height: 0,
+                        y: args.scales.Y(0)
+                    });
+
+                    if (predictor_bars) {
+                        predictor_bars.attr({
+                            height: 0,
+                            y: args.scales.Y(0)
+                        });
+                    }
+
+                    if (baseline_marks) {
+                        baseline_marks.attr({
+                            y1: args.scales.Y(0),
+                            y2: args.scales.Y(0)
+                        });
+                    }
                 }
 
-                if (should_transition) {
-                    bars = bars.transition()
-                        .duration(transition_duration);
-                }
-
-                bars.attr('y', function(d) {
-                        return args.scales.Y(0) - (args.scales.Y(0) - args.scalefns.yf(d));
-                    })
+                bars.attr('y', args.scalefns.yf)
                     .attr('x', function(d) {
                         return args.scalefns.xf(d) + appropriate_size/2;
                     })
@@ -3561,21 +3690,12 @@
                         return 0 - (args.scalefns.yf(d) - args.scales.Y(0));
                     });
 
+
                 if (args.predictor_accessor) {
                     pp = args.predictor_proportion;
                     pp0 = pp-1;
 
-                    if (perform_load_animation) {
-                        predictor_bars.attr('height', 0)
-                            .attr('y', args.scales.Y(0));
-                    }
-
-                    if (should_transition) {
-                        predictor_bars = predictor_bars.transition()
-                            .duration(transition_duration);
-                    }
-
-                    // thick line  through bar;
+                    // thick line through bar;
                     predictor_bars
                         .attr('y', function(d) {
                             return args.scales.Y(0) - (args.scales.Y(0) - args.scales.Y(d[args.predictor_accessor]));
@@ -3592,15 +3712,6 @@
                 if (args.baseline_accessor) {
                     pp = args.predictor_proportion;
 
-                    if (perform_load_animation) {
-                        baseline_marks.attr({y1: args.scales.Y(0), y2: args.scales.Y(0)});
-                    }
-
-                    if (should_transition) {
-                        baseline_marks = baseline_marks.transition()
-                            .duration(transition_duration);
-                    }
-
                     baseline_marks
                         .attr('x1', function(d) {
                             return args.scalefns.xf(d)+appropriate_size/2-appropriate_size/pp + appropriate_size/2;
@@ -3616,11 +3727,17 @@
 
                 if (perform_load_animation) {
                     bars.attr('width', 0);
-                }
 
-                if (should_transition) {
-                    bars = bars.transition()
-                        .duration(transition_duration);
+                    if (predictor_bars) {
+                        predictor_bars.attr('width', 0);
+                    }
+
+                    if (baseline_marks) {
+                        baseline_marks.attr({
+                            x1: args.scales.X(0),
+                            x2: args.scales.X(0)
+                        });
+                    }
                 }
 
                 bars.attr('x', args.scales.X(0))
@@ -3637,15 +3754,6 @@
                     pp = args.predictor_proportion;
                     pp0 = pp-1;
 
-                    if (perform_load_animation) {
-                        predictor_bars.attr('width', 0);
-                    }
-
-                    if (should_transition) {
-                        predictor_bars = predictor_bars.transition()
-                            .duration(transition_duration);
-                    }
-
                     // thick line  through bar;
                     predictor_bars
                         .attr('x', args.scales.X(0))
@@ -3660,16 +3768,6 @@
 
                 if (args.baseline_accessor) {
                     pp = args.predictor_proportion;
-
-                    if (perform_load_animation) {
-                        baseline_marks
-                            .attr({x1: args.scales.X(0), x2: args.scales.X(0)});
-                    }
-
-                    if (should_transition) {
-                        baseline_marks = baseline_marks.transition()
-                            .duration(transition_duration);
-                    }
 
                     baseline_marks
                         .attr('x1', function(d) { return args.scales.X(d[args.baseline_accessor]); })
@@ -3692,13 +3790,12 @@
         };
 
         this.rollover = function() {
-            var svg = d3.select($(args.target).find('svg').get(0));
-            var $svg = $($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
             var g;
 
             //remove the old rollovers if they already exist
-            $svg.find('.mg-rollover-rect').remove();
-            $svg.find('.mg-active-datapoint').remove();
+            svg.selectAll('.mg-rollover-rect').remove();
+            svg.selectAll('.mg-active-datapoint').remove();
 
             //rollover text
             svg.append('text')
@@ -3743,7 +3840,7 @@
         };
 
         this.rolloverOn = function(args) {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
             var label_accessor = this.is_vertical ? args.x_accessor : args.y_accessor;
             var data_accessor = this.is_vertical ? args.y_accessor : args.x_accessor;
             var label_units = this.is_vertical ? args.yax_units : args.xax_units;
@@ -3756,25 +3853,13 @@
                     .attr('opacity', 0.3);
 
                 var fmt = d3.time.format('%b %e, %Y');
-                var num;
-
-                if (args.format === 'count') {
-                    num = function(d_) {
-                        var is_float = d_ % 1 !== 0;
-                        var n = d3.format("0,000");
-                        d_ = is_float ? d3.round(d_, args.decimals) : d_;
-                        return n(d_);
-                    };
-                } else {
-                    num = function(d_) {
-                        var fmt_string = (args.decimals ? '.' + args.decimals : '' ) + '%';
-                        var n = d3.format(fmt_string);
-                        return n(d_);
-                    };
-                }
+                var num = rolloverNumberFormatter(args);
 
                 //highlight active bar
-                d3.selectAll($(args.target + ' svg g.mg-barplot .mg-bar:eq(' + i + ')'))
+                svg.selectAll('g.mg-barplot .mg-bar')
+                    .filter(function(d, j) {
+                        return j === i;
+                    })
                     .classed('active', true);
 
                 //update rollover text
@@ -3799,11 +3884,11 @@
         };
 
         this.rolloverOff = function(args) {
-            var svg = d3.select($(args.target).find('svg').get(0));
+            var svg = mg_get_svg_child_of(args.target);
 
             return function(d, i) {
                 //reset active bar
-                d3.selectAll($(args.target).find('svg g.mg-barplot .mg-bar:eq(' + i + ')'))
+                svg.selectAll('g.mg-barplot .mg-bar')
                     .classed('active', false);
 
                 //reset active data point text
@@ -3950,7 +4035,7 @@
                     .style('text-align', td_type === 'title' ? 'left' : 'right')
                     .text(th_text);
 
-                if (this_col.description) {
+                if (args.show_tooltips && this_col.description) {
                     th.append('i')
                         .classed('fa', true)
                         .classed('fa-question-circle', true)
@@ -4007,7 +4092,7 @@
 
                             if (this_format === 'percentage')  formatter = d3.format('%p');
                             if (this_format === 'count')       formatter = d3.format("0,000");
-                            if (this_format === 'temperature') formatter = function(t) { return t +'º'; };
+                            if (this_format === 'temperature') formatter = function(t) { return t +'°'; };
 
                             td_text = formatter(td_text);
                         }
@@ -4053,24 +4138,41 @@
         this.args = args;
 
         this.init = function(args) {
-            chart_title(args);
+            var svg_width, 
+                svg_height;
 
+            svg_width = args.width;
+            svg_height = args.height;
+
+            if (args.full_width) {
+                // get parent element
+                svg_width = get_width(args.target);
+            }
+
+            if (args.full_height) {
+                svg_height = get_height(args.target);
+            }
+
+            chart_title(args);
             // create svg if one doesn't exist
             d3.select(args.target).selectAll('svg').data([args])
               .enter().append('svg')
-                .attr('width', args.width)
-                .attr('height', args.height);
+                .attr('width', svg_width)
+                .attr('height', svg_height);
 
-            var svg = d3.select(args.target).select('svg');
-
+            var svg = mg_get_svg_child_of(args.target);
+            
             // has the width or height changed?
-            if (args.width !== Number(svg.attr('width'))) {
-                svg.attr('width', args.width);
+            if (svg_width !== Number(svg.attr('width'))) {
+                svg.attr('width', svg_width);
             }
 
-            if (args.height !== Number(svg.attr('height'))) {
-                svg.attr('height', args.height);
+            if (svg_height !== Number(svg.attr('height'))) {
+                svg.attr('height', svg_height);
             }
+
+            // @todo need to reconsider how we handle automatic scaling
+            svg.attr('viewBox', '0 0 ' + svg_width + ' ' + svg_height);
 
             // delete child elements
             d3.select(args.target).selectAll('svg *').remove();
@@ -4080,7 +4182,7 @@
 
             // do we need to clear the legend?
             if (args.legend_target) {
-                $(args.legend_target).html('');
+                d3.select(args.legend_target).html('');
             }
 
             //are we adding a background placeholder
@@ -4092,11 +4194,11 @@
 
                 args.scales.X = d3.scale.linear()
                     .domain([0, data.length])
-                    .range([args.left + args.buffer, args.width - args.right - args.buffer]);
+                    .range([args.left + args.buffer, svg_width - args.right - args.buffer]);
 
                 args.scales.Y = d3.scale.linear()
                     .domain([-2, 2])
-                    .range([args.height - args.bottom - args.buffer*2, args.top]);
+                    .range([svg_height - args.bottom - args.buffer*2, args.top]);
 
                 args.scalefns.xf = function(di) { return args.scales.X(di.x); };
                 args.scalefns.yf = function(di) { return args.scales.Y(di.y); };
@@ -4119,8 +4221,8 @@
                     .classed('mg-missing-background', true)
                     .attr('x', args.buffer)
                     .attr('y', args.buffer)
-                    .attr('width', args.width-args.buffer*2)
-                    .attr('height', args.height-args.buffer*2)
+                    .attr('width', svg_width-args.buffer*2)
+                    .attr('height', svg_height-args.buffer*2)
                     .attr('rx',15)
                     .attr('ry', 15);
 
@@ -4137,8 +4239,8 @@
             svg.selectAll('.mg-missing-text').data([args.missing_text])
               .enter().append('text')
                 .attr('class', 'mg-missing-text')
-                .attr('x', args.width / 2)
-                .attr('y', args.height / 2)
+                .attr('x', svg_width / 2)
+                .attr('y', svg_height / 2)
                 .attr('dy', '.50em')
                 .attr('text-anchor', 'middle')
                 .text(args.missing_text);
@@ -4154,18 +4256,32 @@
         'use strict';
 
         // We need to account for a few data format cases:
-        // 1. [{key:__, value:__}, ...]                              // unnested obj-arrays
-        // 2. [[{key:__, value:__}, ...], [{key:__, value:__}, ...]] // nested obj-arrays
-        // 3. [[4323, 2343],..]                                      // unnested 2d array
-        // 4. [[[4323, 2343],..] , [[4323, 2343],..]]                // nested 2d array
-        if (args.chart_type === 'line') {
-            var is_unnested_obj_array = (args.data[0] instanceof Object && !(args.data[0] instanceof Array));
-            var is_unnested_array_of_arrays = (
-                args.data[0] instanceof Array &&
-                !(args.data[0][0] instanceof Object &&
-                !(args.data[0][0] instanceof Date)));
+        // #1 [{key:__, value:__}, ...]                              // unnested obj-arrays
+        // #2 [[{key:__, value:__}, ...], [{key:__, value:__}, ...]] // nested obj-arrays
+        // #3 [[4323, 2343],..]                                      // unnested 2d array
+        // #4 [[[4323, 2343],..] , [[4323, 2343],..]]                // nested 2d array
 
-            if (is_unnested_obj_array || is_unnested_array_of_arrays) {
+        var _is_nested_array = is_array_of_arrays(args.data);
+
+        args.array_of_objects = false; 
+        args.array_of_arrays = false;
+        args.nested_array_of_arrays = false; 
+        args.nested_array_of_objects = false;
+
+        if (_is_nested_array) {
+            args.nested_array_of_objects = args.data.map(function(d){
+                return is_array_of_objects_or_empty(d);
+            });                                                      // Case #2
+            args.nested_array_of_arrays = args.data.map(function(d){
+                return is_array_of_arrays(d);
+            })                                                       // Case #4
+        } else {
+            args.array_of_objects = is_array_of_objects(args.data);       // Case #1
+            args.array_of_arrays = is_array_of_arrays(args.data);         // Case #3
+        }
+
+        if (args.chart_type === 'line') {
+            if (args.array_of_objects || args.array_of_arrays) {
                 args.data = [args.data];
             }
         } else {
@@ -4208,12 +4324,21 @@
     function process_line(args) {
         'use strict';
         //do we have a time-series?
-        var is_time_series = ($.type(args.data[0][0][args.x_accessor]) === 'date')
-                ? true
-                : false;
+        var is_time_series = d3.sum(args.data.map(function(series) {
+            return series.length > 0 && series[0][args.x_accessor] instanceof Date;
+        })) > 0;
+
+        // var is_time_series = args.data[0][0][args.x_accessor] instanceof Date
+        //     ? true
+        //     : false;
+
+        //force linear interpolation when missing_is_hidden is enabled
+        if (args.missing_is_hidden) {
+            args.interpolate = 'linear';
+        }
 
         //are we replacing missing y values with zeros?
-        if (args.missing_is_zero
+        if ((args.missing_is_zero || args.missing_is_hidden) 
                 && args.chart_type === 'line'
                 && is_time_series
             ) {
@@ -4246,7 +4371,7 @@
 
                     //check to see if we already have this date in our data object
                     var existing_o = null;
-                    $.each(args.data[i], function(i, val) {
+                    args.data[i].forEach(function(val, i) {
                         if (Date.parse(val[args.x_accessor]) === Date.parse(new Date(d))) {
                             existing_o = val;
 
@@ -4258,6 +4383,7 @@
                     if (!existing_o) {
                         o[args.x_accessor] = new Date(d);
                         o[args.y_accessor] = 0;
+                        o['missing'] = true; //we want to distinguish between zero-value and missing observations
                         processed_data.push(o);
                     }
                     //otherwise, use the existing object for that date
@@ -4291,6 +4417,7 @@
 
         // histogram data is always single dimension
         var our_data = args.data[0];
+
         var extracted_data;
         if (args.binned === false) {
             // use d3's built-in layout.histogram functionality to compute what you need.
@@ -4359,7 +4486,6 @@
         var data_accessor =  args.bar_orientation === 'vertical' ? args.y_accessor : args.x_accessor;
 
         args.categorical_variables = [];
-
         if (args.binned === false) {
             if (typeof(our_data[0]) === 'object') {
                 // we are dealing with an array of objects. Extract the data value of interest.
@@ -4416,12 +4542,12 @@
     }
 
     function add_ls(args) {
-        var svg = d3.select($(args.target).find('svg').get(0));
+        var svg = mg_get_svg_child_of(args.target);
         var data = args.data[0];
         var min_x = args.scales.X.ticks(args.xax_count)[0];
         var max_x = args.scales.X.ticks(args.xax_count)[args.scales.X.ticks(args.xax_count).length - 1];
 
-        $(args.target).find('.mg-least-squares-line').remove();
+        d3.select(args.target).selectAll('.mg-least-squares-line').remove();
 
         svg.append('svg:line')
             .attr('x1', args.scales.X(min_x))
@@ -4678,6 +4804,51 @@
         return {x: x_proto, y: y_proto};
     }
 
+    function rolloverNumberFormatter(args) {
+        var num;
+        if (args.format === 'count') {
+            num = function(d_) {
+                var is_float = d_ % 1 !== 0;
+                var n = d3.format("0,000");
+                d_ = is_float ? d3.round(d_, args.decimals) : d_;
+                return n(d_);
+            };
+        } else {
+            num = function(d_) {
+                var fmt_string = (args.decimals ? '.' + args.decimals : '' ) + '%';
+                var n = d3.format(fmt_string);
+                return n(d_);
+            };
+        }
+        return num;
+    }
+
+    // http://bl.ocks.org/mbostock/3916621
+    function pathTween(d1, precision) {
+      return function() {
+        var path0 = this,
+            path1 = path0.cloneNode(),
+            n0 = path0.getTotalLength(),
+            n1 = (path1.setAttribute("d", d1), path1).getTotalLength();
+
+        // Uniform sampling of distance based on specified precision.
+        var distances = [0], i = 0, dt = precision / Math.max(n0, n1);
+        while ((i += dt) < 1) distances.push(i);
+        distances.push(1);
+
+        // Compute point-interpolators at each distance.
+        var points = distances.map(function(t) {
+          var p0 = path0.getPointAtLength(t * n0),
+              p1 = path1.getPointAtLength(t * n1);
+          return d3.interpolate([p0.x, p0.y], [p1.x, p1.y]);
+        });
+
+        return function(t) {
+          return t < 1 ? "M" + points.map(function(p) { return p(t); }).join("L") : d1;
+        };
+      };
+    }
+
     //a set of helper functions, some that we've written, others that we've borrowed
 
     MG.convert = {};
@@ -4702,9 +4873,151 @@
         return data;
     };
 
+
+    function is_array(thing){
+        return Object.prototype.toString.call(thing) === '[object Array]';
+    }
+
+    function is_function(thing){
+        return Object.prototype.toString.call(thing) === '[object Function]';   
+    }
+
+    function is_empty_array(thing){
+        return is_array(thing) && thing.length==0;
+    }
+
+    function is_object(thing){
+        return Object.prototype.toString.call(thing) === '[object Object]';   
+    }
+
+    function is_array_of_arrays(data){
+        var all_elements = data.map(function(d){return is_array(d)===true && d.length>0});
+        return d3.sum(all_elements) === data.length;
+    }
+
+    function is_array_of_objects(data){
+        // is every element of data an object?
+        var all_elements = data.map(function(d){return is_object(d)===true});
+        return d3.sum(all_elements) === data.length;
+    }
+
+    function is_array_of_objects_or_empty(data){
+        return is_empty_array(data) || is_array_of_objects(data);
+    }
+
+
+    function preventHorizontalOverlap(labels, args) {
+        if (!labels || labels.length == 1) {
+            return;
+        }
+
+        //see if each of our labels overlaps any of the other labels
+        for (var i = 0; i < labels.length; i++) {
+            //if so, nudge it up a bit, if the label it intersects hasn't already been nudged
+            if (isHorizontallyOverlapping(labels[i], labels)) {
+                var node = d3.select(labels[i]);
+                var newY = +node.attr('y');
+                if (newY + 8 == args.top) {
+                    newY = args.top - 16;
+                }
+                node.attr('y', newY);
+            }
+        }
+    }
+
+    function preventVerticalOverlap(labels, args) {
+        if (!labels || labels.length == 1) {
+            return;
+        }
+
+        labels.sort(function(b,a){
+            return d3.select(a).attr('y') - d3.select(b).attr('y');
+        });
+
+        labels.reverse();
+
+        var overlap_amount, label_i, label_j;
+
+        //see if each of our labels overlaps any of the other labels
+        for (var i = 0; i < labels.length; i++) {
+            //if so, nudge it up a bit, if the label it intersects hasn't already been nudged
+            label_i = d3.select(labels[i]).text();
+
+            for (var j = 0; j < labels.length; j ++) {
+                label_j = d3.select(labels[j]).text(); 
+                overlap_amount = isVerticallyOverlapping(labels[i], labels[j]);
+
+                if (overlap_amount !== false && label_i !== label_j) {
+                    var node = d3.select(labels[i]);
+                    var newY = +node.attr('y');
+                    newY = newY + overlap_amount;
+                    node.attr('y', newY);
+                }
+            }
+        }
+    }
+
+    function isVerticallyOverlapping(element, sibling) {
+        var element_bbox = element.getBoundingClientRect();
+        var sibling_bbox = sibling.getBoundingClientRect();
+
+        if (element_bbox.top <= sibling_bbox.bottom && element_bbox.top >= sibling_bbox.top) {
+            return sibling_bbox.bottom - element_bbox.top;
+        }
+
+        return false;
+    }
+
+    function isHorizontallyOverlapping(element, labels) {
+        var element_bbox = element.getBoundingClientRect();
+
+        for (var i = 0; i < labels.length; i++) {
+            if (labels[i] == element) {
+                continue;
+            }
+
+            //check to see if this label overlaps with any of the other labels
+            var sibling_bbox = labels[i].getBoundingClientRect();
+            if (element_bbox.top === sibling_bbox.top && 
+                    !(sibling_bbox.left > element_bbox.right || sibling_bbox.right < element_bbox.left)
+                ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function mg_get_svg_child_of(selector_or_node) {
+        return d3.select(selector_or_node).select('svg');
+    }
+
+    function mg_flatten_array(arr) {
+        var flat_data = [];
+        return flat_data.concat.apply(flat_data, arr);
+    }
+
     function mg_strip_punctuation(s) {
-        var punctuationless = s.replace(/[^a-zA-Z0-9 _]+/g, '');
+        var processed_s;
+
+        if (typeof(s) == 'string') {
+            processed_s = s;
+        } else {
+            // args.target is 
+            if (s.id != '') {
+                processed_s = s.id;
+            } else if (args.target.className != '') {
+                processed_s = s.className;
+            } else if (args.target.nodeName !='') {
+                processed_s = s.nodeName;
+            } else {
+                console.warn('The specified target element ' + s + ' has no unique attributes.');
+            }
+        }
+
+        var punctuationless = processed_s.replace(/[^a-zA-Z0-9 _]+/g, '');
         var finalString = punctuationless.replace(/ +?/g, "");
+
         return finalString;
     }
 
@@ -4718,6 +5031,10 @@
 
     function get_height(target) {
         return get_pixel_dimension(target, 'height');
+    }
+
+    function isNumeric(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
     }
 
     var each = function(obj, iterator, context) {
@@ -4905,9 +5222,9 @@
     function error(args) {
         console.log('ERROR : ', args.target, ' : ', args.error);
 
-        $(args.target)
-            .find('.mg-chart-title')
-            .append('<i class="fa fa-x fa-exclamation-circle warning"></i>');
+        d3.select(args.target).select('.mg-chart-title')
+            .append('i')
+                .attr('class', 'fa fa-x fa-exclamation-circle warning');
     }
 
     return MG;

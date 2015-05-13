@@ -26,7 +26,7 @@
 }
 
 .mg-barplot rect.mg-bar {
-    shape-rendering: crispEdges;
+    shape-rendering: auto;
     fill: #b6b6fc;
 }
 
@@ -45,9 +45,9 @@
 
 .mg-baselines line {
     opacity: 1;
-    shape-rendering: crispEdges;
-    stroke: #909090;
-    stroke-width: 0.5;
+    shape-rendering: auto;
+    stroke: #b3b2b2;
+    stroke-width: 1px;
 }
 
 .mg-baselines text {
@@ -143,13 +143,13 @@
 .mg-histogram .axis line {
     fill: none;
     opacity: 0.7;
-    shape-rendering: crispEdges;
+    shape-rendering: auto;
     stroke: #ccc;
 }
 
 .mg-histogram .mg-bar rect {
     fill: #b6b6fc;
-    shape-rendering: crispEdges;
+    shape-rendering: auto;
 }
 
 .mg-histogram .mg-bar rect.active {
@@ -158,7 +158,7 @@
 
 .mg-least-squares-line {
     stroke: red;
-    stroke-width: 1;
+    stroke-width: 1px;
 }
 
 .mg-lowess-line {
@@ -206,24 +206,35 @@
     fill: #5c5c5c;
 }
 
+.mg-line-legend text {
+    font-size: 0.9rem;
+    font-weight: 300;
+    stroke: none;
+}
+
 .mg-line1-legend-color {
     color: #4040e8;
+    fill: #4040e8;
 }
 
 .mg-line2-legend-color {
     color: #05b378;
+    fill: #05b378;
 }
 
 .mg-line3-legend-color {
     color: #db4437;
+    fill: #db4437;
 }
 
 .mg-line4-legend-color {
     color: #f8b128;
+    fill: #f8b128;
 }
 
 .mg-line5-legend-color {
     color: #5c5c5c;
+    fill: #5c5c5c;
 }
 
 .mg-main-area-solid svg .mg-main-area {
@@ -232,10 +243,10 @@
 }
 
 .mg-markers line {
-    opacity: 1;
-    shape-rendering: crispEdges;
-    stroke: #909090;
-    stroke-width: 0.5;
+    opacity: 0.9;
+    shape-rendering: auto;
+    stroke: #b3b2b2;
+    stroke-width: 1px;
 }
 
 .mg-markers text {
@@ -250,11 +261,11 @@
 }
 
 .mg-missing-background {
-    stroke-width:2;
-    stroke-opacity:0.05;
-    stroke-dasharray:10,5;
-    fill:none;
-    stroke:blue;
+    stroke: blue;
+    fill: none;
+    stroke-dasharray: 10,5;
+    stroke-opacity: 0.05;
+    stroke-width: 2;
 }
 
 .mg-missing .mg-main-line {
@@ -313,9 +324,9 @@ circle.mg-points-mono {
 .mg-x-axis line,
 .mg-y-axis line {
     opacity: 1;
-    shape-rendering: crispEdges;
-    stroke: #ccc;
-    stroke-width: 1;
+    shape-rendering: auto;
+    stroke: #b3b2b2;
+    stroke-width: 1px;
 }
 
 .mg-x-axis text,
@@ -353,9 +364,9 @@ circle.mg-points-mono {
 
 .mg-year-marker line {
     opacity: 1;
-    shape-rendering: crispEdges;
-    stroke: #ccc;
-    stroke-width: 1;
+    shape-rendering: auto;
+    stroke: #b3b2b2;
+    stroke-width: 1px;
 }
 
 .mg-year-marker-small text {
