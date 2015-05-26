@@ -195,9 +195,7 @@ namespace Statsify.Core.Storage
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using(var binaryReader = new Util.BinaryReader(fileStream, Encoding.UTF8, true))
             {
-                fileStream.Seek(archive.Offset, SeekOrigin.Begin);
-
-                var baseInterval = binaryReader.ReadInt64();
+                var baseInterval = binaryReader.ReadInt64(archive.Offset);
                 if(baseInterval == 0)
                 {
                     var points = (untilInterval - fromInterval) / step;
@@ -325,11 +323,9 @@ namespace Statsify.Core.Storage
 
         private bool Downsample(FileStream fileStream, BinaryReader binaryReader, BinaryWriter binaryWriter, long timestamp, Archive higher, Archive lower)
         {
+            var higherBaseInterval = binaryReader.ReadInt64(higher.Offset);
+
             var lowerIntervalStart = (timestamp - (timestamp % lower.Retention.Precision));
-
-            fileStream.Seek(higher.Offset, SeekOrigin.Begin);
-            var higherBaseInterval = binaryReader.ReadInt64();
-
             var higherFirstOffset = GetReadOffset(higher, lowerIntervalStart, higherBaseInterval);
 
             var higherPoints = lower.Retention.Precision / higher.Retention.Precision;
@@ -356,8 +352,7 @@ namespace Statsify.Core.Storage
 
         private static void WriteDatapoint(BinaryReader binaryReader, BinaryWriter binaryWriter, Archive archive, long timestamp, double value)
         {
-            binaryReader.BaseStream.Seek(archive.Offset, SeekOrigin.Begin);
-            var lowerBaseInterval = binaryReader.ReadInt64();
+            var lowerBaseInterval = binaryReader.ReadInt64(archive.Offset);
 
             var offset = GetWriteOffset(archive, lowerBaseInterval, timestamp);
             WriteDatapoint(binaryWriter, offset, timestamp, value);
