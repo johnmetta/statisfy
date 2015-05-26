@@ -297,21 +297,21 @@ namespace Statsify.Core.Storage
                 fileStream.Seek(archive.Offset, SeekOrigin.Begin);
                 var baseInterval = binaryReader.ReadInt64();
 
+                long offset = 0;
                 if(baseInterval == 0)
                 {
-                    fileStream.Seek(archive.Offset, SeekOrigin.Begin);
+                    offset = archive.Offset;
                 }
                 else
                 {
                     var timeDistance = myInterval - baseInterval;
                     var pointDistance = timeDistance / archive.Retention.Precision;
                     var byteDistance = pointDistance * DatapointSize;
-                    var myOffset = archive.Offset + (byteDistance % archive.Size);
 
-                    fileStream.Seek(myOffset, SeekOrigin.Begin);
+                    offset = archive.Offset + (byteDistance % archive.Size);
                 } // else
 
-                WriteDatapoint(binaryWriter, myInterval, value);
+                WriteDatapoint(binaryWriter, offset,myInterval, value);
 
                 var higher = archive;
                 foreach(var lower in lowerArchives)
@@ -356,21 +356,21 @@ namespace Statsify.Core.Storage
 
             var lowerBaseInterval = binaryReader.ReadInt64();
 
+            long offset = 0;
             if(lowerBaseInterval == 0)
             {
-                fileStream.Seek(lower.Offset, SeekOrigin.Begin);
+                offset = lower.Offset;
             } // if
             else
             {
                 var timeDistance = lowerIntervalStart - lowerBaseInterval;
                 var pointDistance = timeDistance / lower.Retention.Precision;
                 var byteDistance = pointDistance * DatapointSize;
-                var lowerOffset = lower.Offset + (byteDistance % lower.Size);
 
-                fileStream.Seek(lowerOffset, SeekOrigin.Begin);
+                offset = lower.Offset + (byteDistance % lower.Size);
             } // else
 
-            WriteDatapoint(binaryWriter, lowerIntervalStart, aggregateValue);
+            WriteDatapoint(binaryWriter, offset, lowerIntervalStart, aggregateValue);
 
             return true;
         }
@@ -436,8 +436,10 @@ namespace Statsify.Core.Storage
             return Epoch.AddSeconds(timestamp);
         }
 
-        private static void WriteDatapoint(BinaryWriter binaryWriter, long timestamp, double value)
+        private static void WriteDatapoint(BinaryWriter binaryWriter, long offset, long timestamp, double value)
         {
+            binaryWriter.BaseStream.Seek(offset, SeekOrigin.Begin);
+
             // ReSharper disable RedundantCast
             binaryWriter.Write((long)timestamp);
             binaryWriter.Write((double)value);
