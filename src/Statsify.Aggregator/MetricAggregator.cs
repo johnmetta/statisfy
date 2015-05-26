@@ -28,6 +28,7 @@ namespace Statsify.Aggregator
         private readonly IDictionary<string, float> counters = new Dictionary<string, float>();
         private readonly ConcurrentQueue<Tuple<string, DateTime, float>> flushQueue = new ConcurrentQueue<Tuple<string, DateTime, float>>();
         private readonly object sync = new object();
+        private long metrics;
 
         public MetricAggregator(StatsifyAggregatorConfigurationSection configuration, ManualResetEvent stopEvent)
         {
@@ -81,6 +82,7 @@ namespace Statsify.Aggregator
             lock(sync)
             {
                 var key = metric.Name;
+                metrics++;
 
                 switch(metric.Type)
                 {
@@ -244,6 +246,7 @@ namespace Statsify.Aggregator
                 }
 
                 flushQueue.Enqueue(Tuple.Create("statsify.queue_backlog", ts, (float)flushQueue.Count));
+                flushQueue.Enqueue(Tuple.Create("statsify.metrics.count", ts, (float)metrics));
             }
         }
 
