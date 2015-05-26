@@ -311,10 +311,7 @@ namespace Statsify.Core.Storage
                     fileStream.Seek(myOffset, SeekOrigin.Begin);
                 } // else
 
-                // ReSharper disable RedundantCast
-                binaryWriter.Write((long)myInterval);
-                binaryWriter.Write((double)value);
-                // ReSharper restore RedundantCast
+                WriteDatapoint(binaryWriter, myInterval, value);
 
                 var higher = archive;
                 foreach(var lower in lowerArchives)
@@ -373,10 +370,7 @@ namespace Statsify.Core.Storage
                 fileStream.Seek(lowerOffset, SeekOrigin.Begin);
             } // else
 
-            // ReSharper disable RedundantCast
-            binaryWriter.Write((long)lowerIntervalStart);
-            binaryWriter.Write((double)aggregateValue);
-            // ReSharper restore RedundantCast
+            WriteDatapoint(binaryWriter, lowerIntervalStart, aggregateValue);
 
             return true;
         }
@@ -440,6 +434,14 @@ namespace Statsify.Core.Storage
         private static DateTime ConvertFromTimestamp(long timestamp)
         {
             return Epoch.AddSeconds(timestamp);
+        }
+
+        private static void WriteDatapoint(BinaryWriter binaryWriter, long timestamp, double value)
+        {
+            // ReSharper disable RedundantCast
+            binaryWriter.Write((long)timestamp);
+            binaryWriter.Write((double)value);
+            // ReSharper restore RedundantCast
         }
 
         private static void EnsureValidRetentionPolicy(RetentionPolicy retentionPolicy)
