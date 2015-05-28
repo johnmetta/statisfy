@@ -62,6 +62,7 @@
     <Compile Include="Expressions\TokenScanner.cs" />
     <Compile Include="Model\Datapoint.cs" />
     <Compile Include="Model\Metric.cs" />
+    <Compile Include="Model\MetricDatapoint.cs" />
     <Compile Include="Model\Sample.cs" />
     <Compile Include="Model\Series.cs" />
     <Compile Include="Expressions\RegexTokenScanner.cs" />
