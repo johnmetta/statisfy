@@ -46,14 +46,8 @@ namespace Statsify.Core.Expressions
                 {
                     var ms = p[pos] as MetricSelector;
 
-                    var metrics = new List<Metric>();
-                    foreach(var metricName in environment.MetricRegistry.ResolveMetricNames(ms.Selector))
-                    {
-                        var metric = 
-                            environment.MetricRegistry.ReadMetric(metricName, context.From, context.Until);
-
-                        metrics.Add(metric);
-                    } // foreach
+                    var metricNames = environment.MetricRegistry.ResolveMetricNames(ms.Selector).ToArray();
+                    var metrics = MetricReader.ReadMetrics(environment, metricNames, context.From, context.Until);
 
                     p[pos] = metrics.ToArray();
                 } // if

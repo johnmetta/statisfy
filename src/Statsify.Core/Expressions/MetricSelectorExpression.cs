@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using System.Diagnostics;
-using Statsify.Core.Model;
+using System.Linq;
 
 namespace Statsify.Core.Expressions
 {
@@ -31,16 +30,11 @@ namespace Statsify.Core.Expressions
 
         public override object Evaluate(Environment environment, EvalContext context)
         {
-            var metrics = new List<Metric>();
+            var from = context.From;
+            var until = context.Until;
+            var metricNames = environment.MetricRegistry.ResolveMetricNames(Expression.Selector).ToArray();
 
-            foreach(var metricName in environment.MetricRegistry.ResolveMetricNames(Expression.Selector))
-            {
-                var metric = 
-                    environment.MetricRegistry.ReadMetric(metricName, context.From, context.Until);
-
-                metrics.Add(metric);
-            } // foreach
-
+            var metrics = MetricReader.ReadMetrics(environment, metricNames, from, until);
             return metrics.ToArray();
         }
     }

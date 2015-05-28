@@ -285,5 +285,10 @@ namespace Statsify.Aggregator
         {
             get { return flushQueue.Count; }
         }
+
+        public IEnumerable<MetricDatapoint> Queue
+        {
+            get { return flushQueue; }
+        }
     }
 }
