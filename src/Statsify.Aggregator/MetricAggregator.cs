@@ -11,6 +11,7 @@ using NLog;
 using Statsify.Aggregator.ComponentModel;
 using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Extensions;
+using Statsify.Core.Model;
 using Statsify.Core.Storage;
 
 namespace Statsify.Aggregator
@@ -26,7 +27,7 @@ namespace Statsify.Aggregator
         private readonly IDictionary<string, float> timerCounters = new Dictionary<string, float>();
         private readonly IDictionary<string, float> gauges = new Dictionary<string, float>();
         private readonly IDictionary<string, float> counters = new Dictionary<string, float>();
-        private readonly ConcurrentQueue<Tuple<string, DateTime, float>> flushQueue = new ConcurrentQueue<Tuple<string, DateTime, float>>();
+        private readonly ConcurrentQueue<MetricDatapoint> flushQueue = new ConcurrentQueue<MetricDatapoint>();
         private readonly object sync = new object();
         private long metrics;
 
@@ -53,7 +54,7 @@ namespace Statsify.Aggregator
                 var n = 0;
                 var sw = Stopwatch.StartNew();
 
-                Tuple<string, DateTime, float> datapoint;
+                MetricDatapoint datapoint;
 
                 while(flushQueue.TryDequeue(out datapoint))
                 {
@@ -61,13 +62,15 @@ namespace Statsify.Aggregator
 
                     try
                     {
-                        var db = GetDatabase(configuration.Storage.Path, datapoint.Item1);
+                        var db = GetDatabase(configuration.Storage.Path, datapoint.Name);
                         if(db != null)
-                            db.WriteDatapoint(datapoint.Item2, datapoint.Item3);
+                            db.WriteDatapoint(datapoint.Datapoint);
                     } // try
                     catch(Exception e)
                     {
-                        var message = string.Format("could not write datapoint ({0}, {1}) to '{2}'", datapoint.Item2, datapoint.Item3, datapoint.Item1);
+                        var message = string.Format("could not write datapoint ({0}, {1}) to '{2}'", 
+                            datapoint.Datapoint.Timestamp, datapoint.Datapoint.Value, datapoint.Name);
+
                         log.ErrorException(message, e);
                     } // catch
                 } // while
@@ -227,26 +230,26 @@ namespace Statsify.Aggregator
 
                 foreach(var counter in counters.Keys.ToList())
                 {
-                    flushQueue.Enqueue(Tuple.Create(counter, ts, counters[counter]));
+                    flushQueue.Enqueue(new MetricDatapoint(counter, ts, counters[counter]));
                     counters[counter] = 0;
                 }
 
                 foreach(var gauge in gauges.Keys.ToList())
                 {
-                    flushQueue.Enqueue(Tuple.Create(gauge, ts, gauges[gauge]));
+                    flushQueue.Enqueue(new MetricDatapoint(gauge, ts, gauges[gauge]));
                 }
 
                 foreach(var t in timerData.Keys.ToList())
                 {
                     foreach(var tt in timerData[t].Keys)
-                        flushQueue.Enqueue(Tuple.Create(t + "." + tt, ts, timerData[t][tt]));
+                        flushQueue.Enqueue(new MetricDatapoint(t + "." + tt, ts, timerData[t][tt]));
 
                     timers[t] = new List<float>();
                     timerCounters[t] = 0;
                 }
 
-                flushQueue.Enqueue(Tuple.Create("statsify.queue_backlog", ts, (float)flushQueue.Count));
-                flushQueue.Enqueue(Tuple.Create("statsify.metrics.count", ts, (float)metrics));
+                flushQueue.Enqueue(new MetricDatapoint("statsify.queue_backlog", ts, flushQueue.Count));
+                flushQueue.Enqueue(new MetricDatapoint("statsify.metrics.count", ts, metrics));
             }
         }
 
