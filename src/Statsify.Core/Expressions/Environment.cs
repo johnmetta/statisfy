@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Statsify.Core.Components;
+using Statsify.Core.Model;
 
 namespace Statsify.Core.Expressions
 {
@@ -11,6 +12,8 @@ namespace Statsify.Core.Expressions
         private static readonly IDictionary<string, Function> Functions = new Dictionary<string, Function>();
 
         public IMetricRegistry MetricRegistry { get; set; }
+
+        public IEnumerable<MetricDatapoint> QueuedMetricDatapoints { get; set; } 
 
         public static void RegisterFunction(string name, Function function)
         {

@@ -54,6 +54,7 @@
     <Compile Include="Expressions\FunctionInvocationExpression.cs" />
     <Compile Include="Expressions\Functions.cs" />
     <Compile Include="Expressions\ITokenScanner.cs" />
+    <Compile Include="Expressions\MetricReader.cs" />
     <Compile Include="Expressions\MetricSelector.cs" />
     <Compile Include="Expressions\MetricSelectorExpression.cs" />
     <Compile Include="Expressions\NumberTokenScanner.cs" />

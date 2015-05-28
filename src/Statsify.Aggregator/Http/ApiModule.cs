@@ -5,6 +5,7 @@ using Nancy;
 using Nancy.Helpers;
 using Nancy.Json;
 using Nancy.ModelBinding;
+using Statsify.Aggregator.ComponentModel;
 using Statsify.Aggregator.Http.Models;
 using Statsify.Aggregator.Http.Services;
 using Statsify.Core.Components;
@@ -16,7 +17,7 @@ namespace Statsify.Aggregator.Http
 {
     public class ApiModule : NancyModule
     {
-        public ApiModule(IMetricService metricService, IAnnotationRegistry annotationRegistry, IMetricRegistry metricRegistry) :
+        public ApiModule(IMetricService metricService, IAnnotationRegistry annotationRegistry, IMetricRegistry metricRegistry, IMetricAggregator metricAggregator) :
             base("/api/v1")
         {
             JsonSettings.MaxJsonLength = int.MaxValue;
@@ -56,10 +57,10 @@ namespace Statsify.Aggregator.Http
                 return Response.AsJson(new { Success = true });
             };
 
-            Get["series"] = x => GetSeries(metricRegistry);
+            Get["series"] = x => GetSeries(metricRegistry, metricAggregator);
         }
 
-        private dynamic GetSeries(IMetricRegistry metricRegistry)
+        private dynamic GetSeries(IMetricRegistry metricRegistry, IMetricAggregator metricAggregator)
         {
             try
             {
@@ -72,7 +73,8 @@ namespace Statsify.Aggregator.Http
 
                 var environment = new Statsify.Core.Expressions.Environment
                 {
-                    MetricRegistry = metricRegistry
+                    MetricRegistry = metricRegistry,
+                    QueuedMetricDatapoints = metricAggregator.Queue
                 };
 
                 var evalContext = new EvalContext(@from, until);
@@ -91,7 +93,7 @@ namespace Statsify.Aggregator.Http
                         e = new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression);
                     } // if
 
-                    var r = (Core.Model.Metric[]) e.Evaluate(environment, evalContext);
+                    var r = (Core.Model.Metric[])e.Evaluate(environment, evalContext);
 
                     metrics.AddRange(r);
                 } // foreach

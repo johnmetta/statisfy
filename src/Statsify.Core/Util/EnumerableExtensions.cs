@@ -33,5 +33,22 @@ namespace Statsify.Core.Util
 
             return median;
         }
+
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> enumerable, IEnumerable<T> values)
+        {
+            if(enumerable == null) throw new ArgumentNullException("enumerable");
+            if(values == null) throw new ArgumentNullException("values");
+
+            return AppendImpl(enumerable, values);
+        }
+
+        private static IEnumerable<T> AppendImpl<T>(IEnumerable<T> enumerable, IEnumerable<T> values)
+        {
+            foreach(var value in enumerable)
+                yield return value;
+
+            foreach(var value in values)
+                yield return value;
+        }
     }
 }
