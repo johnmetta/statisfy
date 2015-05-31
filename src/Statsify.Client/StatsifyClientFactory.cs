@@ -37,7 +37,7 @@ namespace Statsify.Client
             if(!value.StartsWith("%")) return value;
 
             value = environmentVariableResolver(value);
-            if(value.StartsWith("%")) return "";
+            if(string.IsNullOrWhiteSpace(value) || value.StartsWith("%")) return "";
 
             return value;
         }
