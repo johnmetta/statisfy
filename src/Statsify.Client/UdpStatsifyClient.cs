@@ -3,10 +3,11 @@ using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using Statsify.Client.Configuration;
 
 namespace Statsify.Client
 {
-    public class UdpStatsifyClient : IStatsifyClient, IDisposable
+    public class UdpStatsifyClient : IStatsifyClient, IStatsifyClientConfiguration, IDisposable
     {
         public const int DefaultPort = 8125;
 
@@ -48,6 +49,21 @@ namespace Statsify.Client
         public void Annotation(string title, string message)
         {
             PublishAnnotation(title, message);
+        }
+
+        string IStatsifyClientConfiguration.Host
+        {
+            get { return host; }
+        }
+
+        int IStatsifyClientConfiguration.Port
+        {
+            get { return port; }
+        }
+
+        string IStatsifyClientConfiguration.Namespace
+        {
+            get { return @namespace; }
         }
 
         private void PublishMetric(string metric, string type, double value, double sample, bool explicitlySigned = false)
