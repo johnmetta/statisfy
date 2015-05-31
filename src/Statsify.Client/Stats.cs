@@ -66,18 +66,11 @@ namespace Statsify.Client
 
         private static IStatsifyClient GetStatsifyClient()
         {
+            var clientFactory = new StatsifyClientFactory();
             var configuration = ConfigurationManager.GetSection("statsify") as StatsifyConfigurationSection;
-            if(configuration == null)
-                return new NullStatsifyClient();
-
-            var host = Environment.ExpandEnvironmentVariables(configuration.Host);
-            var @namespace = Environment.ExpandEnvironmentVariables(configuration.Namespace);
-
-            if(string.IsNullOrWhiteSpace(host))
-                return new NullStatsifyClient();
-
-            var statsify = new UdpStatsifyClient(host, configuration.Port, @namespace);
-            return statsify;
+            
+            var statsifyClient = clientFactory.CreateStatsifyClient(configuration);
+            return statsifyClient;
         }
     }
 }
