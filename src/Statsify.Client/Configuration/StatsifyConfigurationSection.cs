@@ -2,7 +2,7 @@
 
 namespace Statsify.Client.Configuration
 {
-    public class StatsifyConfigurationSection : ConfigurationSection
+    public class StatsifyConfigurationSection : ConfigurationSection, IStatsifyClientConfiguration
     {
         [ConfigurationProperty("host", IsRequired = true)]
         public string Host
