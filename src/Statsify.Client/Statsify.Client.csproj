@@ -49,6 +49,7 @@
     <Compile Include="Stats.cs" />
     <Compile Include="StatsBatch.cs" />
     <Compile Include="StatsifyClientExtensions.cs" />
+    <Compile Include="StatsifyClientFactory.cs" />
     <Compile Include="UdpStatsifyClient.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
