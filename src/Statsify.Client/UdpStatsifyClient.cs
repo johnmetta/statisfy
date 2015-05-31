@@ -8,6 +8,8 @@ namespace Statsify.Client
 {
     public class UdpStatsifyClient : IStatsifyClient, IDisposable
     {
+        public const int DefaultPort = 8125;
+
         private static readonly Random Sampler = new Random();
 
         private readonly string host;
