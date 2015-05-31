@@ -48,6 +48,7 @@
     <Compile Include="Aggregator\DatagramParserTests.cs" />
     <Compile Include="Aggregator\MetricParserTests.cs" />
     <Compile Include="Client\MetricNameBuilderTests.cs" />
+    <Compile Include="Client\StatsifyClientFactoryTests.cs" />
     <Compile Include="Client\UdpStatsifyClientTests.cs" />
     <Compile Include="Core\Components\Impl\MetricRegistryTests.cs" />
     <Compile Include="Core\Expressions\ExpressionParserTests.cs" />
