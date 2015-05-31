@@ -40,6 +40,7 @@
     <Compile Include="..\AssemblyVersion.cs">
       <Link>Properties\AssemblyVersion.cs</Link>
     </Compile>
+    <Compile Include="Configuration\IStatsifyClientConfiguration.cs" />
     <Compile Include="Configuration\StatsifyConfigurationSection.cs" />
     <Compile Include="IStatsifyClient.cs" />
     <Compile Include="MetricNameBuilder.cs" />
