@@ -11,7 +11,7 @@ namespace Statsify.Client.Configuration
             set { this["host"] = value; }
         }
 
-        [ConfigurationProperty("port", IsRequired = false, DefaultValue = "8125")]
+        [ConfigurationProperty("port", IsRequired = false, DefaultValue = UdpStatsifyClient.DefaultPort)]
         public int Port
         {
             get { return (int)this["port"]; }
