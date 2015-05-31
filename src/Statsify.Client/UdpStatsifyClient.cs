@@ -17,7 +17,7 @@ namespace Statsify.Client
         private readonly string @namespace;
         private readonly UdpClient udpClient;
 
-        public UdpStatsifyClient(string host = "127.0.0.1", int port = 8125, string @namespace = "")
+        public UdpStatsifyClient(string host = "127.0.0.1", int port = DefaultPort, string @namespace = "")
         {
             this.host = host;
             this.port = port;           
