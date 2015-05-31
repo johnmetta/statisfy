@@ -14,7 +14,7 @@ namespace Statsify.Client
 
         public StatsifyClientFactory(Func<string, string> environmentVariableResolver)
         {
-            this.environmentVariableResolver = environmentVariableResolver ?? Environment.GetEnvironmentVariable;
+            this.environmentVariableResolver = environmentVariableResolver ?? ResolveEnvironmentVariable;
         }
 
         public IStatsifyClient CreateStatsifyClient(IStatsifyClientConfiguration configuration)
@@ -38,6 +38,15 @@ namespace Statsify.Client
 
             value = environmentVariableResolver(value);
             if(string.IsNullOrWhiteSpace(value) || value.StartsWith("%")) return "";
+
+            return value;
+        }
+
+        public static string ResolveEnvironmentVariable(string value)
+        {
+            if(string.IsNullOrWhiteSpace(value)) return "";
+            if(value.StartsWith("%") && value.EndsWith("%"))
+                return Environment.GetEnvironmentVariable(value.Trim('%'));
 
             return value;
         }
