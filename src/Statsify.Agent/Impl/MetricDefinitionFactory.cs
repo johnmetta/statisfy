@@ -56,30 +56,41 @@ namespace Statsify.Agent.Impl
             string categoryName;
             string instanceName;
             string counterName;
-            ParsePerformanceCounterDefinition(s, out machineName, out categoryName, out instanceName, out counterName);
 
+            ParsePerformanceCounterDefinition(s, out machineName, out categoryName, out instanceName, out counterName);
+            
+            var performanceCounter = CreatePerformanceCounter(machineName, categoryName, instanceName, counterName);
+            yield return performanceCounter;
+        }
+
+        private static PerformanceCounter CreatePerformanceCounter(string machineName, string categoryName, string instanceName, string counterName)
+        {
             var performanceCounter = new PerformanceCounter();
             if(!string.IsNullOrWhiteSpace(machineName))
                 performanceCounter.MachineName = machineName;
 
             performanceCounter.CategoryName = categoryName;
-            
+
             if(!string.IsNullOrWhiteSpace(instanceName))
                 performanceCounter.InstanceName = instanceName;
 
             performanceCounter.CounterName = counterName;
-            
+
             try
             {
                 performanceCounter.NextValue();
-            }
-            catch (Exception e)
+            } // try
+            catch(Exception e)
             {
-                Log.ErrorException(string.Format("could not create performance counter from '{0}'", s), e);
-                yield break;
-            }
+                Log.ErrorException(string.Format(@"could not initialize Performance Counter from '{0}\{1}\{2}'", 
+                    string.IsNullOrWhiteSpace(machineName) ? "" : @"\\" + machineName,
+                    categoryName + (string.IsNullOrWhiteSpace(instanceName) ? "" : "(" + instanceName + ")"),
+                    counterName), e);
 
-            yield return performanceCounter;
+                return null;
+            } // catch
+
+            return performanceCounter;
         }
 
         public static void ParsePerformanceCounterDefinition(string s, out string machineName, out string categoryName,
