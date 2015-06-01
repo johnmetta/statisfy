@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,13 +15,13 @@ namespace Statsify.Agent.Impl
 
         private static readonly Regex PerformanceCounterParser =  new Regex(@"(\\\\(?<computer>([^\\]+)))?(\\(?<object>([^\\]+)))\\(?<counter>(.+))", RegexOptions.Compiled | RegexOptions.Singleline);
 
-        public MetricDefinition CreateInstance(MetricConfigurationElement metric)
+        public IEnumerable<MetricDefinition> CreateInstance(MetricConfigurationElement metric)
         {
             var type = metric.Type.ToLowerInvariant();
             return CreateInstance(metric, type);
         }
 
-        private MetricDefinition CreateInstance(MetricConfigurationElement metric, string type)
+        private IEnumerable<MetricDefinition> CreateInstance(MetricConfigurationElement metric, string type)
         {
             switch(type)
             {
@@ -33,12 +34,12 @@ namespace Statsify.Agent.Impl
             }
         }
 
-        private MetricDefinition CreateNumberOfFilesDefinition(MetricConfigurationElement metric)
+        private IEnumerable<MetricDefinition> CreateNumberOfFilesDefinition(MetricConfigurationElement metric)
         {
             var path = metric.Path;
-            if(!Directory.Exists(path)) return null;
+            if(!Directory.Exists(path)) yield break;
 
-            return new MetricDefinition(
+            yield return new MetricDefinition(
                 metric.Name, 
                 () => {
                     var numberOfFiles = new DirectoryInfo(path).EnumerateFiles("*.*", SearchOption.TopDirectoryOnly).Count();
@@ -46,10 +47,10 @@ namespace Statsify.Agent.Impl
                 }, metric.AggregationStrategy);
         }
 
-        private MetricDefinition CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
+        private IEnumerable<MetricDefinition> CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
         {
             var performanceCounter = ParsePerformanceCounter(metric.Path);
-            return performanceCounter == null ?
+            yield return performanceCounter == null ?
                 null :
                 new MetricDefinition(metric.Name, () => performanceCounter.NextValue(), metric.AggregationStrategy);
         }
