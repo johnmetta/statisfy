@@ -47,13 +47,10 @@ namespace Statsify.Agent.Impl
 
         private IEnumerable<MetricDefinition> CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
         {
-            var performanceCounter = ParsePerformanceCounter(metric.Path);
-            yield return performanceCounter == null ?
-                null :
-                new MetricDefinition(metric.Name, () => performanceCounter.NextValue(), metric.AggregationStrategy);
+            return ParsePerformanceCounters(metric.Path).Select(pc => new MetricDefinition(metric.Name, () => pc.NextValue(), metric.AggregationStrategy));
         }
 
-        public static PerformanceCounter ParsePerformanceCounter(string s)
+        public static IEnumerable<PerformanceCounter> ParsePerformanceCounters(string s)
         {
             string machineName;
             string categoryName;
@@ -79,10 +76,10 @@ namespace Statsify.Agent.Impl
             catch (Exception e)
             {
                 Log.ErrorException(string.Format("could not create performance counter from '{0}'", s), e);
-                return null;
+                yield break;
             }
 
-            return performanceCounter;
+            yield return performanceCounter;
         }
 
         public static void ParsePerformanceCounterDefinition(string s, out string machineName, out string categoryName,
