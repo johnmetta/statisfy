@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using NUnit.Framework;
 using Statsify.Agent.Configuration;
 using Statsify.Agent.Impl;
@@ -18,6 +19,13 @@ namespace Statsify.Tests.Agent.Impl
                 Path = @"\SQLServer:Locks(_Total)\Lock Timeouts/sec",
                 AggregationStrategy = AggregationStrategy.Gauge
             });
+        }
+
+        [Test]
+        public void ParsePerformanceCounters()
+        {
+            var counters = MetricDefinitionFactory.ParsePerformanceCounters(@"\LogicalDisk(**)\Disk Read Bytes/sec").ToList();
+            CollectionAssert.IsNotEmpty(counters);
         }
 
         [Test]

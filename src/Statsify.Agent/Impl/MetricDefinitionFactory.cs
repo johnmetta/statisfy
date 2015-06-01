@@ -58,9 +58,20 @@ namespace Statsify.Agent.Impl
             string counterName;
 
             ParsePerformanceCounterDefinition(s, out machineName, out categoryName, out instanceName, out counterName);
-            
-            var performanceCounter = CreatePerformanceCounter(machineName, categoryName, instanceName, counterName);
-            yield return performanceCounter;
+
+            //
+            // See #1: Add support for expanding multi-instance performance counters into distinct metrics
+            IList<string> instanceNames = new List<string>();
+            if(instanceName == "**")
+            {
+                var performanceCounterCategory = PerformanceCounterCategory.GetCategories().First(c => c.CategoryName == categoryName);
+                instanceNames = performanceCounterCategory.GetInstanceNames().ToArray();
+
+                if(instanceName.Length == 0)
+                    instanceNames.Add("");
+            } // if
+
+            return instanceNames.Select(n => CreatePerformanceCounter(machineName, categoryName, n, counterName));
         }
 
         private static PerformanceCounter CreatePerformanceCounter(string machineName, string categoryName, string instanceName, string counterName)
