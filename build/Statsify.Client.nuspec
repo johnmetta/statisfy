@@ -14,5 +14,6 @@
   <files>
     <file src=".\..\src\Statsify.Client\bin\Release\Statsify.Client.dll" target="lib\net40" />
     <file src=".\..\src\Statsify.Client\bin\Release\Statsify.Client.pdb" target="lib\net40" />
+    <file src=".\..\src\Statsify.Client\**\*.cs" target="src" />
   </files>  
 </package>
