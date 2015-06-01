@@ -6,6 +6,7 @@ using System.Linq;
 using NLog;
 using Statsify.Agent.Configuration;
 using Statsify.Agent.Util;
+using Statsify.Client;
 
 namespace Statsify.Agent.Impl
 {
@@ -47,7 +48,23 @@ namespace Statsify.Agent.Impl
 
         private IEnumerable<MetricDefinition> CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
         {
-            return ParsePerformanceCounters(metric.Path).Select(pc => new MetricDefinition(metric.Name, () => pc.Item2.NextValue(), metric.AggregationStrategy));
+            return ParsePerformanceCounters(metric.Path).Select(pc => {
+                var name = metric.Name;
+
+                if(!string.IsNullOrWhiteSpace(pc.Item1) && name.Contains("**"))
+                {
+                    var fragment = MetricNameBuilder.SanitizeMetricName(pc.Item1).ToLowerInvariant();
+                    
+                    fragment = fragment.Trim('_');
+                    while(fragment.Contains("__"))
+                        fragment = fragment.Replace("__", "_");
+
+                    name = name.Replace("**", fragment);
+                } // if
+
+                var metricDefinition = new MetricDefinition(name, () => pc.Item2.NextValue(), metric.AggregationStrategy);
+                return metricDefinition;
+            });
         }
 
         public static IEnumerable<Tuple<string, PerformanceCounter>> ParsePerformanceCounters(string s)
