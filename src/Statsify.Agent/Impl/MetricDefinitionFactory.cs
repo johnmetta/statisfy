@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using NLog;
 using Statsify.Agent.Configuration;
+using Statsify.Agent.Util;
 
 namespace Statsify.Agent.Impl
 {
     public class MetricDefinitionFactory
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-        private static readonly Regex PerformanceCounterParser =  new Regex(@"(\\\\(?<computer>([^\\]+)))?(\\(?<object>([^\\]+)))\\(?<counter>(.+))", RegexOptions.Compiled | RegexOptions.Singleline);
 
         public IEnumerable<MetricDefinition> CreateMetricDefinitions(MetricConfigurationElement metric)
         {
@@ -55,35 +53,25 @@ namespace Statsify.Agent.Impl
                 new MetricDefinition(metric.Name, () => performanceCounter.NextValue(), metric.AggregationStrategy);
         }
 
-        private PerformanceCounter ParsePerformanceCounter(string s)
+        public static PerformanceCounter ParsePerformanceCounter(string s)
         {
+            string machineName;
+            string categoryName;
+            string instanceName;
+            string counterName;
+            ParsePerformanceCounterDefinition(s, out machineName, out categoryName, out instanceName, out counterName);
+
             var performanceCounter = new PerformanceCounter();
-
-            var match = PerformanceCounterParser.Match(s);
-
-            var machineName = match.Groups["computer"].Value;
-
             if(!string.IsNullOrWhiteSpace(machineName))
                 performanceCounter.MachineName = machineName;
 
-            var category = match.Groups["object"].Value;
+            performanceCounter.CategoryName = categoryName;
+            
+            if(!string.IsNullOrWhiteSpace(instanceName))
+                performanceCounter.InstanceName = instanceName;
 
-            if(category.Contains("("))
-            {
-                var ix = category.IndexOf("(", StringComparison.Ordinal);
-
-                var categoryName = category.Substring(0, ix).Trim();
-
-                performanceCounter.CategoryName = categoryName;
-                performanceCounter.InstanceName = category.Substring(ix).Trim('(', ')');
-            }
-            else
-            {
-                performanceCounter.CategoryName = category;
-            }
-
-            performanceCounter.CounterName = match.Groups["counter"].Value;
-
+            performanceCounter.CounterName = counterName;
+            
             try
             {
                 performanceCounter.NextValue();
@@ -97,5 +85,26 @@ namespace Statsify.Agent.Impl
             return performanceCounter;
         }
 
+        public static void ParsePerformanceCounterDefinition(string s, out string machineName, out string categoryName,
+            out string instanceName, out string counterName)
+        {
+            var fragments = new Queue<string>(s.Trim('\\').Split('\\'));
+
+            machineName = s.StartsWith(@"\\") && fragments.Count == 3 ? 
+                fragments.Dequeue() : 
+                null;
+ 
+            categoryName = fragments.Dequeue();
+            
+            instanceName = 
+                categoryName.Contains("(") && categoryName.EndsWith(")") ? 
+                    categoryName.SubstringBetween("(", ")") : 
+                    null;
+            
+            if(!string.IsNullOrWhiteSpace(instanceName))
+                categoryName = categoryName.SubstringBefore("(");
+
+            counterName = fragments.Dequeue();
+        }
     }
 }
