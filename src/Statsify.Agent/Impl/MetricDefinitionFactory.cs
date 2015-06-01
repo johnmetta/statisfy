@@ -47,10 +47,10 @@ namespace Statsify.Agent.Impl
 
         private IEnumerable<MetricDefinition> CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
         {
-            return ParsePerformanceCounters(metric.Path).Select(pc => new MetricDefinition(metric.Name, () => pc.NextValue(), metric.AggregationStrategy));
+            return ParsePerformanceCounters(metric.Path).Select(pc => new MetricDefinition(metric.Name, () => pc.Item2.NextValue(), metric.AggregationStrategy));
         }
 
-        public static IEnumerable<PerformanceCounter> ParsePerformanceCounters(string s)
+        public static IEnumerable<Tuple<string, PerformanceCounter>> ParsePerformanceCounters(string s)
         {
             string machineName;
             string categoryName;
@@ -71,7 +71,7 @@ namespace Statsify.Agent.Impl
                     instanceNames.Add("");
             } // if
 
-            return instanceNames.Select(n => CreatePerformanceCounter(machineName, categoryName, n, counterName));
+            return instanceNames.Select(n => Tuple.Create(n, CreatePerformanceCounter(machineName, categoryName, n, counterName)));
         }
 
         private static PerformanceCounter CreatePerformanceCounter(string machineName, string categoryName, string instanceName, string counterName)
