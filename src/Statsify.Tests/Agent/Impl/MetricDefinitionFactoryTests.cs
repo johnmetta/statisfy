@@ -8,9 +8,9 @@ namespace Statsify.Tests.Agent.Impl
     public class MetricDefinitionFactoryTests
     {
         [Test]
-        public void CreateInstance()
+        public void CreateMetricDefinitions()
         {
-            var metricDefinition = new MetricDefinitionFactory().CreateInstance(new MetricConfigurationElement {
+            var metricDefinition = new MetricDefinitionFactory().CreateMetricDefinitions(new MetricConfigurationElement {
                 Name = "sql_server.lock_timeouts_sec",
                 Type = "performance-counter",
                 Path = @"\SQLServer:Locks(_Total)\Lock Timeouts/sec",

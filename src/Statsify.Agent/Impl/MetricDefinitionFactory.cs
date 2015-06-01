@@ -15,13 +15,13 @@ namespace Statsify.Agent.Impl
 
         private static readonly Regex PerformanceCounterParser =  new Regex(@"(\\\\(?<computer>([^\\]+)))?(\\(?<object>([^\\]+)))\\(?<counter>(.+))", RegexOptions.Compiled | RegexOptions.Singleline);
 
-        public IEnumerable<MetricDefinition> CreateInstance(MetricConfigurationElement metric)
+        public IEnumerable<MetricDefinition> CreateMetricDefinitions(MetricConfigurationElement metric)
         {
             var type = metric.Type.ToLowerInvariant();
-            return CreateInstance(metric, type);
+            return CreateMetricDefinitions(metric, type);
         }
 
-        private IEnumerable<MetricDefinition> CreateInstance(MetricConfigurationElement metric, string type)
+        private IEnumerable<MetricDefinition> CreateMetricDefinitions(MetricConfigurationElement metric, string type)
         {
             switch(type)
             {
