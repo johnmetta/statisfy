@@ -13,12 +13,12 @@ namespace Statsify.Tests.Agent.Impl
         [Test]
         public void CreateMetricDefinitions()
         {
-            var metricDefinition = new MetricDefinitionFactory().CreateMetricDefinitions(new MetricConfigurationElement {
-                Name = "sql_server.lock_timeouts_sec",
+            var metricDefinitions = new MetricDefinitionFactory().CreateMetricDefinitions(new MetricConfigurationElement {
+                Name = "logical_disk.**.percent_free_space",
                 Type = "performance-counter",
-                Path = @"\SQLServer:Locks(_Total)\Lock Timeouts/sec",
+                Path = @"\LogicalDisk(**)\% Free Space",
                 AggregationStrategy = AggregationStrategy.Gauge
-            });
+            }).ToList();
         }
 
         [Test]
