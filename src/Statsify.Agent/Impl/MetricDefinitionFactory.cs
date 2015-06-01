@@ -59,6 +59,8 @@ namespace Statsify.Agent.Impl
                     while(fragment.Contains("__"))
                         fragment = fragment.Replace("__", "_");
 
+                    fragment = fragment.Replace(".", "_");
+
                     name = name.Replace("**", fragment);
                 } // if
 
