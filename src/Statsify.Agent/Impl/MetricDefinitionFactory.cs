@@ -87,6 +87,8 @@ namespace Statsify.Agent.Impl
                 if(instanceName.Length == 0)
                     instanceNames.Add("");
             } // if
+            else
+                instanceNames.Add(instanceName ?? "");
 
             return instanceNames.Select(n => Tuple.Create(n, CreatePerformanceCounter(machineName, categoryName, n, counterName)));
         }
