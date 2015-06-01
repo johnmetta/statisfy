@@ -31,8 +31,14 @@ namespace Statsify.Client
             if(!string.IsNullOrWhiteSpace(@namespace))
                 metric = string.Format("{0}.{1}", @namespace.Trim('.'), metric);
 
-            metric = ReservedCharactersRegex.Replace(metric, "_");
+            metric = SanitizeMetricName(metric);
 
+            return metric;
+        }
+
+        public static string SanitizeMetricName(string metric)
+        {
+            metric = ReservedCharactersRegex.Replace(metric, "_");
             return metric;
         }
     }
