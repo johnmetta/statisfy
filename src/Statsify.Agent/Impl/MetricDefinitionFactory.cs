@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using NLog;
 using Statsify.Agent.Configuration;
 using Statsify.Agent.Util;
@@ -83,10 +85,16 @@ namespace Statsify.Agent.Impl
             IList<string> instanceNames = new List<string>();
             if(instanceName == "**")
             {
+                var cc = Thread.CurrentThread.CurrentCulture;
+                var cuic = Thread.CurrentThread.CurrentUICulture;
+
+                //
+                // Otherwise PerformanceCounterCategory.GetCategories() will return weirdo localized names
+                Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+
                 var performanceCounterCategory = 
                     PerformanceCounterCategory.GetCategories().
                         FirstOrDefault(c => c.CategoryName == categoryName);
-                
                 if(performanceCounterCategory == null)
                 {
                     Log.Warn("unknown Performance Counter Category '{0}'", categoryName);
@@ -94,6 +102,9 @@ namespace Statsify.Agent.Impl
                 } // if
 
                 instanceNames = performanceCounterCategory.GetInstanceNames().ToArray();
+
+                Thread.CurrentThread.CurrentCulture = cc;
+                Thread.CurrentThread.CurrentUICulture = cuic;
 
                 if(instanceName.Length == 0)
                     instanceNames.Add("");
