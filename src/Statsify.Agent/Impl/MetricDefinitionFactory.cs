@@ -83,7 +83,16 @@ namespace Statsify.Agent.Impl
             IList<string> instanceNames = new List<string>();
             if(instanceName == "**")
             {
-                var performanceCounterCategory = PerformanceCounterCategory.GetCategories().First(c => c.CategoryName == categoryName);
+                var performanceCounterCategory = 
+                    PerformanceCounterCategory.GetCategories().
+                        FirstOrDefault(c => c.CategoryName == categoryName);
+                
+                if(performanceCounterCategory == null)
+                {
+                    Log.Warn("unknown Performance Counter Category '{0}'", categoryName);
+                    yield break;
+                } // if
+
                 instanceNames = performanceCounterCategory.GetInstanceNames().ToArray();
 
                 if(instanceName.Length == 0)
@@ -92,7 +101,8 @@ namespace Statsify.Agent.Impl
             else
                 instanceNames.Add(instanceName ?? "");
 
-            return instanceNames.Select(n => Tuple.Create(n, CreatePerformanceCounter(machineName, categoryName, n, counterName)));
+            foreach(var t in instanceNames.Select(n => Tuple.Create(n, CreatePerformanceCounter(machineName, categoryName, n, counterName))))
+                yield return t;
         }
 
         private static PerformanceCounter CreatePerformanceCounter(string machineName, string categoryName, string instanceName, string counterName)
