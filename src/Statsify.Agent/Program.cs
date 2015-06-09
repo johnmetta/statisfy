@@ -27,7 +27,6 @@ namespace Statsify.Agent
                         sc.ConstructUsing(() => new StatsifyAgentService(configurationManager));
                         sc.WhenStarted((service, hostControl) => service.Start(hostControl));
                         sc.WhenStopped((service, hostControl) => service.Stop(hostControl));
-                        sc.WhenShutdown((service, hostControl) => service.Shutdown(hostControl));
                     });
 
                     x.SetServiceName("statsify-agent");
