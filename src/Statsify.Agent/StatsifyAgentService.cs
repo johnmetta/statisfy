@@ -52,12 +52,5 @@ namespace Statsify.Agent
 
             return true;
         }
-
-        public void Shutdown(HostControl hostControl)
-        {
-            metricPublisher.Stop();
-
-            hostControl.Stop();
-        }
     }
 }
