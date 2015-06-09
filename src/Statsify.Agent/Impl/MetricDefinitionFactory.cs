@@ -112,7 +112,7 @@ namespace Statsify.Agent.Impl
             else
                 instanceNames.Add(instanceName ?? "");
 
-            foreach(var t in instanceNames.Select(n => Tuple.Create(n, CreatePerformanceCounter(machineName, categoryName, n, counterName))))
+            foreach(var t in instanceNames.Select(n => Tuple.Create(n, CreatePerformanceCounter(machineName, categoryName, n, counterName))).Where(n => n.Item2 != null))
                 yield return t;
         }
 
