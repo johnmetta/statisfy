@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Timers;
 using NLog;
 using Statsify.Agent.Configuration;
 using Statsify.Client;
@@ -15,49 +14,58 @@ namespace Statsify.Agent.Impl
         private readonly TimeSpan collectionInterval;
         private ManualResetEvent stopEvent;
         private ManualResetEvent stoppedEvent;
-        private System.Timers.Timer publisherTimer;
 
         public MetricPublisher(MetricCollector metricCollector, IStatsifyClient statsifyClient, TimeSpan collectionInterval)
         {
             this.metricCollector = metricCollector;
-
             this.statsifyClient = statsifyClient;
-
             this.collectionInterval = collectionInterval;
         }
 
         public void Start()
         {
+            log.Trace("starting MetricPublisher");
+
             stopEvent = new ManualResetEvent(false);
-
             stoppedEvent = new ManualResetEvent(false);
+            
+            ThreadPool.RegisterWaitForSingleObject(stopEvent, PublisherTimerCallback, null, collectionInterval, true);
 
-            publisherTimer = new System.Timers.Timer(collectionInterval.TotalMilliseconds) { AutoReset = false };
-            publisherTimer.Elapsed += PublisherTimerCallback;
-
-            publisherTimer.Start();
+            log.Trace("started MetricPublisher");
         }
 
         public void Stop()
         {
-            if(publisherTimer == null) return;
+            log.Trace("stopping MetricPublisher");
 
             stopEvent.Set();
-            publisherTimer.Stop();
-
-            publisherTimer.Dispose();
-
             stopEvent.Dispose();
 
+            log.Trace("waiting for callback to stop");
+
+            stoppedEvent.WaitOne();
             stoppedEvent.Dispose();
 
-            publisherTimer = null;
+            log.Trace("stopping MetricPublisher");
         }
 
-        private void PublisherTimerCallback(object state, ElapsedEventArgs args)
+        private void PublisherTimerCallback(object state, bool timedOut)
         {
+            if(!timedOut)
+            {
+                log.Trace("stopping callback");
+                stoppedEvent.Set();
+                log.Trace("stopped callback");
+
+                return;
+            } // if
+
+            log.Trace("starting publishing metrics");
+            var metrics = 0;
+
             foreach(var metric in metricCollector.GetCollectedMetrics())
             {
+                metrics++;
                 log.Trace("publishing metric '{0}' with value '{1}'", metric.Name, metric.Value);
                 
                 switch(metric.AggregationStrategy)
@@ -72,11 +80,12 @@ namespace Statsify.Agent.Impl
 
                     default:
                         throw new ArgumentOutOfRangeException();
-                }
-            }
+                } // switch
+            } // foreach
 
-            if(!stopEvent.WaitOne(0))
-                publisherTimer.Start();
+            log.Trace("completed publishing {0} metrics", metrics);
+        
+            ThreadPool.RegisterWaitForSingleObject(stopEvent, PublisherTimerCallback, null, collectionInterval, true);
         }
     }
 }
