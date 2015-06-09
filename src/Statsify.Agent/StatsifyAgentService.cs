@@ -32,7 +32,8 @@ namespace Statsify.Agent
 
             @namespace += Environment.MachineName.ToLowerInvariant();
 
-            log.Trace("configuring StatsifyClient with host: {0}, port: {1}, namespace: '{2}'", configuration.Statsify.Host, configuration.Statsify.Port, @namespace);
+            log.Trace("configuring StatsifyClient with host: {0}, port: {1}, namespace: '{2}', collection interval: '{3}' ", 
+                configuration.Statsify.Host, configuration.Statsify.Port, @namespace, configuration.Metrics.CollectionInterval);
 
             statsifyClient = new UdpStatsifyClient(configuration.Statsify.Host, configuration.Statsify.Port, @namespace);
             
@@ -46,9 +47,11 @@ namespace Statsify.Agent
 
         public bool Stop(HostControl hostControl)
         {
+            log.Info("stopping service");
+
             metricPublisher.Stop();
 
-            hostControl.Stop();
+            log.Info("stopped service");
 
             return true;
         }
