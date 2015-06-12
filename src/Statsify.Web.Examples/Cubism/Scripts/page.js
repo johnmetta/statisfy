@@ -1,26 +1,10 @@
 var metrics = [
-    'servers.n46-msk.system.processor.total_privileged_time',
-    'servers.n46-msk.system.processor.total_time',
-    'servers.n46-msk.system.processor.total_user_time',
-
-
-    'servers.n46-msk.system.physical_disk.average_queue_length',
-    'servers.n46-msk.system.physical_disk.average_sec_read',
-    'servers.n46-msk.system.physical_disk.average_sec_write',
-    'servers.n46-msk.system.physical_disk.bytes_sec',
-    'servers.n46-msk.system.physical_disk.current_queue_length',
-    'servers.n46-msk.system.physical_disk.disk_time',
-    'servers.n46-msk.system.physical_disk.read_bytes_sec',
-    'servers.n46-msk.system.physical_disk.transfers_sec',
-    'servers.n46-msk.system.physical_disk.write_bytes_sec',
-
-    'servers.n46-msk.system.memory.available_mb',
-
-    'servers.n46-msk.system.asp_net.requests_sec'
+    'servers.srv-aps11.system.processor.total_time',
+    'servers.mow1aps1.system.processor.total_time'
 ];
 
 var context = cubism.context()
-    .step(1e4)
+    .step(10 * 1000 * 5)
     .size(1440);
 
 d3.select("body").selectAll(".axis")
@@ -52,11 +36,13 @@ function getData(expression) {
 
     return context.metric(function (start, stop, step, callback) {
 
-        $.getJSON('http://localhost/Statsify/api/series', {
-            start: start.toISOString(),
-            stop: stop.toISOString(),
+        $.getJSON('http://mow1aps3/statsify/api/v1/series', {
+            from: start.toISOString(),
+            until: stop.toISOString(),
             expression: expression
         }, function (data) {
+
+            debugger;
 
             start = +start, stop = +stop;
 
@@ -66,7 +52,10 @@ function getData(expression) {
 
             while (last < stop) {
                 last += step;
-                value = data[0].dataPoints[index][0];
+                var datapoint = data[0].datapoints[index];
+                if(!datapoint) break;
+
+                value = datapoint[0];
                 values.push(value);
                 index++;
             }

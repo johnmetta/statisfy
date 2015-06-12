@@ -57,7 +57,7 @@
     <Compile Include="Core\Expressions\FunctionTests.cs" />
     <Compile Include="Core\Storage\AnnotationDatabaseTests.cs" />
     <Compile Include="Core\Storage\DatapointDatabaseTests.cs" />
-    <Compile Include="Core\Util\EnumerableUtilTests.cs" />
+    <Compile Include="Core\Util\EnumerableExtensionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
