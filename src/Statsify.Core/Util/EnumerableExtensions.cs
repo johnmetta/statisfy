@@ -50,5 +50,31 @@ namespace Statsify.Core.Util
             foreach(var value in values)
                 yield return value;
         }
+
+        public static bool AllEqual<T>(this IEnumerable<T> enumerable, IEqualityComparer<T> comparer = null)
+        {
+            return enumerable.AllEqual(t => t, comparer);
+        }
+
+        public static bool AllEqual<T, U>(this IEnumerable<T> enumerable, Func<T, U> selector, IEqualityComparer<U> comparer = null)
+        {
+            if(enumerable == null) throw new ArgumentNullException("enumerable");
+
+            comparer = comparer ?? EqualityComparer<U>.Default;
+
+            using(var enumerator = enumerable.GetEnumerator())
+            {
+                if(!enumerator.MoveNext()) throw new InvalidOperationException();
+
+                var first = selector(enumerator.Current);
+                while(enumerator.MoveNext())
+                {
+                    if(!comparer.Equals(first, selector(enumerator.Current))) 
+                        return false;
+                } // while
+            } // using
+
+            return true;
+        }
     }
 }

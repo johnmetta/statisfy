@@ -10,6 +10,17 @@ namespace Statsify.Tests.Core.Storage
     public class DatapointDatabaseTests
     {
         [Test]
+        public void Open()
+        {
+            var database = DatapointDatabase.Open(@"C:\ProgramData\Statsify\Aggregator\Data\servers\n42-msk\system\processor\total_time.db");
+            Console.WriteLine(database.Archives.Count);
+
+            var now = DateTime.UtcNow;
+
+            var series = database.ReadSeries(now.AddSeconds(-60), now);
+        }
+
+        [Test]
         public void CreateOpen()
         {
             var path = Path.GetTempFileName();

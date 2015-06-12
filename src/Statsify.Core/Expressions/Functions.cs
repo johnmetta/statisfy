@@ -338,5 +338,30 @@ namespace Statsify.Core.Expressions
                 ToArray();
 
         }
+
+        [Function("sum")]
+        public static Metric Sum(EvalContext context, Metric[] metrics)
+        {
+            if(metrics.Length == 0) return null;
+            if(!metrics.AllEqual(m => m.Series.Interval)) return null;
+
+            var interval = metrics[0].Series.Interval;
+            var from = metrics.Min(m => m.Series.From);
+            var until = metrics.Max(m => m.Series.Until);
+
+            var datapoints = new List<Datapoint>();
+            for(var timestamp = from; timestamp <= until; timestamp += interval)
+            {
+                datapoints.Add(new Datapoint(timestamp, metrics.SelectMany(m => m.Series.Datapoints.Where(d => d.Timestamp == timestamp)).Select(d => d.Value).Sum()));
+            } // for
+
+            return new Metric("", new Series(from, until, interval, datapoints));
+        }
+
+        [Function("group_by_fragment")]
+        public static Metric[] GroupByFragment(EvalContext context, MetricSelector selector, int fragmentIndex, string callback)
+        {
+            return null;
+        }
     }
 }
