@@ -423,6 +423,11 @@ namespace Statsify.Core.Storage
         {
             binaryWriter.BaseStream.Seek(offset, SeekOrigin.Begin);
 
+            WriteDatapoint(binaryWriter, timestamp, value);
+        }
+
+        private static void WriteDatapoint(BinaryWriter binaryWriter, long timestamp, double value)
+        {
             // ReSharper disable RedundantCast
             binaryWriter.Write((long)timestamp);
             binaryWriter.Write((double)value);
