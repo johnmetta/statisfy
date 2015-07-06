@@ -165,13 +165,13 @@ namespace Statsify.Core.Storage
 
         public Series ReadSeries(DateTime from, DateTime until, TimeSpan? precision = null)
         {
-            var fromTimestamp = ConvertToTimestamp(from);
-            var untilTimestamp = ConvertToTimestamp(until);
-            var nowTimestamp = ConvertToTimestamp(currentTimeProvider());
+            Timestamp fromTimestamp = from;
+            Timestamp untilTimestamp = until;
+            Timestamp nowTimestamp = currentTimeProvider();
 
             if(fromTimestamp > untilTimestamp) throw new Exception(); // TODO: Exception class
 
-            var oldestTime = nowTimestamp - maxRetention;
+            Timestamp oldestTime = nowTimestamp - maxRetention;
 
             if(fromTimestamp > nowTimestamp) return null;
             if(untilTimestamp < oldestTime) return null;
@@ -182,12 +182,12 @@ namespace Statsify.Core.Storage
             if(untilTimestamp > nowTimestamp)
                 untilTimestamp = nowTimestamp;
 
-            var diff = nowTimestamp - fromTimestamp;
+            Timestamp diff = nowTimestamp - fromTimestamp;
 
             var archive = archives.First(a => ((TimeSpan)a.Retention.History).TotalSeconds >= diff && (precision == null || a.Retention.Precision >= precision.Value));
 
-            var fromInterval = (fromTimestamp - (fromTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
-            var untilInterval = (untilTimestamp - (untilTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
+            Timestamp fromInterval = (fromTimestamp - (fromTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
+            Timestamp untilInterval = (untilTimestamp - (untilTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
             var step = archive.Retention.Precision;
 
             double?[] values = null;
@@ -215,9 +215,9 @@ namespace Statsify.Core.Storage
             
             var timestamps =
                 Enumerable.Range(0, values.Length).
-                    Select(i => ConvertFromTimestamp(fromInterval + step * i));
+                    Select(i => new Timestamp(fromInterval + step * i));
 
-            return new Series(ConvertFromTimestamp(fromInterval), ConvertFromTimestamp(untilInterval), TimeSpan.FromSeconds(step), 
+            return new Series(fromInterval, untilInterval, TimeSpan.FromSeconds(step), 
                 timestamps.Zip(values, (ts, v) => new Datapoint(ts, v)));
         }
 
@@ -256,8 +256,8 @@ namespace Statsify.Core.Storage
 
         public void WriteDatapoint(DateTime dateTime, double value)
         {
-            var timestamp = ConvertToTimestamp(dateTime.ToUniversalTime());
-            var now = ConvertToTimestamp(currentTimeProvider());
+            Timestamp timestamp = dateTime.ToUniversalTime();
+            Timestamp now = currentTimeProvider();
 
             var diff = now - timestamp;
 
@@ -270,7 +270,7 @@ namespace Statsify.Core.Storage
 
             var lowerArchives = archives.Skip(archives.IndexOf(archive) + 1);
 
-            var myInterval = timestamp - (timestamp % archive.Retention.Precision);
+            Timestamp myInterval = timestamp - (timestamp % archive.Retention.Precision);
 
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
             using(var binaryWriter = new Util.BinaryWriter(fileStream, Encoding.UTF8, true))
@@ -291,7 +291,7 @@ namespace Statsify.Core.Storage
             } // using
         }
 
-        private static long GetReadOffset(Archive archive, long fromInterval, long baseInterval)
+        private static long GetReadOffset(Archive archive, Timestamp fromInterval, Timestamp baseInterval)
         {
             var timeDistance = fromInterval - baseInterval;
             var pointDistance = timeDistance / archive.Retention.Precision;
@@ -307,7 +307,7 @@ namespace Statsify.Core.Storage
             return offset;
         }
 
-        private static long GetWriteOffset(Archive archive, long baseInterval, long myInterval)
+        private static long GetWriteOffset(Archive archive, Timestamp baseInterval, Timestamp myInterval)
         {
             if(baseInterval == 0)
                 return archive.Offset;
@@ -321,11 +321,11 @@ namespace Statsify.Core.Storage
             return offset;
         }
 
-        private bool Downsample(BinaryReader binaryReader, BinaryWriter binaryWriter, long timestamp, Archive higher, Archive lower)
+        private bool Downsample(BinaryReader binaryReader, BinaryWriter binaryWriter, Timestamp timestamp, Archive higher, Archive lower)
         {
-            var higherBaseInterval = binaryReader.ReadInt64(higher.Offset);
+            Timestamp higherBaseInterval = binaryReader.ReadInt64(higher.Offset);
 
-            var lowerIntervalStart = (timestamp - (timestamp % lower.Retention.Precision));
+            Timestamp lowerIntervalStart = (timestamp - (timestamp % lower.Retention.Precision));
             var higherFirstOffset = GetReadOffset(higher, lowerIntervalStart, higherBaseInterval);
 
             var higherPoints = lower.Retention.Precision / higher.Retention.Precision;
@@ -350,7 +350,7 @@ namespace Statsify.Core.Storage
             return true;
         }
 
-        private static void WriteDatapoint(BinaryReader binaryReader, BinaryWriter binaryWriter, Archive archive, long timestamp, double value)
+        private static void WriteDatapoint(BinaryReader binaryReader, BinaryWriter binaryWriter, Archive archive, Timestamp timestamp, double value)
         {
             var lowerBaseInterval = binaryReader.ReadInt64(archive.Offset);
 
@@ -358,7 +358,7 @@ namespace Statsify.Core.Storage
             WriteDatapoint(binaryWriter, offset, timestamp, value);
         }
 
-        private static int UnpackDatapoints(Archive archive, byte[] buffer, long startInterval, out double?[] values, out int knownValues)
+        private static int UnpackDatapoints(Archive archive, byte[] buffer, Timestamp startInterval, out double?[] values, out int knownValues)
         {
             var points = buffer.Length / DatapointSize;
             values = new double?[points];
@@ -406,17 +406,6 @@ namespace Statsify.Core.Storage
                 default:
                     throw new ArgumentOutOfRangeException("downsamplingMethod");
             }
-        }
-
-        private static long ConvertToTimestamp(DateTime value)
-        {
-            var elapsedTime = value - Epoch;
-            return (long)elapsedTime.TotalSeconds;
-        }
-
-        private static DateTime ConvertFromTimestamp(long timestamp)
-        {
-            return Epoch.AddSeconds(timestamp);
         }
 
         private static void WriteDatapoint(BinaryWriter binaryWriter, long offset, long timestamp, double value)
