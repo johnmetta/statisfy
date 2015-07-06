@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Statsify.Core.Storage
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public struct Timestamp
+    public struct Timestamp : IEquatable<Timestamp>
     {
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
@@ -19,6 +19,22 @@ namespace Statsify.Core.Storage
         public Timestamp(long ticks)
         {
             this.ticks = ticks;
+        }
+
+        public bool Equals(Timestamp other)
+        {
+            return ticks == other.ticks;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(ReferenceEquals(null, obj)) return false;
+            return obj is Timestamp && Equals((Timestamp) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return ticks.GetHashCode();
         }
 
         public static implicit operator Timestamp(long ticks)
