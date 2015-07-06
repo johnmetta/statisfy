@@ -206,7 +206,7 @@ namespace Statsify.Core.Storage
                     var fromOffset = GetReadOffset(archive, fromInterval, baseInterval);
                     var untilOffset = GetReadOffset(archive, untilInterval, baseInterval);
 
-                    var buffer = ReadBuffer(fileStream, fromOffset, untilOffset, binaryReader, archive);
+                    var buffer = ReadBuffer(binaryReader, fromOffset, untilOffset, archive);
 
                     int knownValues;
                     UnpackDatapoints(archive, buffer, fromInterval, out values, out knownValues);
@@ -221,9 +221,9 @@ namespace Statsify.Core.Storage
                 timestamps.Zip(values, (ts, v) => new Datapoint(ts, v)));
         }
 
-        private static byte[] ReadBuffer(FileStream fileStream, long fromOffset, long untilOffset, BinaryReader binaryReader, Archive archive)
+        private static byte[] ReadBuffer(BinaryReader binaryReader, long fromOffset, long untilOffset, Archive archive)
         {
-            fileStream.Seek(fromOffset, SeekOrigin.Begin);
+            binaryReader.BaseStream.Seek(fromOffset, SeekOrigin.Begin);
 
             byte[] buffer;
             if(fromOffset < untilOffset)
@@ -240,7 +240,7 @@ namespace Statsify.Core.Storage
 
                 buffer = new byte[n1 + n2];
                 binaryReader.Read(buffer, 0, n1);
-                fileStream.Seek(archive.Offset, SeekOrigin.Begin);
+                binaryReader.BaseStream.Seek(archive.Offset, SeekOrigin.Begin);
                 binaryReader.Read(buffer, n1, n2);
             } // else
 
@@ -334,7 +334,7 @@ namespace Statsify.Core.Storage
             var relativeLastOffset = (relativeFirstOffset + higherSize) % higher.Size;
             var higherLastOffset = relativeLastOffset + higher.Offset;
 
-            var buffer = ReadBuffer(fileStream, higherFirstOffset, higherLastOffset, binaryReader, higher);
+            var buffer = ReadBuffer(binaryReader, higherFirstOffset, higherLastOffset, higher);
 
             double?[] values;
             int knownValues;
