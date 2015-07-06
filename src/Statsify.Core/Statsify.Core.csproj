@@ -84,6 +84,7 @@
     <Compile Include="Storage\RetentionPolicy.cs" />
     <Compile Include="Storage\RetentionPolicyValidationException.cs" />
     <Compile Include="Storage\RetentionPolicyValidator.cs" />
+    <Compile Include="Storage\Timestamp.cs" />
     <Compile Include="Util\BinaryReader.cs" />
     <Compile Include="Util\BinaryWriter.cs" />
     <Compile Include="Util\DateTimeUtil.cs" />
