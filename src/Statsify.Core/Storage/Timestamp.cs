@@ -41,5 +41,25 @@ namespace Statsify.Core.Storage
         {
             return Epoch.AddSeconds(timestamp.ticks);
         }
+
+        public static bool operator ==(Timestamp l, Timestamp r)
+        {
+            return l.ticks == r.ticks;
+        }
+
+        public static bool operator !=(Timestamp l, Timestamp r)
+        {
+            return l.ticks != r.ticks;
+        }
+
+        public static bool operator <(Timestamp l, Timestamp r)
+        {
+            return l.ticks < r.ticks;
+        }
+
+        public static bool operator >(Timestamp l, Timestamp r)
+        {
+            return l.ticks > r.ticks;
+        }
     }
 }
