@@ -281,7 +281,7 @@ namespace Statsify.Core.Storage
                 var higher = archive;
                 foreach(var lower in lowerArchives)
                 {
-                    if(!Downsample(fileStream, binaryReader, binaryWriter, myInterval, higher, lower))
+                    if(!Downsample(binaryReader, binaryWriter, myInterval, higher, lower))
                         break;
 
                     higher = lower;
@@ -321,7 +321,7 @@ namespace Statsify.Core.Storage
             return offset;
         }
 
-        private bool Downsample(FileStream fileStream, BinaryReader binaryReader, BinaryWriter binaryWriter, long timestamp, Archive higher, Archive lower)
+        private bool Downsample(BinaryReader binaryReader, BinaryWriter binaryWriter, long timestamp, Archive higher, Archive lower)
         {
             var higherBaseInterval = binaryReader.ReadInt64(higher.Offset);
 
