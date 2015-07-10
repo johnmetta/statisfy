@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,6 @@ namespace Statsify.Core.Storage
 {
     public class DatapointDatabase
     {
-        private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private static readonly byte[] Signature = Encoding.ASCII.GetBytes("STFY");
         private static readonly byte[] Version = { 1, 0 };
         
@@ -247,6 +247,50 @@ namespace Statsify.Core.Storage
             return buffer;
         }
 
+        public void WriteDatapoints(IList<Datapoint> datapoints)
+        {
+            Timestamp now = currentTimeProvider();
+
+            var archiveIndex = 0;
+            var archive = archives[archiveIndex];
+
+            var currentPoints = new List<Datapoint>();
+
+            using(var fileStream = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
+            using(var binaryWriter = new Util.BinaryWriter(fileStream, Encoding.UTF8, true))
+            using(var binaryReader = new Util.BinaryReader(fileStream, Encoding.UTF8, true))
+            {
+                foreach(var point in datapoints.OrderByDescending(d => d.Timestamp))
+                {
+                    var age = TimeSpan.FromSeconds(now - (Timestamp)point.Timestamp);
+
+                    while(archive.Retention.History < age)
+                    {
+                        if(currentPoints.Count > 0)
+                        {
+                            WriteDatapoints(binaryReader, binaryWriter, archive, Enumerable.Reverse(currentPoints).ToList());
+                            currentPoints.Clear();
+                        } // if
+
+                        if(archiveIndex == archives.Count - 1)
+                            break;
+
+                        archive = archives[++archiveIndex];
+                    } // while
+
+                    if(archive == null)
+                        break;
+
+                    currentPoints.Add(point);
+                } // foreach
+
+                if(archive != null && currentPoints.Count > 0)
+                    WriteDatapoints(binaryReader, binaryWriter, archive, Enumerable.Reverse(currentPoints).ToList());
+
+                fileStream.Flush(true);
+            } // using
+        }
+
         public void WriteDatapoint(Datapoint datapoint)
         {
             if(!datapoint.Value.HasValue) return;
@@ -312,7 +356,7 @@ namespace Statsify.Core.Storage
             if(baseInterval == 0)
                 return archive.Offset;
             
-            var timeDistance = myInterval - baseInterval;
+            Timestamp timeDistance = myInterval - baseInterval;
             var pointDistance = timeDistance / archive.Retention.Precision;
             var byteDistance = pointDistance * DatapointSize;
 
@@ -348,6 +392,115 @@ namespace Statsify.Core.Storage
             WriteDatapoint(binaryReader, binaryWriter, lower, lowerIntervalStart, aggregateValue);
 
             return true;
+        }
+
+        private void WriteDatapoints(BinaryReader binaryReader, BinaryWriter binaryWriter, Archive archive, IEnumerable<Datapoint> datapoints)
+        {
+            var step = (int)archive.Retention.Precision;
+            var alignedPoints = datapoints.Select(d => {
+                Timestamp ts = d.Timestamp;
+                return Tuple.Create(new Timestamp(ts - (ts % step)), d.Value);
+            }).ToList();
+
+            Timestamp? previousInterval = null;
+            var packedStrings = new List<Tuple<Timestamp, Tuple<Timestamp, double?>[]>>();
+            var currentString = new List<Tuple<Timestamp, double?>>();
+
+            for(var i = 0; i < alignedPoints.Count; ++i)
+            {
+                if(i < alignedPoints.Count - 1 && alignedPoints[i].Item1 == alignedPoints[i + 1].Item1)
+                    continue;
+
+                var interval = alignedPoints[i].Item1;
+                var value = alignedPoints[i].Item2;
+
+                if(!previousInterval.HasValue || (interval == previousInterval + step))
+                {
+                    currentString.Add(Tuple.Create(interval, value));
+                    previousInterval = interval;
+                } // if
+                else
+                {
+                    var numberOfPoints = currentString.Count;
+                    Timestamp startInterval = previousInterval.Value - (step * (numberOfPoints - 1));
+                    packedStrings.Add(Tuple.Create(startInterval, currentString.ToArray()));
+
+                    currentString.Clear();
+                    currentString.Add(Tuple.Create(interval, value));
+
+                    previousInterval = interval;
+                } // else
+            } // for
+
+            if(currentString.Any() && previousInterval.HasValue)
+            {
+                var numberOfPoints = currentString.Count;
+                Timestamp startInterval = previousInterval.Value - (step * (numberOfPoints - 1));
+                packedStrings.Add(Tuple.Create(startInterval, currentString.ToArray()));
+            } // if
+
+            // TODO
+
+            Timestamp baseInterval = binaryReader.ReadInt64(archive.Offset);
+            if(baseInterval == 0)
+                baseInterval = packedStrings[0].Item1;
+
+            foreach(var t in packedStrings)
+            {
+                var interval = t.Item1;
+                var packedString = t.Item2;
+
+                var myOffset = GetWriteOffset(archive, interval, baseInterval);
+                binaryWriter.BaseStream.Seek(myOffset, SeekOrigin.Begin);
+
+                var archiveEnd = archive.Offset + archive.Size;
+                var bytesBeyond = (int)(myOffset + packedString.Length * DatapointSize - archiveEnd);
+                
+                byte[] buffer;
+
+                using(var ms = new MemoryStream())
+                using(var bw = new BinaryWriter(ms))
+                {
+                    foreach(var dp in packedString)
+                        WriteDatapoint(bw, dp.Item1, dp.Item2 ?? 0); // TODO questionable "?? 0"
+
+                    bw.Flush();
+
+                    buffer = ms.ToArray();
+                }
+
+                if(bytesBeyond > 0)
+                {
+                    var x = buffer.Length - bytesBeyond;
+                    binaryWriter.Write(buffer, 0, x);
+
+                    Debug.Assert(binaryWriter.BaseStream.Position == archiveEnd);
+                    
+                    binaryWriter.BaseStream.Seek(archive.Offset, SeekOrigin.Begin);
+                    binaryWriter.Write(buffer, x, buffer.Length - x);
+                }
+                else
+                    binaryWriter.Write(buffer);
+            } // foreach
+
+            var higher = archive;
+            var lowerArchives = archives.Where(a => a.Retention.Precision > archive.Retention.Precision);
+
+            Func<long, Archive, long> fit = (i, a) => i - (i % a.Retention.Precision);
+
+            foreach(var lower in lowerArchives)
+            {
+                var uniqueLowerIntervals = new HashSet<long>(alignedPoints.Select(p => fit(p.Item1, lower)));
+                var propagateFurther = false;
+
+                foreach(var interval in uniqueLowerIntervals.OrderBy(n => n))
+                    propagateFurther |= Downsample(binaryReader, binaryWriter, interval, higher, lower);
+
+                if(!propagateFurther)
+                    break;
+
+                higher = lower;
+            } // foreach
         }
 
         private static void WriteDatapoint(BinaryReader binaryReader, BinaryWriter binaryWriter, Archive archive, Timestamp timestamp, double value)
