@@ -21,6 +21,11 @@ namespace Statsify.Core.Storage
             this.ticks = ticks;
         }
 
+        public override string ToString()
+        {
+            return DebuggerDisplay;
+        }
+
         public bool Equals(Timestamp other)
         {
             return ticks == other.ticks;

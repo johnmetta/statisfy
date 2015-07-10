@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
+using Statsify.Core.Model;
 using Statsify.Core.Storage;
 
 namespace Statsify.Tests.Core.Storage
@@ -87,6 +88,32 @@ namespace Statsify.Tests.Core.Storage
             CollectionAssert.AreEqual(
                 new double?[] { 79, 99, 119 },
                 series.Datapoints.Select(d => d.Value).ToArray());
+        }
+
+        [Test]
+        public void WriteDatapoints()
+        {
+            var n = 0;
+            var date = new DateTime(1971, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            // ReSharper disable once AccessToModifiedClosure
+            Func<DateTime> currentTimeProvider = () => date.AddSeconds(n);
+
+            var path = Path.GetTempFileName();
+            var database = 
+                DatapointDatabase.Create(path, 0.5f, DownsamplingMethod.Last, 
+                    new RetentionPolicy {
+                        { TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(1) },
+                        { TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(10) },
+                        { TimeSpan.FromSeconds(20), TimeSpan.FromMinutes(60) }
+                    }, 
+                    currentTimeProvider);
+
+            database.WriteDatapoints(Enumerable.Range(0, 3600).Select(i =>
+            {
+                n++;
+                return new Datapoint(currentTimeProvider(), n);
+            }).ToList());
         }
     }
 }
