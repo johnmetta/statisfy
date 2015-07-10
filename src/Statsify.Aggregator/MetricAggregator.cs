@@ -101,7 +101,7 @@ namespace Statsify.Aggregator
 
                         break;
                     case MetricType.Gauge:
-                        if(metric.ExplicitlySigned)
+                        if(metric.Signed)
                         {
                             if(!gauges.ContainsKey(key))
                                 gauges[key] = 0;

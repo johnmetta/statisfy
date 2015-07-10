@@ -49,14 +49,14 @@ namespace Statsify.Aggregator
             
             var type = GetMetricType(fields[1]);
 
-            var explicitlySigned = fields[0].StartsWith("-") || fields[0].StartsWith("+");
+            var signed = fields[0].StartsWith("-") || fields[0].StartsWith("+");
 
             float sample = 1;
 
             if(fields.Length == 3)
                 sample = float.Parse(fields[2].Substring(1), CultureInfo.InvariantCulture);
 
-            return new Metric { Name = name, Type = type, Value = value, Sample = sample, ExplicitlySigned = explicitlySigned };
+            return new Metric { Name = name, Type = type, Value = value, Sample = sample, Signed = signed };
         }
 
         private static MetricType GetMetricType(string metricType)

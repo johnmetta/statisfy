@@ -12,24 +12,24 @@ namespace Statsify.Aggregator
 
         public float Sample { get; set; }
 
-        public bool ExplicitlySigned { get; set; }
+        public bool Signed { get; set; }
 
         public Metric()
         {
         }
 
-        public Metric(string name, float value, MetricType type, float sample, bool explicitlySigned)
+        public Metric(string name, float value, MetricType type, float sample, bool signed)
         {
             Name = name;
             Value = value;
             Type = type;
             Sample = sample;
-            ExplicitlySigned = explicitlySigned;
+            Signed = signed;
         }
 
         public override string ToString()
         {
-            return string.Format("Name: {0}, Value: {1}, Type: {2}, Sample: {3}, ExplicitlySigned: {4}", Name, Value, Type, Sample, ExplicitlySigned);
+            return string.Format("Name: {0}, Value: {1}, Type: {2}, Sample: {3}, Signed: {4}", Name, Value, Type, Sample, Signed);
         }
 
         public bool Equals(Metric other)
@@ -38,7 +38,7 @@ namespace Statsify.Aggregator
             if(ReferenceEquals(this, other)) return true;
 
             return string.Equals(Name, other.Name) && Value.Equals(other.Value) && string.Equals(Type, other.Type) && 
-                Sample.Equals(other.Sample) && ExplicitlySigned.Equals(other.ExplicitlySigned);
+                Sample.Equals(other.Sample) && Signed.Equals(other.Signed);
         }
 
         public override bool Equals(object obj)
@@ -57,7 +57,7 @@ namespace Statsify.Aggregator
                 hashCode = (hashCode * 397) ^ Value.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Type.GetHashCode());
                 hashCode = (hashCode * 397) ^ Sample.GetHashCode();
-                hashCode = (hashCode * 397) ^ ExplicitlySigned.GetHashCode();
+                hashCode = (hashCode * 397) ^ Signed.GetHashCode();
 
                 return hashCode;
             }
