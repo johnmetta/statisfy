@@ -47,10 +47,11 @@ namespace Statsify.Aggregator
                 Directory.CreateDirectory(configuration.Storage.Path);
             } // if
 
+            var stopwatch = new Stopwatch();
             while(!stopEvent.WaitOne(TimeSpan.FromMinutes(5)))
             {
                 var n = 0;
-                var sw = Stopwatch.StartNew();
+                stopwatch.Restart();
 
                 var fq = Interlocked.CompareExchange(ref flushQueue, new ConcurrentQueue<MetricDatapoint>(), flushQueue);
 
@@ -73,17 +74,12 @@ namespace Statsify.Aggregator
 
                         log.ErrorException(message, e);
                     } // catch
-                }
+                } // foreach
 
-                MetricDatapoint datapoint;
-
-                while(flushQueue.TryDequeue(out datapoint))
-                {
-                    
-                } // while
+                stopwatch.Stop();
 
                 if(n > 0)
-                    log.Info("completed flushing {0:N0} entries in {1} ({2:N2} per second)", n, sw.Elapsed, n / sw.Elapsed.TotalSeconds);               
+                    log.Info("completed flushing {0:N0} entries in {1} ({2:N2} per second)", n, stopwatch.Elapsed, n / stopwatch.Elapsed.TotalSeconds);               
             } // while
         }
 
