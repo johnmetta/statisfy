@@ -65,7 +65,7 @@ namespace Statsify.Aggregator.Http
             try
             {
                 var model = new SeriesQueryModel();
-                this.BindTo(model, new BindingConfig {BodyOnly = false});
+                this.BindTo(model, new BindingConfig { BodyOnly = false });
 
                 var now = DateTime.UtcNow;
                 var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
