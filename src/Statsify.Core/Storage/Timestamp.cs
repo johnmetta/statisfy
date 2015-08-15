@@ -4,8 +4,11 @@ using System.Diagnostics;
 namespace Statsify.Core.Storage
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public struct Timestamp : IEquatable<Timestamp>
+    public struct Timestamp : IEquatable<Timestamp>, IComparable<Timestamp>
     {
+        public static Func<Timestamp, string> DebuggerDisplayFormatter =
+            t => ((DateTime)t).ToString("HH:mm:ss dd.MM.yyyy");
+
         private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         private readonly long ticks;
@@ -13,12 +16,18 @@ namespace Statsify.Core.Storage
         // ReSharper disable once UnusedMember.Local
         private string DebuggerDisplay
         {
-            get { return ((DateTime)this).ToString("HH:mm:ss dd.MM.yyyy"); }
+            get { return DebuggerDisplayFormatter(this); }
         }
 
         public Timestamp(long ticks)
         {
             this.ticks = ticks;
+        }
+
+        public int CompareTo(Timestamp other)
+        {
+            if(this == other) return 0;
+            return this < other ? -1 : 1;
         }
 
         public override string ToString()

@@ -93,8 +93,10 @@ namespace Statsify.Tests.Core.Storage
         [Test]
         public void WriteDatapoints()
         {
-            var n = 0;
+            var n = 1;
             var date = new DateTime(1971, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            Timestamp.DebuggerDisplayFormatter = t => ((DateTime)t).ToString("HH:mm:ss");
 
             // ReSharper disable once AccessToModifiedClosure
             Func<DateTime> currentTimeProvider = () => date.AddSeconds(n);
@@ -111,9 +113,16 @@ namespace Statsify.Tests.Core.Storage
 
             database.WriteDatapoints(Enumerable.Range(0, 3600).Select(i =>
             {
+                var d = new Datapoint(currentTimeProvider(), n);
                 n++;
-                return new Datapoint(currentTimeProvider(), n);
+
+                return d;
             }).ToList());
+
+            var now = currentTimeProvider();
+
+            var datapoints = database.ReadSeries(now.AddMinutes(-1), now);
+            datapoints = database.ReadSeries(now.AddMinutes(-2), now);
         }
     }
 }

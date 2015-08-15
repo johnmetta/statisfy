@@ -335,9 +335,12 @@ namespace Statsify.Core.Storage
             } // using
         }
 
-        private static long GetReadOffset(Archive archive, Timestamp fromInterval, Timestamp baseInterval)
+        private static long GetReadOffset(Archive archive, Timestamp lowerIntervalStart, Timestamp higerBaseInterval)
         {
-            var timeDistance = fromInterval - baseInterval;
+            if(higerBaseInterval == 0)
+                return archive.Offset;
+
+            var timeDistance = lowerIntervalStart - higerBaseInterval;
             var pointDistance = timeDistance / archive.Retention.Precision;
             var byteDistance = (pointDistance * DatapointSize) % archive.Size;
             
@@ -490,7 +493,7 @@ namespace Statsify.Core.Storage
 
             foreach(var lower in lowerArchives)
             {
-                var uniqueLowerIntervals = new HashSet<long>(alignedPoints.Select(p => fit(p.Item1, lower)));
+                var uniqueLowerIntervals = new HashSet<Timestamp>(alignedPoints.Select(p => new Timestamp(fit(p.Item1, lower))));
                 var propagateFurther = false;
 
                 foreach(var interval in uniqueLowerIntervals.OrderBy(n => n))
