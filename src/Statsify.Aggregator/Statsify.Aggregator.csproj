@@ -118,6 +118,7 @@
       <SubType>Designer</SubType>
     </None>
     <EmbeddedResource Include="statsify-aggregator.config" />
+    <EmbeddedResource Include="Content\manifest.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Statsify.Core\Statsify.Core.csproj">
@@ -136,7 +137,34 @@
     <EmbeddedResource Include="Http\Content\metricsgraphics.min.js" />
     <EmbeddedResource Include="Http\Content\statsify.css" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Content\android-icon-144x144.png" />
+    <EmbeddedResource Include="Content\android-icon-192x192.png" />
+    <EmbeddedResource Include="Content\android-icon-36x36.png" />
+    <EmbeddedResource Include="Content\android-icon-48x48.png" />
+    <EmbeddedResource Include="Content\android-icon-72x72.png" />
+    <EmbeddedResource Include="Content\android-icon-96x96.png" />
+    <EmbeddedResource Include="Content\apple-icon-114x114.png" />
+    <EmbeddedResource Include="Content\apple-icon-120x120.png" />
+    <EmbeddedResource Include="Content\apple-icon-144x144.png" />
+    <EmbeddedResource Include="Content\apple-icon-152x152.png" />
+    <EmbeddedResource Include="Content\apple-icon-180x180.png" />
+    <EmbeddedResource Include="Content\apple-icon-57x57.png" />
+    <EmbeddedResource Include="Content\apple-icon-60x60.png" />
+    <EmbeddedResource Include="Content\apple-icon-72x72.png" />
+    <EmbeddedResource Include="Content\apple-icon-76x76.png" />
+    <EmbeddedResource Include="Content\apple-icon-precomposed.png" />
+    <EmbeddedResource Include="Content\apple-icon.png" />
+    <EmbeddedResource Include="Content\browserconfig.xml" />
+    <EmbeddedResource Include="Content\favicon-16x16.png" />
+    <EmbeddedResource Include="Content\favicon-32x32.png" />
+    <EmbeddedResource Include="Content\favicon-96x96.png" />
+    <EmbeddedResource Include="Content\favicon.ico" />
+    <EmbeddedResource Include="Content\ms-icon-144x144.png" />
+    <EmbeddedResource Include="Content\ms-icon-150x150.png" />
+    <EmbeddedResource Include="Content\ms-icon-310x310.png" />
+    <EmbeddedResource Include="Content\ms-icon-70x70.png" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Content\Views\index.html" />
   </ItemGroup>
