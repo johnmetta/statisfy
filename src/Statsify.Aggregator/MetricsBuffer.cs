@@ -32,26 +32,26 @@ namespace Statsify.Aggregator
             switch(metric.Type)
             {
                 case MetricType.Timer:
-                    timers.AddOrUpdate(key, new List<float>(),
+                    timers.AddOrUpdate(key, new List<float> { metric.Value },
                         (k, v) =>
                         {
                             v.Add(metric.Value);
                             return v;
                         });
 
-                    timerCounters.AddOrUpdate(key, 0, (k, v) => v + (1 / metric.Sample));
+                    timerCounters.AddOrUpdate(key, 1 / metric.Sample, (k, v) => v + (1 / metric.Sample));
                     break;
                 
                 case MetricType.Gauge:
                     var signed = metric.Signed;
-                    gauges.AddOrUpdate(key, signed ? metric.Value : 0, (k, v) => (signed ? 0 : v) + metric.Value);
+                    gauges.AddOrUpdate(key, metric.Value, (k, v) => (signed ? 0 : v) + metric.Value);
                     break;
 
                 case MetricType.Set:
                     break;
 
                 case MetricType.Counter:
-                    counters.AddOrUpdate(key, 0, (k, v) => v + metric.Value * (1 / metric.Sample));
+                    counters.AddOrUpdate(key, metric.Value * (1 / metric.Sample), (k, v) => v + metric.Value * (1 / metric.Sample));
                     break;
             } // switch
         }
