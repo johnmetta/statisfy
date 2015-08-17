@@ -13,24 +13,24 @@
 
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" type="text/css" rel="stylesheet">
   <link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" type="text/css" rel="stylesheet">
-  <link href="@Path['~/content/statsify.css']" type="text/css" rel="stylesheet">
+  <link href="~/content/statsify.css" type="text/css" rel="stylesheet">
   
-  <link rel="apple-touch-icon" sizes="57x57" href="@Path['~/content/capple-icon-57x57.png']">
-  <link rel="apple-touch-icon" sizes="60x60" href="@Path['~/content/apple-icon-60x60.png']">
-  <link rel="apple-touch-icon" sizes="72x72" href="@Path['~/content/apple-icon-72x72.png']">
-  <link rel="apple-touch-icon" sizes="76x76" href="@Path['~/content/apple-icon-76x76.png']">
-  <link rel="apple-touch-icon" sizes="114x114" href="@Path['~/content/apple-icon-114x114.png']">
-  <link rel="apple-touch-icon" sizes="120x120" href="@Path['~/content/apple-icon-120x120.png']">
-  <link rel="apple-touch-icon" sizes="144x144" href="@Path['~/content/apple-icon-144x144.png']">
-  <link rel="apple-touch-icon" sizes="152x152" href="@Path['~/content/apple-icon-152x152.png']">
-  <link rel="apple-touch-icon" sizes="180x180" href="@Path['~/content/apple-icon-180x180.png']">
-  <link rel="icon" type="image/png" sizes="192x192"  href="@Path['~/content/android-icon-192x192.png']">
-  <link rel="icon" type="image/png" sizes="32x32" href="@Path['~/content/favicon-32x32.png']">
-  <link rel="icon" type="image/png" sizes="96x96" href="@Path['~/content/favicon-96x96.png']">
-  <link rel="icon" type="image/png" sizes="16x16" href="@Path['~/content/favicon-16x16.png']">
-  <link rel="manifest" href="@Path['~/content/manifest.json']">
+  <link rel="apple-touch-icon" sizes="57x57" href="~/content/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="~/content/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="~/content/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="~/content/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="~/content/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="~/content/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="~/content/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="~/content/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="~/content/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="~/content/android-icon-192x192.png?v=@Model.Version">
+  <link rel="icon" type="image/png" sizes="32x32" href="~/content/favicon-32x32.png?v=@Model.Version">
+  <link rel="icon" type="image/png" sizes="96x96" href="~/content/favicon-96x96.png?v=@Model.Version">
+  <link rel="icon" type="image/png" sizes="16x16" href="~/content/favicon-16x16.png?v=@Model.Version">
+  <link rel="manifest" href="~/content/manifest.json">
   <meta name="msapplication-TileColor" content="#ffffff">
-  <meta name="msapplication-TileImage" content="@Path['~/content/ms-icon-144x144.png']">
+  <meta name="msapplication-TileImage" content="~/content/ms-icon-144x144.png">
   <meta name="theme-color" content="#ffffff">
 
   <style>
@@ -51,7 +51,12 @@
   <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
     <div class="container">
       <div class="navbar-header">
-        <a class="navbar-brand" href="@Path['~/']">Statsify v@Model.Version</a>
+        <a class="navbar-brand" href="~/">
+          <span style="display: inline">
+            <img src="~/content/favicon-32x32.png?v=@Model.Version" />
+          </span>
+          Statsify v@Model.Version
+        </a>
       </div>
       <div class="collapse navbar-collapse">
         <p class="navbar-text navbar-right">Queue Backlog: @Model.QueueBacklog</p>
@@ -63,7 +68,7 @@
 
     <div class="row">
       <div class="col-lg-12 text-center">
-        <form class="form-inline" action="@Path['~/']" method="get" autocomplete="off">
+        <form class="form-inline" action="~/" method="get" autocomplete="off">
           <div class="form-group">
             <input type="text" class="form-control" id="expression" name="expression" placeholder="Expression" style="width: 800px;" value="@!Model.Expression" autocomplete="off" />
             <input type="text" class="form-control" id="from" name="from" placeholder="Expression" style="width: 60px;" value="@!Model.From" autocomplete="off" />
@@ -84,7 +89,7 @@
   
   <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-  <script src="@Path['~/content/statsify.js']"></script>
+  <script src="~/content/statsify.js"></script>
   
   @If.HasExpression
   <script type="text/javascript">
