@@ -106,131 +106,128 @@ namespace Statsify.Aggregator
             // See above.
             var buffer = Interlocked.CompareExchange(ref metricsBuffer, new MetricsBuffer(), metricsBuffer);
 #pragma warning restore 420
+            
+            var ts = DateTime.UtcNow;
 
-            lock(sync)
+            IDictionary<string, IDictionary<string, float>> timerData = new Dictionary<string, IDictionary<string, float>>();
+
+            foreach(var pair in buffer.Timers.Where(k => k.Value.Count > 0))
             {
-                var ts = DateTime.UtcNow;
+                var key = pair.Key;
 
-                IDictionary<string, IDictionary<string, float>> timerData = new Dictionary<string, IDictionary<string, float>>();
+                timerData[key] = new Dictionary<string, float>();
 
-                foreach(var pair in buffer.Timers.Where(k => k.Value.Count > 0))
-                {
-                    var key = pair.Key;
+                var values = pair.Value.OrderBy(v => v).ToList();
+                var count = values.Count;
+                var min = values[0];
+                var max = values[count - 1];
+                var cumulativeValues = values.Accumulate().ToList();
+                var sum = min;
+                var mean = min;
+                var thresholdBoundary = max;
+                var pctThreshold = new[] { 85.0, 90, 95, 99 };
 
-                    timerData[key] = new Dictionary<string, float>();
+                foreach(var pct in pctThreshold)
+                {                        
+                    if(count > 1)
+                    {
+                        var numInThreshold = (int)Math.Round(Math.Abs(pct) / 100 * count);
 
-                    var values = pair.Value.OrderBy(v => v).ToList();
-                    var count = values.Count;
-                    var min = values[0];
-                    var max = values[count - 1];
-                    var cumulativeValues = values.Accumulate().ToList();
-                    var sum = min;
-                    var mean = min;
-                    var thresholdBoundary = max;
-                    var pctThreshold = new[] { 85.0, 90, 95, 99 };
+                        if(numInThreshold == 0) continue;
 
-                    foreach(var pct in pctThreshold)
-                    {                        
-                        if(count > 1)
+                        if(pct > 0)
                         {
-                            var numInThreshold = (int)Math.Round(Math.Abs(pct) / 100 * count);
-
-                            if(numInThreshold == 0) continue;
-
-                            if(pct > 0)
-                            {
-                                thresholdBoundary = values[numInThreshold - 1];
-                                sum = cumulativeValues[numInThreshold - 1];
-                            }
-                            else
-                            {
-                                thresholdBoundary = values[count - numInThreshold];
-                                sum = cumulativeValues[count - 1] - cumulativeValues[count - numInThreshold - 1];
-                            }
-
-                            mean = sum / numInThreshold;
+                            thresholdBoundary = values[numInThreshold - 1];
+                            sum = cumulativeValues[numInThreshold - 1];
+                        }
+                        else
+                        {
+                            thresholdBoundary = values[count - numInThreshold];
+                            sum = cumulativeValues[count - 1] - cumulativeValues[count - numInThreshold - 1];
                         }
 
-                        var cleanPct = pct.ToString(CultureInfo.InvariantCulture);
-
-                        cleanPct = cleanPct.Replace('.', '_').Replace(',', '_').Replace("-", "top");
-                        timerData[key]["mean_" + cleanPct] = mean;
-                        timerData[key][(pct > 0 ? "upper_" : "lower_") + cleanPct] = thresholdBoundary;
-                        timerData[key]["sum_" + cleanPct] = sum;
+                        mean = sum / numInThreshold;
                     }
 
-                    sum = cumulativeValues[count - 1];
-                    mean = sum / count;
+                    var cleanPct = pct.ToString(CultureInfo.InvariantCulture);
 
-                    float sumOfDiffs = 0;
+                    cleanPct = cleanPct.Replace('.', '_').Replace(',', '_').Replace("-", "top");
+                    timerData[key]["mean_" + cleanPct] = mean;
+                    timerData[key][(pct > 0 ? "upper_" : "lower_") + cleanPct] = thresholdBoundary;
+                    timerData[key]["sum_" + cleanPct] = sum;
+                }
 
-                    for (var i = 0; i < count; i++)                    
-                        sumOfDiffs += (values[i] - mean) * (values[i] - mean);                    
+                sum = cumulativeValues[count - 1];
+                mean = sum / count;
 
-                    var mid = (int)Math.Floor(count / 2.0);
+                float sumOfDiffs = 0;
 
-                    var median = (count % 2 != 0) ? values[mid] : (values[mid - 1] + values[mid]) / 2;
+                for (var i = 0; i < count; i++)                    
+                    sumOfDiffs += (values[i] - mean) * (values[i] - mean);                    
 
-                    var stddev = (float)Math.Sqrt(sumOfDiffs / count);
+                var mid = (int)Math.Floor(count / 2.0);
 
-                    timerData[key]["std"] = stddev;
-                    timerData[key]["upper"] = max;
-                    timerData[key]["lower"] = min;
-                    //timerData[key]["count"] = timerCounters[pair];
-                    //timerData[key]["count_ps"] = timerCounters[pair] / (flushInterval / 1000);
-                    timerData[key]["sum"] = sum;
-                    timerData[key]["mean"] = mean;
-                    timerData[key]["median"] = median;
+                var median = (count % 2 != 0) ? values[mid] : (values[mid - 1] + values[mid]) / 2;
 
-                    // note: values bigger than the upper limit of the last bin are ignored, by design
-                    /*conf = histogram || [];
-                    bins = [];
-                    for (var i = 0; i < conf.length; i++) {
-                        if(key.indexOf(conf[i].metric) > -1) {
-                            bins = conf[i].bins;
-                            break;
-                        }
+                var stddev = (float)Math.Sqrt(sumOfDiffs / count);
+
+                timerData[key]["std"] = stddev;
+                timerData[key]["upper"] = max;
+                timerData[key]["lower"] = min;
+                //timerData[key]["count"] = timerCounters[pair];
+                //timerData[key]["count_ps"] = timerCounters[pair] / (flushInterval / 1000);
+                timerData[key]["sum"] = sum;
+                timerData[key]["mean"] = mean;
+                timerData[key]["median"] = median;
+
+                // note: values bigger than the upper limit of the last bin are ignored, by design
+                /*conf = histogram || [];
+                bins = [];
+                for (var i = 0; i < conf.length; i++) {
+                    if(key.indexOf(conf[i].metric) > -1) {
+                        bins = conf[i].bins;
+                        break;
                     }
-                    if(bins.length) {
-                        current_timer_data['histogram'] = {};
+                }
+                if(bins.length) {
+                    current_timer_data['histogram'] = {};
+                }
+                // the outer loop iterates bins, the inner loop iterates timer values;
+                // within each run of the inner loop we should only consider the timer value range that's within the scope of the current bin
+                // so we leverage the fact that the values are already sorted to end up with only full 1 iteration of the entire values range
+                var i = 0;
+                for (var bin_i = 0; bin_i < bins.length; bin_i++) {
+                    var freq = 0;
+                    for (; i < count && (bins[bin_i] == 'inf' || values[i] < bins[bin_i]); i++) {
+                    freq += 1;
                     }
-                    // the outer loop iterates bins, the inner loop iterates timer values;
-                    // within each run of the inner loop we should only consider the timer value range that's within the scope of the current bin
-                    // so we leverage the fact that the values are already sorted to end up with only full 1 iteration of the entire values range
-                    var i = 0;
-                    for (var bin_i = 0; bin_i < bins.length; bin_i++) {
-                      var freq = 0;
-                      for (; i < count && (bins[bin_i] == 'inf' || values[i] < bins[bin_i]); i++) {
-                        freq += 1;
-                      }
-                      bin_name = 'bin_' + bins[bin_i];
-                      current_timer_data['histogram'][bin_name] = freq;
-                    }*/
-                }
-
-                foreach(var pair in buffer.Counters)
-                {
-                    flushQueue.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
-                  //  metricsBuffer.Aggregate(new Metric(pair.Key, 0, MetricType.Counter, 1, false));
-                }
-
-                foreach(var pair in buffer.Gauges)
-                {
-                    flushQueue.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
-                }
-
-                foreach(var t in timerData.Keys.ToList())
-                {
-                    foreach(var tt in timerData[t].Keys)
-                        flushQueue.Enqueue(new MetricDatapoint(t + "." + tt, ts, timerData[t][tt]));
-
-                    /*timers[t] = new List<float>();
-                    timerCounters[t] = 0;*/
-                }
-
-                flushQueue.Enqueue(new MetricDatapoint("statsify.queue_backlog", ts, flushQueue.Count));
-                flushQueue.Enqueue(new MetricDatapoint("statsify.metrics.count", ts, metrics));
+                    bin_name = 'bin_' + bins[bin_i];
+                    current_timer_data['histogram'][bin_name] = freq;
+                }*/
             }
+
+            foreach(var pair in buffer.Counters)
+            {
+                flushQueue.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
+                //  metricsBuffer.Aggregate(new Metric(pair.Key, 0, MetricType.Counter, 1, false));
+            }
+
+            foreach(var pair in buffer.Gauges)
+            {
+                flushQueue.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
+            }
+
+            foreach(var t in timerData.Keys.ToList())
+            {
+                foreach(var tt in timerData[t].Keys)
+                    flushQueue.Enqueue(new MetricDatapoint(t + "." + tt, ts, timerData[t][tt]));
+
+                /*timers[t] = new List<float>();
+                timerCounters[t] = 0;*/
+            }
+
+            flushQueue.Enqueue(new MetricDatapoint("statsify.queue_backlog", ts, flushQueue.Count));
+            flushQueue.Enqueue(new MetricDatapoint("statsify.metrics.count", ts, metrics));
         }
 
         private DatapointDatabase GetDatabase(string root, string metric)
