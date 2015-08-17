@@ -23,14 +23,8 @@ namespace Statsify.Aggregator
         private readonly StatsifyAggregatorConfigurationSection configuration;
         private readonly ManualResetEvent stopEvent;
         private readonly float flushInterval;
-        /*private readonly IDictionary<string, IList<float>> timers = new Dictionary<string, IList<float>>();
-        private readonly IDictionary<string, float> timerCounters = new Dictionary<string, float>();
-        private readonly IDictionary<string, float> gauges = new Dictionary<string, float>();
-        private readonly IDictionary<string, float> counters = new Dictionary<string, float>();*/
-        private readonly ConcurrentQueue<MetricDatapoint> flushQueue = new ConcurrentQueue<MetricDatapoint>();
-        private readonly object sync = new object();
         private long metrics;
-
+        private volatile ConcurrentQueue<MetricDatapoint> flushQueue = new ConcurrentQueue<MetricDatapoint>();
         private volatile MetricsBuffer metricsBuffer;
 
         public MetricAggregator(StatsifyAggregatorConfigurationSection configuration, ManualResetEvent stopEvent)
@@ -53,30 +47,39 @@ namespace Statsify.Aggregator
                 Directory.CreateDirectory(configuration.Storage.Path);
             } // if
 
-            while(!stopEvent.WaitOne(0))
+            while(!stopEvent.WaitOne(TimeSpan.FromMinutes(1)))
             {
                 var n = 0;
                 var sw = Stopwatch.StartNew();
+
+                var fq = Interlocked.CompareExchange(ref flushQueue, new ConcurrentQueue<MetricDatapoint>(), flushQueue);
+
+                foreach(var g in fq.GroupBy(m => m.Name))
+                {
+                    var datapoints = g.Select(md => md.Datapoint).ToList();
+                    n += datapoints.Count;
+
+                    var metric = g.Key;
+
+                    try
+                    {
+                        var db = GetDatabase(configuration.Storage.Path, metric);
+                        if(db != null)
+                            db.WriteDatapoints(datapoints);
+                    } // try
+                    catch(Exception e)
+                    {
+                        var message = string.Format("could not write datapoints to '{0}'", metric);
+
+                        log.ErrorException(message, e);
+                    } // catch
+                }
 
                 MetricDatapoint datapoint;
 
                 while(flushQueue.TryDequeue(out datapoint))
                 {
-                    n++;
-
-                    try
-                    {
-                        var db = GetDatabase(configuration.Storage.Path, datapoint.Name);
-                        if(db != null)
-                            db.WriteDatapoint(datapoint.Datapoint);
-                    } // try
-                    catch(Exception e)
-                    {
-                        var message = string.Format("could not write datapoint ({0}, {1}) to '{2}'", 
-                            datapoint.Datapoint.Timestamp, datapoint.Datapoint.Value, datapoint.Name);
-
-                        log.ErrorException(message, e);
-                    } // catch
+                    
                 } // while
 
                 if(n > 0)
@@ -212,28 +215,29 @@ namespace Statsify.Aggregator
                 }*/
             }
 
+            var fq = Volatile.Read(ref flushQueue);
             foreach(var pair in buffer.Counters)
             {
-                flushQueue.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
+                fq.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
                 //  metricsBuffer.Aggregate(new Metric(pair.Key, 0, MetricType.Counter, 1, false));
             }
 
             foreach(var pair in buffer.Gauges)
             {
-                flushQueue.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
+                fq.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
             }
 
             foreach(var t in timerData.Keys.ToList())
             {
                 foreach(var tt in timerData[t].Keys)
-                    flushQueue.Enqueue(new MetricDatapoint(t + "." + tt, ts, timerData[t][tt]));
+                    fq.Enqueue(new MetricDatapoint(t + "." + tt, ts, timerData[t][tt]));
 
                 /*timers[t] = new List<float>();
                 timerCounters[t] = 0;*/
             }
 
-            flushQueue.Enqueue(new MetricDatapoint("statsify.queue_backlog", ts, flushQueue.Count));
-            flushQueue.Enqueue(new MetricDatapoint("statsify.metrics.count", ts, metrics));
+            fq.Enqueue(new MetricDatapoint("statsify.queue_backlog", ts, fq.Count));
+            fq.Enqueue(new MetricDatapoint("statsify.metrics.count", ts, metrics));
         }
 
         private DatapointDatabase GetDatabase(string root, string metric)

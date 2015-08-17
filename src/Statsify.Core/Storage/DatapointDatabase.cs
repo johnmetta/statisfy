@@ -356,6 +356,7 @@ namespace Statsify.Core.Storage
 
         private static long GetWriteOffset(Archive archive, Timestamp baseInterval, Timestamp myInterval)
         {
+            return GetReadOffset(archive, baseInterval, myInterval);
             if(baseInterval == 0)
                 return archive.Offset;
             
