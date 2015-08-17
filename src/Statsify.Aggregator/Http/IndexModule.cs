@@ -23,10 +23,10 @@ namespace Statsify.Aggregator.Http
             this.BindTo(model, new BindingConfig { BodyOnly = false });
 
             if(string.IsNullOrWhiteSpace(model.Expression))
-                model.Expression = "sort_by_name(alias_by_fragment(summarize(servers.*.system.processor.*, \"max\", \"1m\"), 1, 4))";
+                model.Expression = "sort_by_name(alias_by_fragment(summarize(servers.*.system.processor.total_time, \"max\", \"10m\"), 1, 4))";
 
             if(string.IsNullOrWhiteSpace(model.From))
-                model.From = "-1h";
+                model.From = "-8h";
 
             model.QueueBacklog = metricAggregator.QueueBacklog.ToString("N0", CultureInfo.InvariantCulture);
 
