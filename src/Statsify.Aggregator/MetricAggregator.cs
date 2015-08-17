@@ -23,19 +23,23 @@ namespace Statsify.Aggregator
         private readonly StatsifyAggregatorConfigurationSection configuration;
         private readonly ManualResetEvent stopEvent;
         private readonly float flushInterval;
-        private readonly IDictionary<string, IList<float>> timers = new Dictionary<string, IList<float>>();
+        /*private readonly IDictionary<string, IList<float>> timers = new Dictionary<string, IList<float>>();
         private readonly IDictionary<string, float> timerCounters = new Dictionary<string, float>();
         private readonly IDictionary<string, float> gauges = new Dictionary<string, float>();
-        private readonly IDictionary<string, float> counters = new Dictionary<string, float>();
+        private readonly IDictionary<string, float> counters = new Dictionary<string, float>();*/
         private readonly ConcurrentQueue<MetricDatapoint> flushQueue = new ConcurrentQueue<MetricDatapoint>();
         private readonly object sync = new object();
         private long metrics;
+
+        private volatile MetricsBuffer metricsBuffer;
 
         public MetricAggregator(StatsifyAggregatorConfigurationSection configuration, ManualResetEvent stopEvent)
         {
             this.configuration = configuration;
             this.stopEvent = stopEvent;
             flushInterval = (float)configuration.Storage.FlushInterval.TotalMilliseconds;
+
+            metricsBuffer = new MetricsBuffer();
 
             var flushThread = new Thread(FlushCallback);
             flushThread.Start();
@@ -82,64 +86,40 @@ namespace Statsify.Aggregator
 
         public void Aggregate(Metric metric)
         {
-            lock(sync)
-            {
-                var key = metric.Name;
-                metrics++;
+#pragma warning disable 420
+            //
+            // See:
+            // * http://msdn.microsoft.com/en-us/library/4bw5ewxy(VS.80).aspx
+            // * http://stackoverflow.com/a/425150/60188
+            var buffer = Volatile.Read(ref metricsBuffer);
+#pragma warning restore 420
 
-                switch(metric.Type)
-                {
-                    case MetricType.Timer:
-                        if(!timers.ContainsKey(key))
-                        {
-                            timers[key] = new List<float>();
-                            timerCounters[key] = 0;
-                        } // if
-
-                        timers[key].Add(metric.Value);
-                        timerCounters[key] += (1 / metric.Sample);
-
-                        break;
-                    case MetricType.Gauge:
-                        if(metric.Signed)
-                        {
-                            if(!gauges.ContainsKey(key))
-                                gauges[key] = 0;
-
-                            gauges[key] += metric.Value;
-                        }
-                        else
-                        {
-                            gauges[key] = metric.Value;
-                        }
-                        break;
-
-                    case MetricType.Set:
-                        break;
-
-                    case MetricType.Counter:
-                        if(!counters.ContainsKey(key))
-                            counters[key] = 0;
-
-                        counters[key] += metric.Value * (1 / metric.Sample);
-                        break;
-                }
-            }
+            Interlocked.Increment(ref metrics);
+            buffer.Aggregate(metric);
         }
 
         public void Flush()
         {
+            Thread.MemoryBarrier();
+#pragma warning disable 420
+            //
+            // See above.
+            var buffer = Interlocked.CompareExchange(ref metricsBuffer, new MetricsBuffer(), metricsBuffer);
+#pragma warning restore 420
+
             lock(sync)
             {
                 var ts = DateTime.UtcNow;
 
                 IDictionary<string, IDictionary<string, float>> timerData = new Dictionary<string, IDictionary<string, float>>();
 
-                foreach(var key in timers.Keys.Where(k => timers[k].Count > 0))
+                foreach(var pair in buffer.Timers.Where(k => k.Value.Count > 0))
                 {
+                    var key = pair.Key;
+
                     timerData[key] = new Dictionary<string, float>();
 
-                    var values = timers[key].OrderBy(v => v).ToList();
+                    var values = pair.Value.OrderBy(v => v).ToList();
                     var count = values.Count;
                     var min = values[0];
                     var max = values[count - 1];
@@ -196,8 +176,8 @@ namespace Statsify.Aggregator
                     timerData[key]["std"] = stddev;
                     timerData[key]["upper"] = max;
                     timerData[key]["lower"] = min;
-                    timerData[key]["count"] = timerCounters[key];
-                    timerData[key]["count_ps"] = timerCounters[key] / (flushInterval / 1000);
+                    //timerData[key]["count"] = timerCounters[pair];
+                    //timerData[key]["count_ps"] = timerCounters[pair] / (flushInterval / 1000);
                     timerData[key]["sum"] = sum;
                     timerData[key]["mean"] = mean;
                     timerData[key]["median"] = median;
@@ -228,15 +208,15 @@ namespace Statsify.Aggregator
                     }*/
                 }
 
-                foreach(var counter in counters.Keys.ToList())
+                foreach(var pair in buffer.Counters)
                 {
-                    flushQueue.Enqueue(new MetricDatapoint(counter, ts, counters[counter]));
-                    counters[counter] = 0;
+                    flushQueue.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
+                  //  metricsBuffer.Aggregate(new Metric(pair.Key, 0, MetricType.Counter, 1, false));
                 }
 
-                foreach(var gauge in gauges.Keys.ToList())
+                foreach(var pair in buffer.Gauges)
                 {
-                    flushQueue.Enqueue(new MetricDatapoint(gauge, ts, gauges[gauge]));
+                    flushQueue.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
                 }
 
                 foreach(var t in timerData.Keys.ToList())
@@ -244,8 +224,8 @@ namespace Statsify.Aggregator
                     foreach(var tt in timerData[t].Keys)
                         flushQueue.Enqueue(new MetricDatapoint(t + "." + tt, ts, timerData[t][tt]));
 
-                    timers[t] = new List<float>();
-                    timerCounters[t] = 0;
+                    /*timers[t] = new List<float>();
+                    timerCounters[t] = 0;*/
                 }
 
                 flushQueue.Enqueue(new MetricDatapoint("statsify.queue_backlog", ts, flushQueue.Count));
