@@ -174,8 +174,14 @@ namespace Statsify.Aggregator
                 timerData[key]["std"] = stddev;
                 timerData[key]["upper"] = max;
                 timerData[key]["lower"] = min;
-                //timerData[key]["count"] = timerCounters[pair];
-                //timerData[key]["count_ps"] = timerCounters[pair] / (flushInterval / 1000);
+
+                var timerCounter = buffer.GetTimerCounter(key);
+                if(timerCounter != null)
+                {
+                    timerData[key]["count"] = timerCounter.Value;
+                    timerData[key]["count_ps"] = timerCounter.Value / (flushInterval / 1000);
+                } // if
+
                 timerData[key]["sum"] = sum;
                 timerData[key]["mean"] = mean;
                 timerData[key]["median"] = median;

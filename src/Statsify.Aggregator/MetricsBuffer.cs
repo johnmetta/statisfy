@@ -25,6 +25,14 @@ namespace Statsify.Aggregator
             get { return gauges; }
         }
 
+        public float? GetTimerCounter(string name)
+        {
+            float value;
+            return timerCounters.TryGetValue(name, out value) ? 
+                (float?)value : 
+                null;
+        }
+
         public void Aggregate(Metric metric)
         {
             var key = metric.Name;
