@@ -47,7 +47,7 @@ namespace Statsify.Aggregator
                 Directory.CreateDirectory(configuration.Storage.Path);
             } // if
 
-            while(!stopEvent.WaitOne(TimeSpan.FromMinutes(1)))
+            while(!stopEvent.WaitOne(TimeSpan.FromMinutes(5)))
             {
                 var n = 0;
                 var sw = Stopwatch.StartNew();
@@ -83,7 +83,7 @@ namespace Statsify.Aggregator
                 } // while
 
                 if(n > 0)
-                    log.Trace("completed flushing {0} entries in {1} ({2:N2} per second)", n, sw.Elapsed, n / sw.Elapsed.TotalSeconds);               
+                    log.Info("completed flushing {0:N0} entries in {1} ({2:N2} per second)", n, sw.Elapsed, n / sw.Elapsed.TotalSeconds);               
             } // while
         }
 
@@ -258,7 +258,7 @@ namespace Statsify.Aggregator
             var storage = configuration.Storage.FirstOrDefault(a => Regex.IsMatch(metric, a.Pattern));
             if(storage == null) return null;
 
-            log.Info("creating Datapoint Database for Metric '{0}' using Downsampling settings '{1}' and Storage settings '{2}'", metric, downsampling.Name, storage.Name);
+            log.Trace("creating Datapoint Database for Metric '{0}' using Downsampling settings '{1}' and Storage settings '{2}'", metric, downsampling.Name, storage.Name);
 
             var retentonPolicy = new RetentionPolicy(storage.Retentions);
             var database = DatapointDatabase.OpenOrCreate(fullPath, downsampling.Factor, downsampling.Method, retentonPolicy);
