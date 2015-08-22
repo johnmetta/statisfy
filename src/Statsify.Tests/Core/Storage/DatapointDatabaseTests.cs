@@ -11,17 +11,6 @@ namespace Statsify.Tests.Core.Storage
     public class DatapointDatabaseTests
     {
         [Test]
-        public void Open()
-        {
-            var database = DatapointDatabase.Open(@"C:\ProgramData\Statsify\Aggregator\Data\servers\n42-msk\system\processor\total_time.db");
-            Console.WriteLine(database.Archives.Count);
-
-            var now = DateTime.UtcNow;
-
-            var series = database.ReadSeries(now.AddSeconds(-60), now);
-        }
-
-        [Test]
         public void CreateOpen()
         {
             var path = Path.GetTempFileName();
@@ -93,7 +82,7 @@ namespace Statsify.Tests.Core.Storage
         [Test]
         public void WriteDatapoints()
         {
-            var n = 1;
+            var n = 0;
             var date = new DateTime(1971, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             Timestamp.DebuggerDisplayFormatter = t => ((DateTime)t).ToString("HH:mm:ss");
@@ -103,7 +92,7 @@ namespace Statsify.Tests.Core.Storage
 
             var path = Path.GetTempFileName();
             var database = 
-                DatapointDatabase.Create(path, 0.5f, DownsamplingMethod.Last, 
+                DatapointDatabase.Create(path, 0, DownsamplingMethod.Average, 
                     new RetentionPolicy {
                         { TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(1) },
                         { TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(10) },
@@ -111,18 +100,29 @@ namespace Statsify.Tests.Core.Storage
                     }, 
                     currentTimeProvider);
 
-            database.WriteDatapoints(Enumerable.Range(0, 3600).Select(i =>
-            {
-                var d = new Datapoint(currentTimeProvider(), n);
-                n++;
+            database.WriteDatapoints(
+                Enumerable.
+                    Range(0, 3600).
+                    Select(i =>new Datapoint(currentTimeProvider(), ++n)).
+                    ToList());
 
-                return d;
-            }).ToList());
-
+            n--;
             var now = currentTimeProvider();
 
-            var datapoints = database.ReadSeries(now.AddMinutes(-1), now);
-            datapoints = database.ReadSeries(now.AddMinutes(-2), now);
+            var datapoints = database.ReadSeries(now.AddSeconds(-10), now, TimeSpan.FromSeconds(1)).Datapoints.Select(d => d.Value).OrderByDescending(v => v).ToArray();
+            CollectionAssert.AreEqual(
+                new double[] { 3600, 3599, 3598, 3597, 3596, 3595, 3594, 3593, 3592, 3591 },
+                datapoints);
+
+            datapoints = database.ReadSeries(now.AddMinutes(-1), now, TimeSpan.FromSeconds(10)).Datapoints.Select(d => d.Value).OrderByDescending(v => v).ToArray();
+            CollectionAssert.AreEqual(
+                new[] { 3595.5, 3585.5, 3575.5, 3565.5, 3555.5, 3545.5 },
+                datapoints);
+
+            datapoints = database.ReadSeries(now.AddMinutes(-1), now, TimeSpan.FromSeconds(20)).Datapoints.Select(d => d.Value).OrderByDescending(v => v).ToArray();
+            CollectionAssert.AreEqual(
+                new[] { 3590.5, 3570.5, 3550.5 },
+                datapoints);
         }
     }
 }
