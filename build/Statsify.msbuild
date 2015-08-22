@@ -1,15 +1,19 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <UsingTask AssemblyFile=".\tasks\semverstein\Semverstein.Tasks.dll" TaskName="Semverstein.Tasks.ReadSemanticVersion" />
+  <UsingTask AssemblyFile=".\tasks\semverstein\Semverstein.Tasks.dll" TaskName="Semverstein.Tasks.IncrementSemanticVersion" />
 
   <PropertyGroup>
     <Configuration>Release</Configuration>
+    <Component>Patch</Component>
   </PropertyGroup>
 
   <Target Name="Version">
-    <ReadSemanticVersion SemverFilePath=".\..\.semver">
+    <IncrementSemanticVersion SemverFilePath=".\..\.semver" Component="$(Component)">
       <Output TaskParameter="SemanticVersion" PropertyName="SemanticVersion" />
       <Output TaskParameter="Version" PropertyName="Version" />
-    </ReadSemanticVersion> 
+    </IncrementSemanticVersion>
+
+    <WriteLinesToFile File=".\..\src\AssemblyVersion.cs" Overwrite="True" Lines="[assembly:System.Reflection.AssemblyVersion(&quot;$(Version)&quot;)];" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="Version">
