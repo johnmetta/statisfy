@@ -16,13 +16,13 @@ namespace Statsify.Agent.Impl
     {
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public IEnumerable<MetricDefinition> CreateMetricDefinitions(MetricConfigurationElement metric)
+        public IEnumerable<IMetricDefinition> CreateMetricDefinitions(MetricConfigurationElement metric)
         {
             var type = metric.Type.ToLowerInvariant();
             return CreateMetricDefinitions(metric, type);
         }
 
-        private IEnumerable<MetricDefinition> CreateMetricDefinitions(MetricConfigurationElement metric, string type)
+        private IEnumerable<IMetricDefinition> CreateMetricDefinitions(MetricConfigurationElement metric, string type)
         {
             switch(type)
             {
@@ -35,7 +35,7 @@ namespace Statsify.Agent.Impl
             }
         }
 
-        private IEnumerable<MetricDefinition> CreateNumberOfFilesDefinition(MetricConfigurationElement metric)
+        private IEnumerable<IMetricDefinition> CreateNumberOfFilesDefinition(MetricConfigurationElement metric)
         {
             var path = metric.Path;
             if(!Directory.Exists(path)) yield break;
@@ -48,7 +48,7 @@ namespace Statsify.Agent.Impl
                 }, metric.AggregationStrategy);
         }
 
-        private IEnumerable<MetricDefinition> CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
+        private IEnumerable<IMetricDefinition> CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
         {
             return ParsePerformanceCounters(metric.Path).Select(pc => {
                 var name = metric.Name;
@@ -66,7 +66,7 @@ namespace Statsify.Agent.Impl
                     name = name.Replace("**", fragment);
                 } // if
 
-                var metricDefinition = new MetricDefinition(name, () => pc.Item2.NextValue(), metric.AggregationStrategy);
+                var metricDefinition = new PerformanceCounterMetricDefinition(name, () => pc.Item2.NextValue(), metric.AggregationStrategy);
                 return metricDefinition;
             });
         }

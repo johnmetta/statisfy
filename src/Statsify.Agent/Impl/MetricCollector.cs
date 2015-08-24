@@ -6,7 +6,8 @@ namespace Statsify.Agent.Impl
 {
     public class MetricCollector
     {
-        private readonly IList<MetricDefinition> metricDefinitions = new List<MetricDefinition>();
+        private readonly Logger log = LogManager.GetCurrentClassLogger();
+        private readonly IList<IMetricDefinition> metricDefinitions = new List<IMetricDefinition>();
 
         public MetricCollector(IEnumerable<MetricConfigurationElement> metrics)
         {
@@ -14,6 +15,7 @@ namespace Statsify.Agent.Impl
 
             foreach(var metric in metrics.SelectMany(metricDefinitionFactory.CreateMetricDefinitions).Where(m => m != null))
             {
+                log.Info("adding metric '{0}' with aggregation strategy '{1}'", metric.Name, metric.AggregationStrategy);
                 metricDefinitions.Add(metric);
             }
         }
