@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Statsify.Agent.Configuration;
 
 namespace Statsify.Agent.Impl
@@ -17,12 +19,42 @@ namespace Statsify.Agent.Impl
             {
                 log.Info("adding metric '{0}' with aggregation strategy '{1}'", metric.Name, metric.AggregationStrategy);
                 metricDefinitions.Add(metric);
-            }
+            } // foreach
         }
 
         public IEnumerable<Metric> GetCollectedMetrics()
         {
-            return metricDefinitions.Select(metricDefinition => new Metric(metricDefinition.Name, metricDefinition.AggregationStrategy, metricDefinition.GetNextValue()));
+            var invalidatedMetrics = new HashSet<IMetricDefinition>();
+            
+            foreach(var metricDefinition in metricDefinitions)
+            {
+                Metric metric = null;
+
+                try
+                {
+                    var value = metricDefinition.GetNextValue();
+                    metric = new Metric(metricDefinition.Name, metricDefinition.AggregationStrategy, value);
+                } // try
+                catch(MetricInvalidatedException)
+                {
+                    //
+                    // When IMetricDefinition throws an MIE, we don't want to hear
+                    // from it any more.
+                    log.Warn("invalidating metric '{0}'", metricDefinition.Name);
+                    invalidatedMetrics.Add(metricDefinition);
+                } // catch
+                catch(Exception e)
+                {
+                    log.ErrorException(string.Format("invalidating metric '{0}'", metricDefinition.Name), e);
+                    invalidatedMetrics.Add(metricDefinition);
+                } // catch
+                 
+                if(metric != null)
+                    yield return metric;
+            } // foreach
+
+            foreach(var invalidatedMetric in invalidatedMetrics)
+                metricDefinitions.Remove(invalidatedMetric);
         }
     }
 }

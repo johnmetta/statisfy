@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using NLog;
 using Statsify.Agent.Configuration;
@@ -63,6 +64,7 @@ namespace Statsify.Agent.Impl
             log.Trace("starting publishing metrics");
             var metrics = 0;
 
+            var stopwatch = Stopwatch.StartNew();
             foreach(var metric in metricCollector.GetCollectedMetrics())
             {
                 metrics++;
@@ -83,7 +85,8 @@ namespace Statsify.Agent.Impl
                 } // switch
             } // foreach
 
-            log.Trace("completed publishing {0} metrics", metrics);
+            stopwatch.Stop();
+            log.Trace("completed publishing {0:N0} metrics in {1}", metrics, stopwatch.Elapsed);
         
             ThreadPool.RegisterWaitForSingleObject(stopEvent, PublisherTimerCallback, null, collectionInterval, true);
         }

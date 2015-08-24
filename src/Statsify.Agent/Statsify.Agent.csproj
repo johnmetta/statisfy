@@ -60,7 +60,9 @@
     <Compile Include="Impl\MetricDefinition.cs" />
     <Compile Include="Impl\MetricCollector.cs" />
     <Compile Include="Impl\MetricDefinitionFactory.cs" />
+    <Compile Include="Impl\MetricInvalidatedException.cs" />
     <Compile Include="Impl\MetricPublisher.cs" />
+    <Compile Include="Impl\PerformanceCounterMetricDefinition.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StatsifyAgentService.cs" />
