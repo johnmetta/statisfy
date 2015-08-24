@@ -3,7 +3,7 @@ using Statsify.Agent.Configuration;
 
 namespace Statsify.Agent.Impl
 {
-    public class MetricDefinition
+    public class MetricDefinition : IMetricDefinition
     {
         private readonly Func<double> nextValueProvider;
  
@@ -14,7 +14,6 @@ namespace Statsify.Agent.Impl
         public MetricDefinition(string name, Func<double> nextValueProvider, AggregationStrategy aggregationStrategy)
         {
             Name = name;
-
             AggregationStrategy = aggregationStrategy;
 
             this.nextValueProvider = nextValueProvider;

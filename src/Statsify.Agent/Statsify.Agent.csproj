@@ -55,6 +55,7 @@
     <Compile Include="Configuration\MetricsConfigurationElementCollection.cs" />
     <Compile Include="Configuration\StatsifyAgentConfigurationSection.cs" />
     <Compile Include="Configuration\StatsifyConfigurationElement.cs" />
+    <Compile Include="Impl\IMetricDefinition.cs" />
     <Compile Include="Impl\Metric.cs" />
     <Compile Include="Impl\MetricDefinition.cs" />
     <Compile Include="Impl\MetricCollector.cs" />
