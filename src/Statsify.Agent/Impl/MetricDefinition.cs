@@ -19,7 +19,7 @@ namespace Statsify.Agent.Impl
             this.nextValueProvider = nextValueProvider;
         }
 
-        public double GetNextValue()
+        public virtual double GetNextValue()
         {
             return nextValueProvider();
         }
