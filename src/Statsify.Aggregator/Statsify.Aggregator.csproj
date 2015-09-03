@@ -123,6 +123,10 @@
     </None>
     <EmbeddedResource Include="statsify-aggregator.config" />
     <EmbeddedResource Include="Content\manifest.json" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.eot" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.ttf" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.woff" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.woff2" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +176,14 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Content\Views\index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Content\Lib\jquery-1.11.1.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Content\Lib\Bootstrap\css\bootstrap.min.css" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.svg" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\js\bootstrap.min.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
