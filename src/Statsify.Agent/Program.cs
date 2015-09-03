@@ -15,7 +15,7 @@ namespace Statsify.Agent
             AppDomain.CurrentDomain.UnhandledException += AppDomainUnhandledExceptionHandler;
 
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            var serviceDisplayName = "Statsify Agent v" + version.ToString(2);
+            var serviceDisplayName = "Statsify Agent v" + version.ToString(3);
 
             Log.Info("starting up " + serviceDisplayName);
 

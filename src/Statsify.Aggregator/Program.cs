@@ -15,7 +15,7 @@ namespace Statsify.Aggregator
         {
             AppDomain.CurrentDomain.UnhandledException += AppDomainUnhandledExceptionHandler;
 
-            var serviceDisplayName = "Statsify Aggregator v" + Application.Version.ToString(2);
+            var serviceDisplayName = "Statsify Aggregator v" + Application.Version.ToString(3);
 
             Log.Info("starting up " + serviceDisplayName);
 
