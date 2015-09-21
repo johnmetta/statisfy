@@ -11,6 +11,7 @@ namespace Statsify.Core.Expressions
     public static class Functions
     {
         [Function("timeshift")]
+        [Function("timeShift")]
         public static MetricSelector Timeshift(EvalContext context, MetricSelector selector, string offset)
         {
             var offsetDuration = ParseTimeSpan(offset);
@@ -45,6 +46,7 @@ namespace Statsify.Core.Expressions
         }
 
         [Function("alias_by_fragment")]
+        [Function("aliasByNode")]
         public static Metric[] AliasByFragment(EvalContext context, Metric[] metrics, params int[] fragmentIndices)
         {
             return
@@ -187,6 +189,7 @@ namespace Statsify.Core.Expressions
         }
 
         [Function("sort_by_name")]
+        [Function("sortByName")]
         public static Metric[] SortByName(EvalContext context, Metric[] metrics)
         {
             return metrics.OrderBy(m => m.Name).ToArray();
