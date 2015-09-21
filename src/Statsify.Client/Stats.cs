@@ -29,11 +29,21 @@ namespace Statsify.Client
             get { return StatsifyClient.Value; }
         }
         
+        /// <summary>
+        /// Increment a counter <paramref name="metric"/> by <c>1</c>.
+        /// </summary>
+        /// <param name="metric"></param>
+        /// <param name="sample"></param>
         public static void Increment(string metric, double sample = 1)
         {
             Statsify.Increment(metric, sample);
         }
 
+        /// <summary>
+        /// Decrement a counter <paramref name="metric"/> by <c>1</c>.
+        /// </summary>
+        /// <param name="metric"></param>
+        /// <param name="sample"></param>
         public static void Decrement(string metric, double sample = 1)
         {
             Statsify.Decrement(metric, sample);
