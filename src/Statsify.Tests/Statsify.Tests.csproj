@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{23A14CDC-C1A7-4935-832C-BA2474F8E37E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Statsify.Tests</RootNamespace>
+    <AssemblyName>Statsify.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\lib\nunit.framework\bin\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Agent\Configuration\StatsifyAgentConfigurationSectionTests.cs" />
+    <Compile Include="Agent\Impl\MetricDefinitionFactoryTests.cs" />
+    <Compile Include="Aggregator\Api\ParserTests.cs" />
+    <Compile Include="Aggregator\Configuration\ConfigurationManagerTests.cs" />
+    <Compile Include="Aggregator\DatagramParserTests.cs" />
+    <Compile Include="Aggregator\MetricParserTests.cs" />
+    <Compile Include="Client\MetricNameBuilderTests.cs" />
+    <Compile Include="Client\StatsifyClientFactoryTests.cs" />
+    <Compile Include="Client\UdpStatsifyClientTests.cs" />
+    <Compile Include="Core\Components\Impl\MetricRegistryTests.cs" />
+    <Compile Include="Core\Expressions\ExpressionParserTests.cs" />
+    <Compile Include="Core\Expressions\ExpressionScannerTests.cs" />
+    <Compile Include="Core\Expressions\FunctionsTests.cs" />
+    <Compile Include="Core\Expressions\FunctionTests.cs" />
+    <Compile Include="Core\Storage\AnnotationDatabaseTests.cs" />
+    <Compile Include="Core\Storage\DatapointDatabaseTests.cs" />
+    <Compile Include="Core\Util\EnumerableExtensionsTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Statsify.Agent\Statsify.Agent.csproj">
+      <Project>{42A19738-EC3C-4ED2-9516-B164138DD23D}</Project>
+      <Name>Statsify.Agent</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Statsify.Aggregator\Statsify.Aggregator.csproj">
+      <Project>{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}</Project>
+      <Name>Statsify.Aggregator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Statsify.Client\Statsify.Client.csproj">
+      <Project>{106B9B44-F0D9-43FC-923E-562BEDCD7D06}</Project>
+      <Name>Statsify.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Statsify.Core\Statsify.Core.csproj">
+      <Project>{CE4BFA81-3B50-42BE-B96C-0A4E4A135187}</Project>
+      <Name>Statsify.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="statsify-agent.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="statsify-aggregator.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E0E5016A-89DA-4493-82E6-2B59AD43D7D3}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Statsify.Aggregator</RootNamespace>
+    <AssemblyName>Statsify.Aggregator</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac, Version=3.5.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\..\lib\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Nancy, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\lib\Nancy.1.2.0\lib\net40\Nancy.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Nancy.Bootstrappers.Autofac, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\lib\Nancy.Bootstrappers.Autofac.1.2.0\lib\net40\Nancy.Bootstrappers.Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Nancy.Hosting.Self, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\lib\Nancy.Hosting.Self.1.2.0\lib\net40\Nancy.Hosting.Self.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NLog">
+      <HintPath>..\..\lib\nlog\bin\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Topshelf">
+      <HintPath>..\..\lib\topshelf\bin\Topshelf.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\AssemblyVersion.cs">
+      <Link>Properties\AssemblyVersion.cs</Link>
+    </Compile>
+    <Compile Include="AnnotationAggregator.cs" />
+    <Compile Include="Application.cs" />
+    <Compile Include="ComponentModel\IMetricAggregator.cs" />
+    <Compile Include="Http\Services\GraphiteApiModule.cs" />
+    <Compile Include="MetricsBuffer.cs" />
+    <Compile Include="Http\ApiModule.cs" />
+    <Compile Include="Http\Bootstrapper.cs" />
+    <Compile Include="Http\ContentModule.cs" />
+    <Compile Include="Http\IndexModule.cs" />
+    <Compile Include="Http\Models\AnnotationsQueryModel.cs" />
+    <Compile Include="Http\Models\MetricInfo.cs" />
+    <Compile Include="Http\Models\Series.cs" />
+    <Compile Include="Http\Models\SeriesQueryModel.cs" />
+    <Compile Include="Http\Models\SeriesView.cs" />
+    <Compile Include="Http\Parser.cs" />
+    <Compile Include="Http\Services\IAnnotationService.cs" />
+    <Compile Include="Http\Services\IMetricService.cs" />
+    <Compile Include="Http\Services\Impl\AnnotationService.cs" />
+    <Compile Include="Http\Services\Impl\MetricService.cs" />
+    <Compile Include="Http\Services\ISeriesService.cs" />
+    <Compile Include="Configuration\AggregationConfigurationElement.cs" />
+    <Compile Include="Configuration\AggregationConfigurationElementCollection.cs" />
+    <Compile Include="Configuration\HttpEndpointElement.cs" />
+    <Compile Include="Configuration\ConfigurationManager.cs" />
+    <Compile Include="Configuration\DownsampleConfigurationElement.cs" />
+    <Compile Include="Configuration\DownsampleConfigurationElementCollection.cs" />
+    <Compile Include="Configuration\EndpointElement.cs" />
+    <Compile Include="Configuration\RetentionConfigurationElement.cs" />
+    <Compile Include="Configuration\RetentionConfigurationElementCollection.cs" />
+    <Compile Include="Configuration\UdpEndpointElement.cs" />
+    <Compile Include="Configuration\EnumConfigurationConverter.cs" />
+    <Compile Include="Configuration\StatsifyAggregatorConfigurationSection.cs" />
+    <Compile Include="Configuration\StoreConfigurationElement.cs" />
+    <Compile Include="Configuration\StorageConfigurationElementCollection.cs" />
+    <Compile Include="DatagramParser.cs" />
+    <Compile Include="Datagrams\AnnotationDatagram.cs" />
+    <Compile Include="Datagrams\Datagram.cs" />
+    <Compile Include="Datagrams\MetricDatagram.cs" />
+    <Compile Include="Extensions\Enumerable.cs" />
+    <Compile Include="Metric.cs" />
+    <Compile Include="MetricAggregator.cs" />
+    <Compile Include="MetricParser.cs" />
+    <Compile Include="MetricType.cs" />
+    <Compile Include="Network\UdpDatagramEventArgs.cs" />
+    <Compile Include="Network\UdpDatagramHandler.cs" />
+    <Compile Include="Network\UdpDatagramReader.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Extensions\RegexExtensions.cs" />
+    <Compile Include="StatsifyAggregatorService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <EmbeddedResource Include="statsify-aggregator.config" />
+    <EmbeddedResource Include="Content\manifest.json" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.eot" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.ttf" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.woff" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.woff2" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Statsify.Core\Statsify.Core.csproj">
+      <Project>{CE4BFA81-3B50-42BE-B96C-0A4E4A135187}</Project>
+      <Name>Statsify.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Http\Content\statsify.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Http\Content\d3.js" />
+    <EmbeddedResource Include="Http\Content\d3.min.js" />
+    <EmbeddedResource Include="Http\Content\metricsgraphics.css" />
+    <EmbeddedResource Include="Http\Content\metricsgraphics.js" />
+    <EmbeddedResource Include="Http\Content\metricsgraphics.min.js" />
+    <EmbeddedResource Include="Http\Content\statsify.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Content\android-icon-144x144.png" />
+    <EmbeddedResource Include="Content\android-icon-192x192.png" />
+    <EmbeddedResource Include="Content\android-icon-36x36.png" />
+    <EmbeddedResource Include="Content\android-icon-48x48.png" />
+    <EmbeddedResource Include="Content\android-icon-72x72.png" />
+    <EmbeddedResource Include="Content\android-icon-96x96.png" />
+    <EmbeddedResource Include="Content\apple-icon-114x114.png" />
+    <EmbeddedResource Include="Content\apple-icon-120x120.png" />
+    <EmbeddedResource Include="Content\apple-icon-144x144.png" />
+    <EmbeddedResource Include="Content\apple-icon-152x152.png" />
+    <EmbeddedResource Include="Content\apple-icon-180x180.png" />
+    <EmbeddedResource Include="Content\apple-icon-57x57.png" />
+    <EmbeddedResource Include="Content\apple-icon-60x60.png" />
+    <EmbeddedResource Include="Content\apple-icon-72x72.png" />
+    <EmbeddedResource Include="Content\apple-icon-76x76.png" />
+    <EmbeddedResource Include="Content\apple-icon-precomposed.png" />
+    <EmbeddedResource Include="Content\apple-icon.png" />
+    <EmbeddedResource Include="Content\browserconfig.xml" />
+    <EmbeddedResource Include="Content\favicon-16x16.png" />
+    <EmbeddedResource Include="Content\favicon-32x32.png" />
+    <EmbeddedResource Include="Content\favicon-96x96.png" />
+    <EmbeddedResource Include="Content\favicon.ico" />
+    <EmbeddedResource Include="Content\ms-icon-144x144.png" />
+    <EmbeddedResource Include="Content\ms-icon-150x150.png" />
+    <EmbeddedResource Include="Content\ms-icon-310x310.png" />
+    <EmbeddedResource Include="Content\ms-icon-70x70.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Content\Views\index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Content\Lib\jquery-1.11.1.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Content\Lib\Bootstrap\css\bootstrap.min.css" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\fonts\glyphicons-halflings-regular.svg" />
+    <EmbeddedResource Include="Content\Lib\Bootstrap\js\bootstrap.min.js" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
