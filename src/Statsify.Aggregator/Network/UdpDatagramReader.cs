@@ -7,13 +7,12 @@ namespace Statsify.Aggregator.Network
 {
     public class UdpDatagramReader : IDisposable
     {
+        private readonly Logger log = LogManager.GetCurrentClassLogger();
+
         private IPEndPoint ipEndpoint;
-
         private UdpClient udpClient;
-        
-        public event UdpDatagramHandler DatagramHandler;
 
-        private readonly Logger log = LogManager.GetCurrentClassLogger();      
+        public event UdpDatagramHandler DatagramHandler;
 
         public UdpDatagramReader(IPAddress ipAddress, int port) :
             this(new IPEndPoint(ipAddress, port)){}
@@ -23,7 +22,6 @@ namespace Statsify.Aggregator.Network
             this.ipEndpoint = ipEndpoint;
 
             udpClient = new UdpClient(ipEndpoint);
-
             udpClient.BeginReceive(UdpClientBeginReceiveCallback, null);
         }
 
