@@ -41,10 +41,14 @@ namespace Statsify.Aggregator
 
             var uriBuilder = new UriBuilder("http", configuration.HttpEndpoint.Address, configuration.HttpEndpoint.Port, relativeUrl);
             uri = uriBuilder.Uri;
+
+            log.Info("initializing with Http Endpoint Url '{0}'", uri);
         }
 
         public bool Start(HostControl hostControl)
         {
+            log.Info("starting");
+
             stopEvent.Reset();
 
             var ipAddress = IPAddress.Parse(configuration.UdpEndpoint.Address);
@@ -59,8 +63,14 @@ namespace Statsify.Aggregator
             var hostConfiguration = new HostConfiguration();
             hostConfiguration.UrlReservations.CreateAutomatically = true;
             
+            log.Info("starting NancyHost");
+
             nancyHost = new NancyHost(hostConfiguration, uri);
             nancyHost.Start();
+
+            log.Info("started NancyHost");
+
+            log.Info("starting");
 
             return true;
         }
@@ -89,6 +99,8 @@ namespace Statsify.Aggregator
 
         public bool Stop(HostControl hostControl)
         {
+            log.Info("stopping");
+
             stopEvent.Set();
 
             if(publisherTimer != null)
@@ -98,9 +110,15 @@ namespace Statsify.Aggregator
                 udpDatagramReader.Dispose();
 
             if(nancyHost != null)
+            {
+                log.Info("stopping NancyHost");
+                
                 nancyHost.Dispose();
+                
+                log.Info("stopped NancyHost");
+            } // if
             
-            hostControl.Stop();
+            log.Info("stopped");
 
             return true;
         }
