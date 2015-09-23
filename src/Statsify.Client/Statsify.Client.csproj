@@ -48,6 +48,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stats.cs" />
     <Compile Include="StatsBatch.cs" />
+    <Compile Include="StatsifyClientConfiguration.cs" />
     <Compile Include="StatsifyClientExtensions.cs" />
     <Compile Include="StatsifyClientFactory.cs" />
     <Compile Include="UdpStatsifyClient.cs" />
