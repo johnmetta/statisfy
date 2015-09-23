@@ -70,7 +70,7 @@
     <Compile Include="AnnotationAggregator.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="ComponentModel\IMetricAggregator.cs" />
-    <Compile Include="Http\Services\GraphiteApiModule.cs" />
+    <Compile Include="Http\GraphiteApiModule.cs" />
     <Compile Include="MetricsBuffer.cs" />
     <Compile Include="Http\ApiModule.cs" />
     <Compile Include="Http\Bootstrapper.cs" />
