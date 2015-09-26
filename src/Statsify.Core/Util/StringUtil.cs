@@ -64,6 +64,15 @@
                 s.Substring(start + substring.Length);
         }
 
+        public static string SubstringAfterLast(this string s, string substring, string @default)
+        {
+            var start = s.LastIndexOf(substring);
+
+            return start == -1 ?
+                @default :
+                s.Substring(start + substring.Length);
+        }
+
         public static string SubstringBetween(this string s, string start, string end)
         {
             return s.SubstringAfter(start).SubstringBefore(end);
