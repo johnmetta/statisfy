@@ -27,6 +27,15 @@ namespace Statsify.Tests.Core
                 "*".ShouldMatch("abcd")
             };
 
+            testCases.AddRange("*mnp".ShouldMatchAny("mnp", "amnp", "abmnp"));
+            testCases.AddRange("*mnp".ShouldNotMatchAny("mnpq", "amnpq", "abmnpq"));
+
+            testCases.AddRange("abc*".ShouldMatchAny("abc", "abcd", "abcde"));
+            testCases.AddRange("abc*".ShouldNotMatchAny("zabc", "zabcd", "zabcde"));
+
+            testCases.AddRange("abc*xyz".ShouldMatchAny("abcxyz", "abcdefxyz", "abc12xyz"));
+            testCases.AddRange("abc*xyz".ShouldNotMatchAny("abcxy", "bcxyz", "abc", "xyz"));
+
             testCases.AddRange("{a,bc,def}".ShouldMatchAny("a", "bc", "def"));
             testCases.AddRange("{a,bc,def}".ShouldNotMatchAny("xa", "ab", "b", "bcd", "ef", "defg", "hg"));
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -42,6 +41,19 @@ namespace Statsify.Core
         private Predicate<string> ParseFragment(string fragment)
         {
             if(fragment == "*") return s => true;
+
+            if(fragment.Contains("*"))
+            {
+                var prefix = fragment.SubstringBefore("*", "");
+                var suffix = fragment.SubstringAfter("*", "");
+
+                return s => {
+                    if(!string.IsNullOrWhiteSpace(prefix) && !s.StartsWith(prefix, stringComparison)) return false;
+                    if(!string.IsNullOrWhiteSpace(suffix) && !s.EndsWith(suffix, stringComparison)) return false;
+
+                    return true;
+                };
+            } // if
 
             if(fragment.Contains("{") && fragment.Contains("}"))
             {
@@ -86,8 +98,7 @@ namespace Statsify.Core
 
                 var ranges = fragment.SubstringBetween("[", "]");
 
-                return s => 
-                {
+                return s => {
                     var i = 0;
 
                     if(!string.IsNullOrWhiteSpace(prefix))
