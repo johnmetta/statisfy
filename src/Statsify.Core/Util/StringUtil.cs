@@ -55,6 +55,16 @@
                 s.Substring(start + substring.Length);
         }
 
+        public static string SubstringAfter(this string s, string substring, string @default)
+        {
+            var start = s.IndexOf(substring);
+
+            return start == -1 ?
+                @default :
+                s.Substring(start + substring.Length);
+        }
+
+
         public static string SubstringAfterLast(this string s, string substring)
         {
             var start = s.LastIndexOf(substring);
