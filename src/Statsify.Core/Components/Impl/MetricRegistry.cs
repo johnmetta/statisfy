@@ -44,15 +44,35 @@ namespace Statsify.Core.Components.Impl
 
         private IEnumerable<FileInfo> GetDatabaseFiles(string metricNameSelector)
         {
-            var fragments = metricNameSelector.Split('.');
-            return GetDatabaseFiles(new DirectoryInfo(rootDirectory), fragments, 0);
+            var parser = new MetricNameSelectorParser(StringComparison.InvariantCultureIgnoreCase);
+            var matchers = parser.Parse(metricNameSelector);
+            
+            return GetDatabaseFiles(new DirectoryInfo(rootDirectory), matchers, 0);
         }
 
-        private IEnumerable<FileInfo> GetDatabaseFiles(DirectoryInfo directoryInfo, string[] fragments, int i)
+        private IEnumerable<FileInfo> GetDatabaseFiles(DirectoryInfo directoryInfo, Predicate<string>[] matchers , int i)
         {
-            var fragment = fragments[i];
+            var matcher = matchers[i];
 
-            if(i == fragments.Length - 1)
+            var matchingEntries =
+                directoryInfo.
+                    EnumerateFileSystemInfos("*.*", SearchOption.TopDirectoryOnly).
+                    Where(fsi => matcher(Path.GetFileNameWithoutExtension(fsi.Name)));
+
+            if(i == matchers.Length - 1)
+            {
+                matchingEntries = matchingEntries.Where(fsi => File.Exists(fsi.FullName));
+                foreach(var matchingEntry in matchingEntries.Select(fsi => new FileInfo(fsi.FullName)))
+                    yield return matchingEntry;
+            }
+            else
+            {
+                foreach(var matchingEntry in matchingEntries.Where(fsi => Directory.Exists(fsi.FullName)).Select(fsi => new DirectoryInfo(fsi.FullName)))
+                foreach(var f in GetDatabaseFiles(matchingEntry, matchers, i + 1))
+                    yield return f;
+            }
+
+            /*if(i == fragments.Length - 1)
             {
                 if(fragment.StartsWith("{") && fragment.EndsWith("}"))
                 {
@@ -83,10 +103,12 @@ namespace Statsify.Core.Components.Impl
                     foreach(var file in GetDatabaseFiles(directoryInfo, fragment, fragments, i))
                         yield return file;
                 } // else
-            } // else
+            } // else*/
+
+            yield break;
         }
 
-        private IEnumerable<FileInfo> GetDatabaseFiles(DirectoryInfo directoryInfo, string searchPattern)
+        /*private IEnumerable<FileInfo> GetDatabaseFiles(DirectoryInfo directoryInfo, string searchPattern)
         {
             var files = directoryInfo.GetFiles(searchPattern + ".db");
             foreach(var file in files)
@@ -101,6 +123,6 @@ namespace Statsify.Core.Components.Impl
                 foreach(var metricName in GetDatabaseFiles(subdirectoryInfo, fragments, i + 1))
                     yield return metricName;
             } // foreach
-        }
+        }*/
     }
 }
