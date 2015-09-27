@@ -61,6 +61,9 @@ namespace Statsify.Tests.Core
 
             testCases.AddRange("[c-f]".ShouldMatchAny("c", "d", "e", "f"));
             testCases.AddRange("[c-f]".ShouldNotMatchAny("a", "b", "g"));
+
+            testCases.Add("abcd".ShouldMatch("abcd"));
+            testCases.Add("abcd".ShouldNotMatch("abce"));
             
             return testCases;
         } 

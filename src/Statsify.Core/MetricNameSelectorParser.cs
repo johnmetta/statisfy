@@ -153,7 +153,7 @@ namespace Statsify.Core
                 };
             } // if
 
-            return s => false;
+            return s => string.Equals(s, fragment, stringComparison);
         }
     }
 }
