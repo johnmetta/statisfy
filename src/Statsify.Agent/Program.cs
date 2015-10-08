@@ -35,7 +35,7 @@ namespace Statsify.Agent
 
                     x.StartAutomaticallyDelayed();
 
-                    x.RunAsNetworkService();
+                    x.RunAsLocalSystem();
                 });
 
             return (int)host.Run();
