@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Nancy;
 using Nancy.ModelBinding;
+using NLog;
 using Statsify.Aggregator.ComponentModel;
 using Statsify.Aggregator.Http.Models;
 using Statsify.Aggregator.Http.Services;
@@ -19,6 +20,7 @@ namespace Statsify.Aggregator.Http
     /// </summary>
     public class GraphiteApiModule : NancyModule
     {
+        private readonly Logger log = LogManager.GetCurrentClassLogger();
         private readonly IMetricService metricService;
         private readonly IMetricRegistry metricRegistry;
         private readonly IMetricAggregator metricAggregator;
@@ -49,6 +51,8 @@ namespace Statsify.Aggregator.Http
             var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
             var until = Parser.ParseDateTime(model.Until, now, now);
 
+            log.Debug("started querying metrics using '{0}'", model.Query);
+
             var metrics = 
                 metricService.Find(model.Query).
                     Select(m => new QueryMetricsResultModel {
@@ -60,6 +64,8 @@ namespace Statsify.Aggregator.Http
 
             if(model.Wildcards == 1)
                 metrics.Add(new QueryMetricsResultModel { name = "*" });
+
+            log.Debug("returning {0} metrics: '{1}'", metrics.Count, string.Join("', '", metrics.Select(m => m.name)));
 
             return Response.AsJson(new { metrics = metrics });
         }
