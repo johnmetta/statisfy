@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Autofac;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -6,6 +7,7 @@ using Nancy.Bootstrappers.Autofac;
 using Nancy.Conventions;
 using Nancy.Embedded.Conventions;
 using Nancy.ViewEngines;
+using NLog;
 using Statsify.Aggregator.ComponentModel;
 using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Http.Services;
@@ -14,8 +16,10 @@ using Statsify.Core.Components.Impl;
 
 namespace Statsify.Aggregator.Http
 {
-    public class Bootstrapper : AutofacNancyBootstrapper 
+    public class Bootstrapper : AutofacNancyBootstrapper
     {
+        private readonly Logger httpLog = LogManager.GetLogger("Statsify.Aggregator.Http");
+
         public IMetricAggregator MetricAggregator { get; set; }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)
@@ -38,6 +42,8 @@ namespace Statsify.Aggregator.Http
 
         protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines, NancyContext context)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             pipelines.AfterRequest.
                 AddItemToEndOfPipeline(ctx => {
                     ctx.Response.
@@ -45,6 +51,10 @@ namespace Statsify.Aggregator.Http
                         WithHeader("Access-Control-Allow-Methods", "POST, GET").
                         WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-Type");
                 });
+
+            pipelines.AfterRequest.AddItemToEndOfPipeline(ctx => {
+                httpLog.Debug("{0} {1} - {2} {3} in {4:N1} ms", ctx.Request.Method, ctx.Request.Url, (int)ctx.Response.StatusCode, ctx.Response.StatusCode, stopwatch.Elapsed.TotalMilliseconds);
+            });
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)

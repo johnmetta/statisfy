@@ -49,38 +49,43 @@ namespace Statsify.Aggregator
 
             var stopwatch = new Stopwatch();
             while(!stopEvent.WaitOne(TimeSpan.FromMinutes(5)))
+                Flush(stopwatch);
+
+            Flush(stopwatch);
+        }
+
+        private void Flush(Stopwatch stopwatch)
+        {
+            var n = 0;
+            stopwatch.Restart();
+
+            var fq = Interlocked.CompareExchange(ref flushQueue, new ConcurrentQueue<MetricDatapoint>(), flushQueue);
+
+            foreach(var g in fq.GroupBy(m => m.Name))
             {
-                var n = 0;
-                stopwatch.Restart();
+                var datapoints = g.Select(md => md.Datapoint).ToList();
+                n += datapoints.Count;
 
-                var fq = Interlocked.CompareExchange(ref flushQueue, new ConcurrentQueue<MetricDatapoint>(), flushQueue);
+                var metric = g.Key;
 
-                foreach(var g in fq.GroupBy(m => m.Name))
+                try
                 {
-                    var datapoints = g.Select(md => md.Datapoint).ToList();
-                    n += datapoints.Count;
+                    var db = GetDatabase(configuration.Storage.Path, metric);
+                    if(db != null)
+                        db.WriteDatapoints(datapoints);
+                } // try
+                catch(Exception e)
+                {
+                    var message = string.Format("could not write datapoints to '{0}'", metric);
 
-                    var metric = g.Key;
+                    log.ErrorException(message, e);
+                } // catch
+            } // foreach
 
-                    try
-                    {
-                        var db = GetDatabase(configuration.Storage.Path, metric);
-                        if(db != null)
-                            db.WriteDatapoints(datapoints);
-                    } // try
-                    catch(Exception e)
-                    {
-                        var message = string.Format("could not write datapoints to '{0}'", metric);
+            stopwatch.Stop();
 
-                        log.ErrorException(message, e);
-                    } // catch
-                } // foreach
-
-                stopwatch.Stop();
-
-                if(n > 0)
-                    log.Info("completed flushing {0:N0} entries in {1} ({2:N2} per second)", n, stopwatch.Elapsed, n / stopwatch.Elapsed.TotalSeconds);               
-            } // while
+            if(n > 0)
+                log.Info("completed flushing {0:N0} entries in {1} ({2:N2} per second)", n, stopwatch.Elapsed, n / stopwatch.Elapsed.TotalSeconds);
         }
 
         public void Aggregate(Metric metric)
