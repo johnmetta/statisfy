@@ -45,7 +45,7 @@ namespace Statsify.Aggregator
 
                     x.StartAutomaticallyDelayed();
 
-                    x.RunAsNetworkService();
+                    x.RunAsLocalSystem();
 
                     x.UseNLog();
                 });
