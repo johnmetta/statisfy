@@ -6,6 +6,7 @@ using Nancy.Bootstrappers.Autofac;
 using Nancy.Conventions;
 using Nancy.Embedded.Conventions;
 using Nancy.ViewEngines;
+using NLog;
 using Statsify.Aggregator.ComponentModel;
 using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Http.Services;
@@ -14,8 +15,10 @@ using Statsify.Core.Components.Impl;
 
 namespace Statsify.Aggregator.Http
 {
-    public class Bootstrapper : AutofacNancyBootstrapper 
+    public class Bootstrapper : AutofacNancyBootstrapper
     {
+        private readonly Logger httpLog = LogManager.GetLogger("Statsify.Aggregator.Http");
+
         public IMetricAggregator MetricAggregator { get; set; }
 
         protected override void ConfigureRequestContainer(ILifetimeScope container, NancyContext context)
@@ -38,6 +41,11 @@ namespace Statsify.Aggregator.Http
 
         protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines, NancyContext context)
         {
+            pipelines.BeforeRequest.AddItemToEndOfPipeline(ctx =>
+            {
+                httpLog.Info("{0} {1}", ctx.Request.Method, ctx.Request.Path);
+                return null;
+            });
             pipelines.AfterRequest.
                 AddItemToEndOfPipeline(ctx => {
                     ctx.Response.
