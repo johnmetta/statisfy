@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Autofac;
 using Nancy;
 using Nancy.Bootstrapper;
@@ -41,11 +42,8 @@ namespace Statsify.Aggregator.Http
 
         protected override void RequestStartup(ILifetimeScope container, IPipelines pipelines, NancyContext context)
         {
-            pipelines.BeforeRequest.AddItemToEndOfPipeline(ctx =>
-            {
-                httpLog.Info("{0} {1}", ctx.Request.Method, ctx.Request.Path);
-                return null;
-            });
+            var stopwatch = Stopwatch.StartNew();
+
             pipelines.AfterRequest.
                 AddItemToEndOfPipeline(ctx => {
                     ctx.Response.
@@ -53,6 +51,10 @@ namespace Statsify.Aggregator.Http
                         WithHeader("Access-Control-Allow-Methods", "POST, GET").
                         WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-Type");
                 });
+
+            pipelines.AfterRequest.AddItemToEndOfPipeline(ctx => {
+                httpLog.Debug("{0} {1} - {2} {3} in {4:N1} ms", ctx.Request.Method, ctx.Request.Url, (int)ctx.Response.StatusCode, ctx.Response.StatusCode, stopwatch.Elapsed.TotalMilliseconds);
+            });
         }
 
         protected override void ConfigureApplicationContainer(ILifetimeScope existingContainer)
