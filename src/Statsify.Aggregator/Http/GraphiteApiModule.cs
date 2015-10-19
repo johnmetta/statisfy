@@ -81,6 +81,8 @@ namespace Statsify.Aggregator.Http
                 var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
                 var until = Parser.ParseDateTime(model.Until, now, now);
 
+                log.Debug("started rendering metrics using '{0}' from {1:s} to {2:s} ({3})", model.Target, from, until, until - from);
+
                 var environment = new Statsify.Core.Expressions.Environment {
                     MetricRegistry = metricRegistry,
                     QueuedMetricDatapoints = metricAggregator.Queue
@@ -100,7 +102,9 @@ namespace Statsify.Aggregator.Http
                     e = new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression);
                 } // if
 
+                log.Debug("started evaluating expression");
                 var r = (Core.Model.Metric[])e.Evaluate(environment, evalContext);
+                log.Debug("evaluated expression");
 
                 metrics.AddRange(r);
 
@@ -113,6 +117,8 @@ namespace Statsify.Aggregator.Http
                         Datapoints = metric.Series.Datapoints.Select((v, i) => new[] {v.Value, f + i*interval}).ToArray()
                     }
                     ).OrderBy(s => s.Target).ToArray();
+
+                log.Debug("rendered {0} metrics using '{1}' from {2:s} to {3:s}", seriesViewList.Length, model.Target, from, until);
 
                 return Response.AsJson(seriesViewList);
             }
