@@ -56,18 +56,21 @@ namespace Statsify.Aggregator.Http
             var metrics = 
                 metricService.Find(model.Query).
                     Select(m => new QueryMetricsResultModel {
-                        is_leaf = m.IsLeaf ? 1 : 0,
-                        name = m.Name,
-                        path = m.IsLeaf ? m.Path.TrimEnd('.') : (m.Path.TrimEnd('.') + '.')
+                        leaf = m.IsLeaf ? 1 : 0,
+                        context = new object(),
+                        text = m.Name,
+                        expandable = m.IsLeaf ? 0 : 1,
+                        id = m.Path, //m.IsLeaf ? m.Path.TrimEnd('.') : (m.Path.TrimEnd('.') + '.')
+                        allowChildren = m.IsLeaf ? 0 : 1
                     }).
-                    ToList();
+                    ToArray();
 
-            if(model.Wildcards == 1)
-                metrics.Add(new QueryMetricsResultModel { name = "*" });
+            /*if(model.Wildcards == 1)
+                metrics.Add(new QueryMetricsResultModel { name = "*" });*/
 
-            log.Debug("returning {0} metrics: '{1}'", metrics.Count, string.Join("', '", metrics.Select(m => m.name)));
+            log.Debug("returning {0} metrics: '{1}'", metrics.Length, string.Join("', '", metrics.Select(m => m.text)));
 
-            return Response.AsJson(new { metrics = metrics });
+            return Response.AsJson(metrics);
         }
 
         private dynamic RenderSeries(dynamic req)
@@ -148,9 +151,12 @@ namespace Statsify.Aggregator.Http
         public class QueryMetricsResultModel
         {
             // ReSharper disable InconsistentNaming
-            public int is_leaf { get; set; }
-            public string name { get; set; }
-            public string path { get; set; }
+            public int leaf { get; set; }
+            public object context { get; set; }
+            public string text { get; set; }
+            public int expandable { get; set; }
+            public string id { get; set; }
+            public int allowChildren { get; set; }
             // ReSharper restore InconsistentNaming
         }
     }
