@@ -71,10 +71,13 @@ namespace Statsify.Core.Expressions
         [Function("summarize")]
         public static Metric[] Summarize(EvalContext context, Metric[] metrics, string aggregationFunction, string bucket)
         {
-            var bucketDuration = ParseTimeSpan(bucket);
+            //
+            // The double-parsing is due to legacy reasons. Statsify expects `summarize(metrics, aggregationFunction, bucket)`,
+            // whereas Graphite-compatible clients expect `summarize(metrics, bucket, aggregationFunction)`.
+            var bucketDuration = ParseTimeSpan(bucket) ?? ParseTimeSpan(aggregationFunction);
             if(!bucketDuration.HasValue) return metrics;
 
-            var fn = ParseAggregationFunction(aggregationFunction);
+            var fn = ParseAggregationFunction(aggregationFunction) ?? ParseAggregationFunction(bucket);
             if(fn == null) return metrics;
 
             var until = context.Until;
@@ -362,6 +365,7 @@ namespace Statsify.Core.Expressions
         }
 
         [Function("group_by_fragment")]
+        [Function("groupByNode")]
         public static Metric[] GroupByFragment(EvalContext context, MetricSelector selector, int fragmentIndex, string callback)
         {
             return null;
