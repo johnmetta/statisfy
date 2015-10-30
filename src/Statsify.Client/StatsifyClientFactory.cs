@@ -34,10 +34,9 @@ namespace Statsify.Client
         private string GetResolvedValue(string value)
         {
             if(string.IsNullOrWhiteSpace(value)) return "";
-            if(!value.StartsWith("%")) return value;
+            if(!value.Contains("%")) return value;
 
-            value = environmentVariableResolver(value);
-            if(string.IsNullOrWhiteSpace(value) || value.StartsWith("%")) return "";
+            value = environmentVariableResolver(value);            
 
             return value;
         }
@@ -45,10 +44,8 @@ namespace Statsify.Client
         public static string ResolveEnvironmentVariable(string value)
         {
             if(string.IsNullOrWhiteSpace(value)) return "";
-            if(value.StartsWith("%") && value.EndsWith("%"))
-                return Environment.GetEnvironmentVariable(value.Trim('%'));
-
-            return value;
+            
+            return Environment.ExpandEnvironmentVariables(value);
         }
     }
 }
