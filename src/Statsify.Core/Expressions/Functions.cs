@@ -366,8 +366,32 @@ namespace Statsify.Core.Expressions
 
         [Function("group_by_fragment")]
         [Function("groupByNode")]
-        public static Metric[] GroupByFragment(EvalContext context, MetricSelector selector, int fragmentIndex, string callback)
+        public static Metric[] GroupByFragment(EvalContext context, Metric[] metrics, int fragmentIndex, string callback)
         {
+            var metaMetrics =
+                metrics.
+                    Where(m => m.Name.Split('.').Length > fragmentIndex).
+                    GroupBy(m => m.Name.Split('.')[fragmentIndex]);
+
+            if(callback == "sum")
+            {
+                var result = 
+                    metaMetrics.
+                        Select(m => {
+                            var grouped = Sum(context, m.ToArray());
+                            var series = new Series(context.From, context.Until, grouped.Series.Interval, grouped.Series.Datapoints);
+
+                            var nameFragments = m.First().Name.Split('.');
+                            nameFragments[fragmentIndex] = "*";
+                                        var name = nameFragments[fragmentIndex];// string.Join(".", nameFragments.Where((s, i) => i != fragmentIndex));
+
+                            return new Metric(name, series);
+                        }).
+                        ToArray();
+
+                return result;
+            } // if
+                
             return null;
         }
     }
