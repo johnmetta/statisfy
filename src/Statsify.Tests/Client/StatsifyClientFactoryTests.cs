@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Text.RegularExpressions;
+using NUnit.Framework;
 using Statsify.Client;
 using Statsify.Client.Configuration;
 
@@ -19,10 +20,10 @@ namespace Statsify.Tests.Client
         [Test]
         public void CreateStatsifyClient()
         {
-            var factory = new StatsifyClientFactory(s => s.Trim('%').ToLowerInvariant());
+            var factory = new StatsifyClientFactory(s => Regex.Replace(s, @"\%([^%]+)\%", m => m.Groups[1].Value.ToLowerInvariant()));
             var configuration = new StatsifyConfigurationSection {
-                Host = "%STATSIFY_HOST%",
-                Namespace = "%STATSIFY_NAMESPACE%"
+                Host = "http://%STATSIFY_HOST%.local",
+                Namespace = "%STATSIFY_NAMESPACE%.subnamespace"
             };
 
             var statsifyClient = factory.CreateStatsifyClient(configuration);
@@ -30,8 +31,8 @@ namespace Statsify.Tests.Client
 
             var clientConfiguration = (IStatsifyClientConfiguration)statsifyClient;
 
-            Assert.AreEqual("statsify_host", clientConfiguration.Host);
-            Assert.AreEqual("statsify_namespace", clientConfiguration.Namespace);
+            Assert.AreEqual("http://statsify_host.local", clientConfiguration.Host);
+            Assert.AreEqual("statsify_namespace.subnamespace", clientConfiguration.Namespace);
         }
     }
 }
