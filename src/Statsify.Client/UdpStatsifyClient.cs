@@ -81,7 +81,7 @@ namespace Statsify.Client
 
             var metricValueFormat = explicitlySigned ? "{0:+#.####;-#.####;#}" : "{0}";
             var metricValue =
-                value == 0 ?
+                Math.Abs(value) < 0.00000001 ?
                     (explicitlySigned ? "+0" : "0") :
                     string.Format(cultureInfo, metricValueFormat, (float)value);
 
