@@ -103,6 +103,14 @@ namespace Statsify.Client
             Statsify.Time(metric, action, sample);
         }
 
+        public static T Time<T>(string metric, Func<T> action, double sample = 1)
+        {
+            var result = default(T);
+            Statsify.Time(metric, () => { result = action(); }, sample);
+
+            return result;
+        }
+
         internal static IStatsifyClient GetStatsifyClient()
         {
             var clientFactory = new StatsifyClientFactory();
