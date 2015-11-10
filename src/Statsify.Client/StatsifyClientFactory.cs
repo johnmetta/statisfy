@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Statsify.Client.Configuration;
 
 namespace Statsify.Client
@@ -7,14 +8,16 @@ namespace Statsify.Client
     {
         private static readonly IStatsifyClient NullStatsifyClient = new NullStatsifyClient();
         private readonly Func<string, string> environmentVariableResolver;
+        private readonly Func<string, bool> hostnameValidator; 
 
         public StatsifyClientFactory() :
-            this(null)
+            this(null, null)
         {
         }
 
-        public StatsifyClientFactory(Func<string, string> environmentVariableResolver)
+        public StatsifyClientFactory(Func<string, string> environmentVariableResolver, Func<string, bool> hostnameValidator)
         {
+            this.hostnameValidator = hostnameValidator ?? ValidateHostname;
             this.environmentVariableResolver = environmentVariableResolver ?? ResolveEnvironmentVariable;
         }
 
@@ -25,8 +28,8 @@ namespace Statsify.Client
             var host = GetResolvedValue(configuration.Host);
             var @namespace = GetResolvedValue(configuration.Namespace);
 
-            if(string.IsNullOrWhiteSpace(host))
-                return new NullStatsifyClient();
+            if(string.IsNullOrWhiteSpace(host) || !hostnameValidator(host))
+                return NullStatsifyClient;
 
             var statsify = new UdpStatsifyClient(host, configuration.Port, @namespace);
             return statsify;
@@ -42,11 +45,24 @@ namespace Statsify.Client
             return value;
         }
 
-        public static string ResolveEnvironmentVariable(string value)
+        private static string ResolveEnvironmentVariable(string value)
         {
             if(string.IsNullOrWhiteSpace(value)) return "";
             
             return Environment.ExpandEnvironmentVariables(value);
+        }
+
+        private static bool ValidateHostname(string host)
+        {
+            try
+            {
+                var hostAddresses = Dns.GetHostAddresses(host);
+                return hostAddresses.Length > 0;
+            } // try
+            catch(Exception)
+            {
+                return false;
+            } // catch
         }
     }
 }
