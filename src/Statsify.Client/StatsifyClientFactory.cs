@@ -5,6 +5,7 @@ namespace Statsify.Client
 {
     public class StatsifyClientFactory
     {
+        private static readonly IStatsifyClient NullStatsifyClient = new NullStatsifyClient();
         private readonly Func<string, string> environmentVariableResolver;
 
         public StatsifyClientFactory() :
@@ -19,7 +20,7 @@ namespace Statsify.Client
 
         public IStatsifyClient CreateStatsifyClient(IStatsifyClientConfiguration configuration)
         {
-            if(configuration == null) return new NullStatsifyClient();
+            if(configuration == null) return NullStatsifyClient;
 
             var host = GetResolvedValue(configuration.Host);
             var @namespace = GetResolvedValue(configuration.Namespace);
