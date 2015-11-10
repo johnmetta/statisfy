@@ -20,9 +20,12 @@ namespace Statsify.Tests.Client
         [Test]
         public void CreateStatsifyClient()
         {
-            var factory = new StatsifyClientFactory(s => Regex.Replace(s, @"\%([^%]+)\%", m => m.Groups[1].Value.ToLowerInvariant()));
+            var factory = new StatsifyClientFactory(
+                s => Regex.Replace(s, @"\%([^%]+)\%", m => m.Groups[1].Value.ToLowerInvariant()),
+                s => true);
+
             var configuration = new StatsifyConfigurationSection {
-                Host = "http://%STATSIFY_HOST%.local",
+                Host = "%STATSIFY_HOST%.local",
                 Namespace = "%STATSIFY_NAMESPACE%.subnamespace"
             };
 
@@ -33,6 +36,18 @@ namespace Statsify.Tests.Client
 
             Assert.AreEqual("http://statsify_host.local", clientConfiguration.Host);
             Assert.AreEqual("statsify_namespace.subnamespace", clientConfiguration.Namespace);
+        }
+
+        [Test]
+        public void CreateStatsifyClientWithInvalidHostname()
+        {
+            var factory = new StatsifyClientFactory(s => s, s => false);
+
+            var configuration = new StatsifyConfigurationSection {
+                Host = "statsify.local",
+            };
+
+            Assert.IsInstanceOf<NullStatsifyClient>(factory.CreateStatsifyClient(configuration));
         }
     }
 }
