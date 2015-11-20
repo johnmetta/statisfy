@@ -1,31 +1,35 @@
 ﻿using System;
+using System.Net;
 using Statsify.Client.Configuration;
 
 namespace Statsify.Client
 {
     public class StatsifyClientFactory
     {
+        private static readonly IStatsifyClient NullStatsifyClient = new NullStatsifyClient();
         private readonly Func<string, string> environmentVariableResolver;
+        private readonly Func<string, bool> hostnameValidator; 
 
         public StatsifyClientFactory() :
-            this(null)
+            this(null, null)
         {
         }
 
-        public StatsifyClientFactory(Func<string, string> environmentVariableResolver)
+        public StatsifyClientFactory(Func<string, string> environmentVariableResolver, Func<string, bool> hostnameValidator)
         {
+            this.hostnameValidator = hostnameValidator ?? ValidateHostname;
             this.environmentVariableResolver = environmentVariableResolver ?? ResolveEnvironmentVariable;
         }
 
         public IStatsifyClient CreateStatsifyClient(IStatsifyClientConfiguration configuration)
         {
-            if(configuration == null) return new NullStatsifyClient();
+            if(configuration == null) return NullStatsifyClient;
 
             var host = GetResolvedValue(configuration.Host);
             var @namespace = GetResolvedValue(configuration.Namespace);
 
-            if(string.IsNullOrWhiteSpace(host))
-                return new NullStatsifyClient();
+            if(string.IsNullOrWhiteSpace(host) || !hostnameValidator(host))
+                return NullStatsifyClient;
 
             var statsify = new UdpStatsifyClient(host, configuration.Port, @namespace);
             return statsify;
@@ -34,21 +38,31 @@ namespace Statsify.Client
         private string GetResolvedValue(string value)
         {
             if(string.IsNullOrWhiteSpace(value)) return "";
-            if(!value.StartsWith("%")) return value;
+            if(!value.Contains("%")) return value;
 
-            value = environmentVariableResolver(value);
-            if(string.IsNullOrWhiteSpace(value) || value.StartsWith("%")) return "";
+            value = environmentVariableResolver(value);            
 
             return value;
         }
 
-        public static string ResolveEnvironmentVariable(string value)
+        private static string ResolveEnvironmentVariable(string value)
         {
             if(string.IsNullOrWhiteSpace(value)) return "";
-            if(value.StartsWith("%") && value.EndsWith("%"))
-                return Environment.GetEnvironmentVariable(value.Trim('%'));
+            
+            return Environment.ExpandEnvironmentVariables(value);
+        }
 
-            return value;
+        private static bool ValidateHostname(string host)
+        {
+            try
+            {
+                var hostAddresses = Dns.GetHostAddresses(host);
+                return hostAddresses.Length > 0;
+            } // try
+            catch(Exception)
+            {
+                return false;
+            } // catch
         }
     }
 }

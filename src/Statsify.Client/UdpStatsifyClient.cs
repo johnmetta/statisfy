@@ -18,6 +18,11 @@ namespace Statsify.Client
         private readonly string @namespace;
         private readonly UdpClient udpClient;
 
+        public UdpStatsifyClient(IStatsifyClientConfiguration configuration) :
+            this(configuration.Host, configuration.Port, configuration.Namespace)
+        {
+        }
+
         public UdpStatsifyClient(string host = "127.0.0.1", int port = DefaultPort, string @namespace = "")
         {
             this.host = host;
@@ -76,7 +81,7 @@ namespace Statsify.Client
 
             var metricValueFormat = explicitlySigned ? "{0:+#.####;-#.####;#}" : "{0}";
             var metricValue =
-                value == 0 ?
+                Math.Abs(value) < 0.00000001 ?
                     (explicitlySigned ? "+0" : "0") :
                     string.Format(cultureInfo, metricValueFormat, (float)value);
 

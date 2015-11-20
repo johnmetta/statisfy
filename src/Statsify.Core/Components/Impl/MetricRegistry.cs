@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using NLog;
 using Statsify.Core.Model;
 using Statsify.Core.Storage;
 
@@ -10,6 +11,8 @@ namespace Statsify.Core.Components.Impl
 {
     public class MetricRegistry : IMetricRegistry
     {
+        private readonly Logger log = LogManager.GetCurrentClassLogger();
+
         private readonly string rootDirectory;
 
         public MetricRegistry(string rootDirectory)
@@ -40,6 +43,47 @@ namespace Statsify.Core.Components.Impl
             var series = database.ReadSeries(from, until, precision);
 
             return new Metric(metricName, series);
+        }
+
+        public void PurgeMetrics(DateTime lastUpdatedAt)
+        {
+            log.Info("started purging metrics older than '{0:O}'", lastUpdatedAt);
+
+            var filePaths =
+                Directory.
+                    EnumerateFiles(rootDirectory, "*.db", SearchOption.AllDirectories).
+                    Where(File.Exists).
+                    Where(fp =>
+                    {
+                        try
+                        {
+                            var fileInfo = new FileInfo(fp);
+
+                            if(fileInfo.LastWriteTimeUtc < lastUpdatedAt) return true;
+                            if(fileInfo.Length < 1024 * 16) return true;
+
+                            return false;
+                        }
+                        catch(Exception e)
+                        {
+                            return false;
+                        }
+                    });
+
+            foreach(var filePath in filePaths)
+            {
+                try
+                {
+                    File.Delete(filePath);
+                    log.Info("deleted '{0}'", filePath);
+                } // try
+                catch(Exception e)
+                {
+                    log.Error(e, "could not delete '{0}'", filePath);
+                } // catch
+            } // foreach
+
+            log.Info("completed purging metrics older than '{0:O}'", lastUpdatedAt);
         }
 
         private IEnumerable<FileInfo> GetDatabaseFiles(string metricNameSelector)
