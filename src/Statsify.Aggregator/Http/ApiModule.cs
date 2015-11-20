@@ -68,6 +68,8 @@ namespace Statsify.Aggregator.Http
                 var now = DateTime.UtcNow;
                 var from = Parser.ParseDateTime(model.From, now, now.AddYears(-1));
 
+                metricRegistry.PurgeMetrics(from);
+
                 return 204;
             };
         }
