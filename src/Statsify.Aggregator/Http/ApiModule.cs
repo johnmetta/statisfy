@@ -58,6 +58,18 @@ namespace Statsify.Aggregator.Http
             };
 
             Get["series"] = x => GetSeries(metricRegistry, metricAggregator);
+
+            Post["purge"] = x =>
+            {
+
+                var model = new PurgeModel();
+                this.BindTo(model, new BindingConfig { BodyOnly = false });
+
+                var now = DateTime.UtcNow;
+                var from = Parser.ParseDateTime(model.From, now, now.AddYears(-1));
+
+                return 204;
+            };
         }
 
         private dynamic GetSeries(IMetricRegistry metricRegistry, IMetricAggregator metricAggregator)

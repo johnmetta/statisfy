@@ -42,6 +42,41 @@ namespace Statsify.Core.Components.Impl
             return new Metric(metricName, series);
         }
 
+        public void PurgeMetrics(DateTime lastUpdatedAt)
+        {
+            var filePaths =
+                Directory.
+                    EnumerateFiles(rootDirectory, "*.db", SearchOption.AllDirectories).
+                    Where(File.Exists).
+                    Where(fp =>
+                    {
+                        try
+                        {
+                            var fileInfo = new FileInfo(fp);
+
+                            if(fileInfo.LastWriteTimeUtc < lastUpdatedAt) return true;
+                            if(fileInfo.Length < 1024 * 16) return true;
+
+                            return false;
+                        }
+                        catch(Exception e)
+                        {
+                            return false;
+                        }
+                    });
+
+            foreach(var filePath in filePaths)
+            {
+                try
+                {
+                    File.Delete(filePath);
+                } // try
+                catch
+                {
+                } // catch
+            } // foreach
+        }
+
         private IEnumerable<FileInfo> GetDatabaseFiles(string metricNameSelector)
         {
             var fragments = metricNameSelector.Split('.');

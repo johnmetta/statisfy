@@ -9,5 +9,7 @@ namespace Statsify.Core.Components
         IEnumerable<string> ResolveMetricNames(string metricNameSelector);
 
         Metric ReadMetric(string metricName, DateTime from, DateTime until, TimeSpan? precision = null);
+
+        void PurgeMetrics(DateTime lastUpdatedAt);
     }
 }
