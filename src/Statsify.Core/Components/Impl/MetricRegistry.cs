@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using NLog;
 using Statsify.Core.Model;
 using Statsify.Core.Storage;
 
@@ -10,6 +11,8 @@ namespace Statsify.Core.Components.Impl
 {
     public class MetricRegistry : IMetricRegistry
     {
+        private readonly Logger log = LogManager.GetCurrentClassLogger();
+
         private readonly string rootDirectory;
 
         public MetricRegistry(string rootDirectory)
@@ -44,6 +47,8 @@ namespace Statsify.Core.Components.Impl
 
         public void PurgeMetrics(DateTime lastUpdatedAt)
         {
+            log.Info("started purging metrics older than '{0:O}'", lastUpdatedAt);
+
             var filePaths =
                 Directory.
                     EnumerateFiles(rootDirectory, "*.db", SearchOption.AllDirectories).
@@ -70,11 +75,15 @@ namespace Statsify.Core.Components.Impl
                 try
                 {
                     File.Delete(filePath);
+                    log.Info("deleted '{0}'", filePath);
                 } // try
-                catch
+                catch(Exception e)
                 {
+                    log.Error(e, "could not delete '{0}'", filePath);
                 } // catch
             } // foreach
+
+            log.Info("completed purging metrics older than '{0:O}'", lastUpdatedAt);
         }
 
         private IEnumerable<FileInfo> GetDatabaseFiles(string metricNameSelector)
