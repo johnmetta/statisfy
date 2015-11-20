@@ -11,6 +11,7 @@ namespace Statsify.Core.Expressions
     public static class Functions
     {
         [Function("timeshift")]
+        [Function("timeShift")]
         public static MetricSelector Timeshift(EvalContext context, MetricSelector selector, string offset)
         {
             var offsetDuration = ParseTimeSpan(offset);
@@ -45,6 +46,7 @@ namespace Statsify.Core.Expressions
         }
 
         [Function("alias_by_fragment")]
+        [Function("aliasByNode")]
         public static Metric[] AliasByFragment(EvalContext context, Metric[] metrics, params int[] fragmentIndices)
         {
             return
@@ -69,10 +71,13 @@ namespace Statsify.Core.Expressions
         [Function("summarize")]
         public static Metric[] Summarize(EvalContext context, Metric[] metrics, string aggregationFunction, string bucket)
         {
-            var bucketDuration = ParseTimeSpan(bucket);
+            //
+            // The double-parsing is due to legacy reasons. Statsify expects `summarize(metrics, aggregationFunction, bucket)`,
+            // whereas Graphite-compatible clients expect `summarize(metrics, bucket, aggregationFunction)`.
+            var bucketDuration = ParseTimeSpan(bucket) ?? ParseTimeSpan(aggregationFunction);
             if(!bucketDuration.HasValue) return metrics;
 
-            var fn = ParseAggregationFunction(aggregationFunction);
+            var fn = ParseAggregationFunction(aggregationFunction) ?? ParseAggregationFunction(bucket);
             if(fn == null) return metrics;
 
             var until = context.Until;
@@ -187,6 +192,7 @@ namespace Statsify.Core.Expressions
         }
 
         [Function("sort_by_name")]
+        [Function("sortByName")]
         public static Metric[] SortByName(EvalContext context, Metric[] metrics)
         {
             return metrics.OrderBy(m => m.Name).ToArray();
@@ -359,8 +365,33 @@ namespace Statsify.Core.Expressions
         }
 
         [Function("group_by_fragment")]
-        public static Metric[] GroupByFragment(EvalContext context, MetricSelector selector, int fragmentIndex, string callback)
+        [Function("groupByNode")]
+        public static Metric[] GroupByFragment(EvalContext context, Metric[] metrics, int fragmentIndex, string callback)
         {
+            var metaMetrics =
+                metrics.
+                    Where(m => m.Name.Split('.').Length > fragmentIndex).
+                    GroupBy(m => m.Name.Split('.')[fragmentIndex]);
+
+            if(callback == "sum")
+            {
+                var result = 
+                    metaMetrics.
+                        Select(m => {
+                            var grouped = Sum(context, m.ToArray());
+                            var series = new Series(context.From, context.Until, grouped.Series.Interval, grouped.Series.Datapoints);
+
+                            var nameFragments = m.First().Name.Split('.');
+                            nameFragments[fragmentIndex] = "*";
+                                        var name = nameFragments[fragmentIndex];// string.Join(".", nameFragments.Where((s, i) => i != fragmentIndex));
+
+                            return new Metric(name, series);
+                        }).
+                        ToArray();
+
+                return result;
+            } // if
+                
             return null;
         }
     }
