@@ -16,13 +16,20 @@ namespace Statsify.Agent.Impl
         private bool refreshing;
         private readonly TimeSpan refreshEvery;
         private readonly Func<IEnumerable<IMetricDefinition>> refreshCallback;
+        private readonly Func<DateTime> currentTimeProvider;
         private readonly ReaderWriterLockSlim readerWriterLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
-        public RefreshableMetricSource(IEnumerable<IMetricDefinition> metricDefinitions, TimeSpan refreshEvery, Func<IEnumerable<IMetricDefinition>> refreshCallback)
+        public RefreshableMetricSource(IEnumerable<IMetricDefinition> metricDefinitions, TimeSpan refreshEvery, Func<IEnumerable<IMetricDefinition>> refreshCallback) :
+            this(metricDefinitions, refreshEvery, refreshCallback, () => DateTime.UtcNow)
+        {
+        }
+
+        internal RefreshableMetricSource(IEnumerable<IMetricDefinition> metricDefinitions, TimeSpan refreshEvery, Func<IEnumerable<IMetricDefinition>> refreshCallback, Func<DateTime> currentTimeProvider)
         {
             this.metricDefinitions = new List<IMetricDefinition>(metricDefinitions ?? Enumerable.Empty<IMetricDefinition>());
             this.refreshEvery = refreshEvery;
             this.refreshCallback = refreshCallback;
+            this.currentTimeProvider = currentTimeProvider;
         }
 
         public IEnumerable<IMetricDefinition> GetMetricDefinitions()
@@ -45,7 +52,7 @@ namespace Statsify.Agent.Impl
 
         private void TryRefreshMetricDefinitions()
         {
-            if(lastRefreshedAt + refreshEvery > DateTime.UtcNow) return;
+            if(lastRefreshedAt + refreshEvery > currentTimeProvider()) return;
 
             using(readerWriterLock.AcquireUpgradeableReadLock())
             {
@@ -68,7 +75,7 @@ namespace Statsify.Agent.Impl
                 using(readerWriterLock.AcquireWriteLock())
                 {
                     metricDefinitions = new List<IMetricDefinition>(definitions ?? Enumerable.Empty<IMetricDefinition>());
-                    lastRefreshedAt = DateTime.UtcNow;
+                    lastRefreshedAt = currentTimeProvider();
                     refreshing = false;
                 } // using
 
