@@ -129,6 +129,26 @@ namespace Statsify.Core.Expressions
                     ToArray();
         }
 
+        [Function("window_aggregated_above")]
+        public static Metric[] WindowAggregatedAbove(EvalContext context, Metric[] metrics, string window, string aggregationFunction, double threshold)
+        {
+            var timeSpan = ParseTimeSpan(window);
+            if(timeSpan == null) return metrics;
+
+            var fn = ParseAggregationFunction(aggregationFunction);
+            if(fn == null) return metrics;
+
+            var windowStart = DateTime.UtcNow.Subtract(timeSpan.Value);
+
+            return
+                metrics.
+                    Where(m => {
+                        var aggregated = fn(m.Series.Datapoints.Where(d => d.Timestamp >= windowStart));
+                        return aggregated.HasValue && aggregated.Value > threshold;
+                    }).
+                    ToArray();
+        }
+
         private static DatapointAggregationFunction ParseAggregationFunction(string aggregationFunction)
         {
             Func<IEnumerable<Datapoint>, double?> fn = null;
@@ -393,6 +413,35 @@ namespace Statsify.Core.Expressions
             } // if
                 
             return null;
+        }
+
+        [Function("most_deviant")]
+        [Function("mostDeviant")]
+        public static Metric[] MostDeviant(EvalContext context, Metric[] metrics, int n)
+        {
+            return 
+                metrics.
+                    Where(m => m.Series.Datapoints.Count > 0 && m.Series.Datapoints.Any(d => d.Value.HasValue)).
+                    Select(m =>
+                    {
+                        var length = m.Series.Datapoints.Count;
+                    
+                        var sum = 
+                            m.Series.Datapoints.
+                                Where(d => d.Value.HasValue).
+                                Select(d => d.Value.Value).
+                                Aggregate<double, double>(0f, (current, value) => current + value);
+                    
+                        var mean = sum / length;
+                        var squareSum = m.Series.Datapoints.Where(d => d.Value.HasValue).Select(d => Math.Pow(d.Value.Value - mean, 2)).Sum();
+                        var sigma = squareSum / length;
+
+                        return new { sigma, metric = m };
+                    }).
+                    OrderByDescending(m => m.sigma).
+                    Take(n).
+                    Select(m => m.metric).
+                    ToArray();
         }
     }
 }
