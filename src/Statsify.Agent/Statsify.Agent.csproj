@@ -64,6 +64,8 @@
     <Compile Include="Impl\MetricDefinitionFactory.cs" />
     <Compile Include="Impl\MetricInvalidatedException.cs" />
     <Compile Include="Impl\MetricPublisher.cs" />
+    <Compile Include="Impl\MetricSource.cs" />
+    <Compile Include="Impl\MetricSourceFactory.cs" />
     <Compile Include="Impl\PerformanceCounterMetricDefinition.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
