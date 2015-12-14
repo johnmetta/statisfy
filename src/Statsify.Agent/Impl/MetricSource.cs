@@ -12,9 +12,9 @@ namespace Statsify.Agent.Impl
             this.metricDefinitions = new List<IMetricDefinition>(metricDefinitions ?? Enumerable.Empty<IMetricDefinition>());
         }
 
-        public IEnumerable<IMetricDefinition> MetricDefinitions
+        public IEnumerable<IMetricDefinition> GetMetricDefinitions()
         {
-            get { return metricDefinitions; }
+            return metricDefinitions;
         }
 
         public void InvalidateMetricDefinition(IMetricDefinition metricDefinition)

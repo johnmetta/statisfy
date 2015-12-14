@@ -4,7 +4,7 @@ namespace Statsify.Agent.Impl
 {
     public interface IMetricSource
     {
-        IEnumerable<IMetricDefinition> MetricDefinitions { get; }
+        IEnumerable<IMetricDefinition> GetMetricDefinitions();
 
         void InvalidateMetricDefinition(IMetricDefinition metricDefinition);
     }
