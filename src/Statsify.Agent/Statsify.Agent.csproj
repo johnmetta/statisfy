@@ -67,9 +67,11 @@
     <Compile Include="Impl\MetricSource.cs" />
     <Compile Include="Impl\MetricSourceFactory.cs" />
     <Compile Include="Impl\PerformanceCounterMetricDefinition.cs" />
+    <Compile Include="Impl\RefreshableMetricSource.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StatsifyAgentService.cs" />
+    <Compile Include="Util\ReaderWriterLockSlim.cs" />
     <Compile Include="Util\StringExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
