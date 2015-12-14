@@ -58,7 +58,7 @@ namespace Statsify.Agent.Impl
                 } // using
             } // using
 
-            log.Info("attempting to refresh metric definitions");
+            log.Trace("attempting to refresh metric definitions");
             
             ThreadPool.QueueUserWorkItem(s =>
             {
@@ -74,7 +74,7 @@ namespace Statsify.Agent.Impl
 
                 stopwatch.Stop();
 
-                log.Info("completed refreshing metric definitions in {0}", stopwatch.Elapsed);
+                log.Trace("completed refreshing metric definitions in {0}", stopwatch.Elapsed);
             });
         }
     }
