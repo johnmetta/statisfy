@@ -1,0 +1,34 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <UsingTask AssemblyFile=".\tasks\semverstein\Semverstein.Tasks.dll" TaskName="Semverstein.Tasks.ReadSemanticVersion" />
+  <UsingTask AssemblyFile=".\tasks\semverstein\Semverstein.Tasks.dll" TaskName="Semverstein.Tasks.IncrementSemanticVersion" />
+
+  <PropertyGroup>
+    <Configuration>Release</Configuration>
+    <Component>Patch</Component>
+  </PropertyGroup>
+
+  <Target Name="Version">
+    <IncrementSemanticVersion SemverFilePath=".\..\.semver" Component="$(Component)">
+      <Output TaskParameter="SemanticVersion" PropertyName="SemanticVersion" />
+      <Output TaskParameter="Version" PropertyName="Version" />
+    </IncrementSemanticVersion>
+
+    <WriteLinesToFile File=".\..\src\AssemblyVersion.cs" Overwrite="True" Lines="[assembly:System.Reflection.AssemblyVersion(&quot;$(Version)&quot;)];" />
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="Version">
+    <MSBuild Projects=".\..\src\Statsify.sln" Targets="Clean;Rebuild" Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="Package" DependsOnTargets="Build">
+    <Exec Command="nuget.exe pack .\Statsify.Client.nuspec -version $(Version) -nodefaultexcludes -noninteractive -symbols" />
+    <Exec Command=".\..\tools\7za\7za.exe a -x!*.vshost.* -x!*.xml statsify.agent-$(Version).zip .\..\src\Statsify.Agent\bin\Release\*.*" />
+    <Exec Command=".\..\tools\7za\7za.exe a -x!*.vshost.* -x!*.xml statsify.aggregator-$(Version).zip .\..\src\Statsify.Aggregator\bin\Release\*.*" />
+  </Target>
+
+  <Target Name="Publish" DependsOnTargets="Package">
+    <Exec Command="hg commit -m v$(SemanticVersion)" />
+    <Exec Command="hg tag v$(SemanticVersion) --force" />
+    <Exec Command="nuget.exe push .\statsify.client.$(Version).nupkg" />
+  </Target>
+</Project>

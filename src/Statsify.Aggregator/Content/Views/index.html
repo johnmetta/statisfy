@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Statsify Aggregator">
+  <meta name="author" content="">
+
+  <title>Statsify v@Model.Version</title>
+
+  <link href="~/content/lib/bootstrap/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+  <link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" type="text/css" rel="stylesheet">
+  <link href="~/content/statsify.css" type="text/css" rel="stylesheet">
+  
+  <link rel="apple-touch-icon" sizes="57x57" href="~/content/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="~/content/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="~/content/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="~/content/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="~/content/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="~/content/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="~/content/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="~/content/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="~/content/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="~/content/android-icon-192x192.png?v=@Model.Version">
+  <link rel="icon" type="image/png" sizes="32x32" href="~/content/favicon-32x32.png?v=@Model.Version">
+  <link rel="icon" type="image/png" sizes="96x96" href="~/content/favicon-96x96.png?v=@Model.Version">
+  <link rel="icon" type="image/png" sizes="16x16" href="~/content/favicon-16x16.png?v=@Model.Version">
+  <link rel="manifest" href="~/content/manifest.json">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="~/content/ms-icon-144x144.png">
+  <meta name="theme-color" content="#ffffff">
+
+  <style>
+    body {
+      padding-top: 70px;
+    }
+
+    * {
+      font-family: 'open sans', 'segoe ui';
+    }
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+</head>
+
+<body>
+
+  <nav class="navbar navbar-fixed-top navbar-default" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="~/">
+          <span style="display: inline">
+            <img src="~/content/favicon-32x32.png?v=@Model.Version" />
+          </span>
+          Statsify v@Model.Version
+        </a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <p class="navbar-text navbar-right">Queue Backlog: @Model.QueueBacklog</p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <form class="form-inline" action="~/" method="get" autocomplete="off">
+          <div class="form-group">
+            <input type="text" class="form-control" id="expression" name="expression" placeholder="Expression" style="width: 800px;" value="@!Model.Expression" autocomplete="off" />
+            <input type="text" class="form-control" id="from" name="from" placeholder="Expression" style="width: 60px;" value="@!Model.From" autocomplete="off" />
+          </div>
+          <button type="submit" class="btn btn-default">Go!</button>
+        </form>
+      </div>
+      
+      <div class="col-lg-12 text-center">
+        <div id="data-graphic">
+          <svg />
+          <div id="data-graphic-legend"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <script src="~/content/lib/jquery-1.11.1.min.js"></script>
+  <script src="~/content/lib/bootstrap/js/bootstrap.min.js"></script>
+  <script src="~/content/statsify.js"></script>
+  
+  @If.HasExpression
+  <script type="text/javascript">
+    $(window).load(function() {
+      statsify.init({ endpointUrl: '@Path['~/']' });
+      statsify.data_graphic('#data-graphic', '@Model.Expression', '@Model.From', null, { y_scale_type: 'linear', interpolate: 'monotone', legend_target: '#data-graphic-legend' });
+    });
+  </script>
+  @EndIf
+
+</body>
+
+</html>
