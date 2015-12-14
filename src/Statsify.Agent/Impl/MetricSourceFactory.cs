@@ -14,6 +14,10 @@ namespace Statsify.Agent.Impl
         public IMetricSource CreateMetricSource(MetricConfigurationElement metric)
         {
             var metricDefinitions = metricDefinitionFactory.CreateMetricDefinitions(metric);
+            
+            if(metric.RefreshEvery.HasValue)
+                return new RefreshableMetricSource(metricDefinitions, metric.RefreshEvery.Value, () => metricDefinitionFactory.CreateMetricDefinitions(metric));
+
             return new MetricSource(metricDefinitions);
         }
     }
