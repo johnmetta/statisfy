@@ -34,7 +34,7 @@ namespace Statsify.Tests.Client
 
             var clientConfiguration = (IStatsifyClientConfiguration)statsifyClient;
 
-            Assert.AreEqual("http://statsify_host.local", clientConfiguration.Host);
+            Assert.AreEqual("statsify_host.local", clientConfiguration.Host);
             Assert.AreEqual("statsify_namespace.subnamespace", clientConfiguration.Namespace);
         }
 
