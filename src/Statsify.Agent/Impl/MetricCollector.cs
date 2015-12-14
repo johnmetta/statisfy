@@ -9,52 +9,58 @@ namespace Statsify.Agent.Impl
     public class MetricCollector
     {
         private readonly Logger log = LogManager.GetCurrentClassLogger();
-        private readonly IList<IMetricDefinition> metricDefinitions = new List<IMetricDefinition>();
+        private readonly IList<IMetricSource> metricSources = new List<IMetricSource>();
 
         public MetricCollector(IEnumerable<MetricConfigurationElement> metrics)
         {
             var metricDefinitionFactory = new MetricDefinitionFactory();
+            var metricSourceFactory = new MetricSourceFactory(metricDefinitionFactory);
 
-            foreach(var metric in metrics.SelectMany(metricDefinitionFactory.CreateMetricDefinitions).Where(m => m != null))
+            foreach(var metric in metrics)
             {
-                log.Info("adding metric '{0}' with aggregation strategy '{1}'", metric.Name, metric.AggregationStrategy);
-                metricDefinitions.Add(metric);
+                var metricSource = metricSourceFactory.CreateMetricSource(metric);
+                if(metricSource == null)
+                {
+                    log.Warn("could not create metric source for '{0}:{1}'", metric.Type, metric.Path);
+                    continue;
+                } // if
+
+                log.Info("created metric source for '{0}:{1}' with aggregation strategy '{2}'", metric.Type, metric.Name, metric.AggregationStrategy);
+                metricSources.Add(metricSource);
             } // foreach
         }
 
         public IEnumerable<Metric> GetCollectedMetrics()
         {
-            var invalidatedMetrics = new HashSet<IMetricDefinition>();
-            
-            foreach(var metricDefinition in metricDefinitions)
+            foreach(var metricSource in metricSources)
             {
-                Metric metric = null;
+                foreach(var metricDefinition in metricSources.SelectMany(ms => ms.MetricDefinitions))
+                {
+                    Metric metric = null;
 
-                try
-                {
-                    var value = metricDefinition.GetNextValue();
-                    metric = new Metric(metricDefinition.Name, metricDefinition.AggregationStrategy, value);
-                } // try
-                catch(MetricInvalidatedException)
-                {
-                    //
-                    // When IMetricDefinition throws an MIE, we don't want to hear
-                    // from it any more.
-                    log.Warn("invalidating metric '{0}'", metricDefinition.Name);
-                    invalidatedMetrics.Add(metricDefinition);
-                } // catch
-                catch(Exception e)
-                {
-                    log.ErrorException(string.Format("invalidating metric '{0}'", metricDefinition.Name), e);
-                    invalidatedMetrics.Add(metricDefinition);
-                } // catch
-                 
-                if(metric != null)
-                    yield return metric;
+                    try
+                    {
+                        var value = metricDefinition.GetNextValue();
+                        metric = new Metric(metricDefinition.Name, metricDefinition.AggregationStrategy, value);
+                    } // try
+                    catch(MetricInvalidatedException)
+                    {
+                        //
+                        // When IMetricDefinition throws an MIE, we don't want to hear
+                        // from it any more.
+                        log.Warn("invalidating metric '{0}'", metricDefinition.Name);
+                        metricSource.InvalidateMetricDefinition(metricDefinition);
+                    } // catch
+                    catch(Exception e)
+                    {
+                        log.ErrorException(string.Format("invalidating metric '{0}'", metricDefinition.Name), e);
+                        metricSource.InvalidateMetricDefinition(metricDefinition);
+                    } // catch
+
+                    if(metric != null)
+                        yield return metric;
+                } // foreach
             } // foreach
-
-            foreach(var invalidatedMetric in invalidatedMetrics)
-                metricDefinitions.Remove(invalidatedMetric);
         }
     }
 }
