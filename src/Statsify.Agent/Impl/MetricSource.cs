@@ -16,5 +16,10 @@ namespace Statsify.Agent.Impl
         {
             get { return metricDefinitions; }
         }
+
+        public void InvalidateMetricDefinition(IMetricDefinition metricDefinition)
+        {
+            metricDefinitions.Remove(metricDefinition);
+        }
     }
 }
