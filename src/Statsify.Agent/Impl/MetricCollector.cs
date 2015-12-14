@@ -37,7 +37,7 @@ namespace Statsify.Agent.Impl
         {
             foreach(var metricSource in metricSources)
             {
-                foreach(var metricDefinition in metricSources.SelectMany(ms => ms.GetMetricDefinitions()))
+                foreach(var metricDefinition in metricSource.GetMetricDefinitions())
                 {
                     Metric metric = null;
 
