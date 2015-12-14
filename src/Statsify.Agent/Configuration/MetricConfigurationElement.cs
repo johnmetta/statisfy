@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Configuration;
 
 namespace Statsify.Agent.Configuration
@@ -32,6 +33,13 @@ namespace Statsify.Agent.Configuration
         {
             get { return (AggregationStrategy)this["aggregation-strategy"]; }
             set { this["aggregation-strategy"] = value; }
+        }
+
+        [ConfigurationProperty("refresh-every", IsRequired = false)]
+        public TimeSpan? RefreshEvery
+        {
+            get { return (TimeSpan?)this["refresh-every"]; }
+            set { this["refresh-every"] = value; }
         }
     }
 }
