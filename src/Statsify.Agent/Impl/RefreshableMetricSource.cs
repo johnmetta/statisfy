@@ -37,7 +37,7 @@ namespace Statsify.Agent.Impl
             IList<IMetricDefinition> definitions;
             
             using(readerWriterLock.AcquireReadLock())
-                definitions = metricDefinitions;
+                definitions = metricDefinitions.ToList();
 
             TryRefreshMetricDefinitions();
 

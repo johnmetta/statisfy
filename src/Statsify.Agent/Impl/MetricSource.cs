@@ -14,7 +14,7 @@ namespace Statsify.Agent.Impl
 
         public IEnumerable<IMetricDefinition> GetMetricDefinitions()
         {
-            return metricDefinitions;
+            return metricDefinitions.ToList();
         }
 
         public void InvalidateMetricDefinition(IMetricDefinition metricDefinition)
