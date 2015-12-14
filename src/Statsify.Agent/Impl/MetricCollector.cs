@@ -27,6 +27,9 @@ namespace Statsify.Agent.Impl
 
                 log.Info("created metric source for '{0}:{1}' with aggregation strategy '{2}'", metric.Type, metric.Name, metric.AggregationStrategy);
                 metricSources.Add(metricSource);
+
+                foreach(var metricDefinition in metricSource.GetMetricDefinitions())
+                    log.Info("created metric definition '{0}' with aggregation strategy '{1}'", metricDefinition.Name, metricDefinition.AggregationStrategy);
             } // foreach
         }
 
