@@ -18,7 +18,7 @@ namespace Statsify.Aggregator.Configuration
             set { this["pattern"] = value; }
         }
 
-        [ConfigurationProperty("ignore-pattern", IsRequired = true)]
+        [ConfigurationProperty("ignore-pattern", IsRequired = false)]
         public string IgnorePattern
         {
             get { return (string)this["ignore-pattern"]; }
