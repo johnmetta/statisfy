@@ -75,7 +75,10 @@
     </Compile>
     <Compile Include="AnnotationAggregator.cs" />
     <Compile Include="Application.cs" />
+    <Compile Include="ComponentModel\IDatapointDatabaseResolver.cs" />
     <Compile Include="ComponentModel\IMetricAggregator.cs" />
+    <Compile Include="DatapointDatabaseResolver.cs" />
+    <Compile Include="DatapointDatabaseResolverCachingWrapper.cs" />
     <Compile Include="Http\Models\PurgeModel.cs" />
     <Compile Include="MetricsBuffer.cs" />
     <Compile Include="Http\ApiModule.cs" />
