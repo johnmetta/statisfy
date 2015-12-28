@@ -24,6 +24,11 @@ namespace Statsify.Core.Storage
         private readonly IList<Archive> archives;
         private readonly Func<DateTime> currentTimeProvider;
 
+        public string Path
+        {
+            get { return path; }
+        }
+
         public ReadOnlyCollection<Archive> Archives
         {
             get { return new ReadOnlyCollection<Archive>(archives); }
