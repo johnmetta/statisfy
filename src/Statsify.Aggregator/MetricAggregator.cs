@@ -5,31 +5,32 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using NLog;
 using Statsify.Aggregator.ComponentModel;
 using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Extensions;
 using Statsify.Core.Model;
-using Statsify.Core.Storage;
 
 namespace Statsify.Aggregator
 {
     public class MetricAggregator : IMetricAggregator
     {
-        private readonly IDictionary<string, DatapointDatabase> databaseCache = new Dictionary<string, DatapointDatabase>(); 
         private readonly Logger log = LogManager.GetCurrentClassLogger();
+
         private readonly StatsifyAggregatorConfigurationSection configuration;
+        private readonly IDatapointDatabaseResolver datapointDatabaseResolver;
         private readonly ManualResetEvent stopEvent;
         private readonly float flushInterval;
+        
         private long metrics;
         private volatile ConcurrentQueue<MetricDatapoint> flushQueue = new ConcurrentQueue<MetricDatapoint>();
         private volatile MetricsBuffer metricsBuffer;
 
-        public MetricAggregator(StatsifyAggregatorConfigurationSection configuration, ManualResetEvent stopEvent)
+        public MetricAggregator(StatsifyAggregatorConfigurationSection configuration, IDatapointDatabaseResolver datapointDatabaseResolver, ManualResetEvent stopEvent)
         {
             this.configuration = configuration;
+            this.datapointDatabaseResolver = datapointDatabaseResolver;
             this.stopEvent = stopEvent;
             flushInterval = (float)configuration.Storage.FlushInterval.TotalMilliseconds;
 
@@ -70,7 +71,7 @@ namespace Statsify.Aggregator
 
                 try
                 {
-                    var db = GetDatabase(configuration.Storage.Path, metric);
+                    var db = datapointDatabaseResolver.ResolveDatapointDatabase(metric);
                     if(db != null)
                         db.WriteDatapoints(datapoints);
                 } // try
@@ -239,34 +240,6 @@ namespace Statsify.Aggregator
 
             fq.Enqueue(new MetricDatapoint("statsify.queue_backlog", ts, fq.Count));
             fq.Enqueue(new MetricDatapoint("statsify.metrics.count", ts, metrics));
-        }
-
-        private DatapointDatabase GetDatabase(string root, string metric)
-        {
-            var fullPath = Path.Combine(root, metric.Replace(".", @"\") + ".db");
-            var databaseCacheKey = fullPath.ToLowerInvariant();
-
-            if(databaseCache.ContainsKey(databaseCacheKey))
-                return databaseCache[databaseCacheKey];
-
-            var directory = Path.GetDirectoryName(fullPath);
-            if(directory != null && !Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
-
-            var downsampling = configuration.Downsampling.FirstOrDefault(d => Regex.IsMatch(metric, d.Pattern));
-            if(downsampling == null) return null;
-
-            var storage = configuration.Storage.FirstOrDefault(a => Regex.IsMatch(metric, a.Pattern));
-            if(storage == null) return null;
-
-            log.Trace("creating Datapoint Database for Metric '{0}' using Downsampling settings '{1}' and Storage settings '{2}'", metric, downsampling.Name, storage.Name);
-
-            var retentonPolicy = new RetentionPolicy(storage.Retentions);
-            var database = DatapointDatabase.OpenOrCreate(fullPath, downsampling.Factor, downsampling.Method, retentonPolicy);
-
-            databaseCache[databaseCacheKey] = database;
-
-            return database;
         }
 
         public int QueueBacklog
