@@ -28,7 +28,13 @@ namespace Statsify.Aggregator
             var downsampling = configuration.Downsampling.FirstOrDefault(d => Regex.IsMatch(metric, d.Pattern));
             if(downsampling == null) return null;
 
-            var storage = configuration.Storage.FirstOrDefault(a => Regex.IsMatch(metric, a.Pattern));
+            var storage = configuration.Storage.FirstOrDefault(a => {
+                if(!string.IsNullOrWhiteSpace(a.IgnorePattern) && Regex.IsMatch(metric, a.IgnorePattern))
+                    return false;
+
+                return Regex.IsMatch(metric, a.Pattern);
+            });
+
             if(storage == null) return null;
 
             log.Trace("creating Datapoint Database for Metric '{0}' using Downsampling settings '{1}' and Storage settings '{2}'", 
