@@ -83,8 +83,9 @@ namespace Statsify.Aggregator.Http
                 var now = DateTime.UtcNow;
                 var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
                 var until = Parser.ParseDateTime(model.Until, now, now);
-
-                log.Debug("started rendering metrics using '{0}' from {1:s} to {2:s} ({3})", model.Target, from, until, until - from);
+                
+                var targets = string.Join("', '", model.Target);
+                log.Debug("started rendering metrics using '{0}' from {1:s} to {2:s} ({3})", targets, from, until, until - from);
 
                 var environment = new Statsify.Core.Expressions.Environment {
                     MetricRegistry = metricRegistry,
@@ -95,21 +96,25 @@ namespace Statsify.Aggregator.Http
 
                 var metrics = new List<Core.Model.Metric>();
                 var scanner = new ExpressionScanner();
-                var tokens = scanner.Scan(model.Target);
 
-                var parser = new ExpressionParser();
-                var e = parser.Parse(new TokenStream(tokens));
-
-                if(e is MetricSelectorExpression)
+                foreach(var target in model.Target)
                 {
-                    e = new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression);
-                } // if
+                    var tokens = scanner.Scan(target);
 
-                log.Debug("started evaluating expression");
-                var r = (Core.Model.Metric[])e.Evaluate(environment, evalContext);
-                log.Debug("evaluated expression");
+                    var parser = new ExpressionParser();
+                    var e = parser.Parse(new TokenStream(tokens));
 
-                metrics.AddRange(r);
+                    if(e is MetricSelectorExpression)
+                    {
+                        e = new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression);
+                    } // if
+
+                    log.Debug("started evaluating expression");
+                    var r = (Core.Model.Metric[]) e.Evaluate(environment, evalContext);
+                    log.Debug("evaluated expression");
+
+                    metrics.AddRange(r);
+                } // foreach
 
                 var seriesViewList = (from metric in metrics
                     let f = metric.Series.From.ToUnixTimestamp()
@@ -121,7 +126,7 @@ namespace Statsify.Aggregator.Http
                     }
                     ).OrderBy(s => s.Target).ToArray();
 
-                log.Debug("rendered {0} metrics using '{1}' from {2:s} to {3:s}", seriesViewList.Length, model.Target, from, until);
+                log.Debug("rendered {0} metrics using '{1}' from {2:s} to {3:s}", seriesViewList.Length, targets, from, until);
 
                 return Response.AsJson(seriesViewList);
             }
@@ -135,7 +140,7 @@ namespace Statsify.Aggregator.Http
         {
             public string From { get; set; }
             public string Until { get; set; }
-            public string Target { get; set; }
+            public string[] Target { get; set; }
         }
 
         public class QueryMetricsModel
