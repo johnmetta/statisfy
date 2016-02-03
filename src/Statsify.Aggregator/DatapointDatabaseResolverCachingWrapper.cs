@@ -22,7 +22,7 @@ namespace Statsify.Aggregator
             DatapointDatabase datapointDatabase;
             if(databaseCache.TryGetValue(key, out datapointDatabase))
             {
-                if(!File.Exists(datapointDatabase.Path))
+                if(datapointDatabase == null || !File.Exists(datapointDatabase.Path))
                 {
                     databaseCache.TryRemove(key, out datapointDatabase);
                     return null;
@@ -32,7 +32,8 @@ namespace Statsify.Aggregator
             } // if
 
             datapointDatabase = datapointDatabaseResolver.ResolveDatapointDatabase(metric);
-            databaseCache.TryAdd(key, datapointDatabase);
+            if(datapointDatabase != null)
+                databaseCache.TryAdd(key, datapointDatabase);
 
             return datapointDatabase;
         }
