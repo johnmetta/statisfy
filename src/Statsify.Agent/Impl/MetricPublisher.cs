@@ -15,6 +15,7 @@ namespace Statsify.Agent.Impl
         private readonly TimeSpan collectionInterval;
         private ManualResetEvent stopEvent;
         private ManualResetEvent stoppedEvent;
+        private RegisteredWaitHandle publisherWaitHandle;
 
         public MetricPublisher(MetricCollector metricCollector, IStatsifyClient statsifyClient, TimeSpan collectionInterval)
         {
@@ -29,8 +30,8 @@ namespace Statsify.Agent.Impl
 
             stopEvent = new ManualResetEvent(false);
             stoppedEvent = new ManualResetEvent(false);
-            
-            ThreadPool.RegisterWaitForSingleObject(stopEvent, PublisherTimerCallback, null, collectionInterval, true);
+
+            publisherWaitHandle = ThreadPool.RegisterWaitForSingleObject(stopEvent, PublisherTimerCallback, null, collectionInterval, false);
 
             log.Trace("started MetricPublisher");
         }
@@ -54,6 +55,9 @@ namespace Statsify.Agent.Impl
         {
             if(!timedOut)
             {
+                if(publisherWaitHandle != null)
+                    publisherWaitHandle.Unregister(null);
+
                 log.Trace("stopping callback");
                 stoppedEvent.Set();
                 log.Trace("stopped callback");
@@ -90,8 +94,6 @@ namespace Statsify.Agent.Impl
             statsifyClient.Time("statsify.metric_collection_duration", stopwatch.ElapsedMilliseconds);
 
             log.Trace("completed publishing {0:N0} metrics in {1}", metrics, stopwatch.Elapsed);
-        
-            ThreadPool.RegisterWaitForSingleObject(stopEvent, PublisherTimerCallback, null, collectionInterval, true);
         }
     }
 }
