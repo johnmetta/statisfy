@@ -86,6 +86,9 @@ namespace Statsify.Agent.Impl
             } // foreach
 
             stopwatch.Stop();
+            
+            statsifyClient.Time("statsify.metric_collection_duration", stopwatch.ElapsedMilliseconds);
+
             log.Trace("completed publishing {0:N0} metrics in {1}", metrics, stopwatch.Elapsed);
         
             ThreadPool.RegisterWaitForSingleObject(stopEvent, PublisherTimerCallback, null, collectionInterval, true);
