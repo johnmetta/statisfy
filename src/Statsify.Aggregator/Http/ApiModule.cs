@@ -100,7 +100,7 @@ namespace Statsify.Aggregator.Http
                     var tokens = scanner.Scan(expression);
 
                     var parser = new ExpressionParser();
-                    var e = parser.Parse(new TokenStream(tokens));
+                    var e = parser.Parse(new TokenStream(tokens)).Single();
 
                     if(e is MetricSelectorExpression)
                     {

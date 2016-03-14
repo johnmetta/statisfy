@@ -1,13 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace Statsify.Core.Expressions
 {
     public class ExpressionParser
     {
-        public Expression Parse(TokenStream tokens)
+        public IEnumerable<Expression> Parse(TokenStream tokens)
+        {
+            while(tokens.Any)
+            {
+                switch(tokens.Lookahead.Type)
+                {
+                    case TokenType.Comma:
+                        tokens.Read();
+                        break;
+                    default:
+                        yield return ParseImpl(tokens);
+                        break;
+                } // switch
+            } // while
+        }
+
+        private Expression ParseImpl(TokenStream tokens)
         {
             switch(tokens.Lookahead.Type)
             {
@@ -16,12 +33,16 @@ namespace Statsify.Core.Expressions
                     return tokens.Lookahead.Type == TokenType.OpenParen ? 
                         (Expression)ParseFunctionInvocationExpression(id, tokens) : 
                         ParseMetricSelectorExpression(id, tokens);
+                    break;
                 case TokenType.String:
                     return new ConstantExpression(tokens.Read().Lexeme);
+                    break;
                 case TokenType.Integer:
                     return new ConstantExpression(Convert.ToInt32(tokens.Read().Lexeme, CultureInfo.InvariantCulture));
+                    break;
                 case TokenType.Float:
                     return new ConstantExpression(Convert.ToDouble(tokens.Read().Lexeme, CultureInfo.InvariantCulture));
+                    break;
                 case TokenType.Keyword:
                     var token = tokens.Read();
                     var lexeme = token.Lexeme;
@@ -61,7 +82,7 @@ namespace Statsify.Core.Expressions
             var arguments = new List<Argument>();
             while(tokens.Lookahead.Type != TokenType.CloseParen)
             {
-                arguments.Add(new Argument(null, Parse(tokens)));
+                arguments.Add(new Argument(null, ParseImpl(tokens)));
                 if(tokens.Lookahead.Type != TokenType.CloseParen)
                     tokens.Read(TokenType.Comma);
             } // while

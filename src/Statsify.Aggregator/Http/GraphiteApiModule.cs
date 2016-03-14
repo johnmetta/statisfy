@@ -80,6 +80,8 @@ namespace Statsify.Aggregator.Http
                 var model = new RenderSeriesModel();
                 this.BindTo(model, new BindingConfig { BodyOnly = false });
 
+                var tgt = (string)Request.Form.target;
+
                 var now = DateTime.UtcNow;
                 var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
                 var until = Parser.ParseDateTime(model.Until, now, now);
@@ -97,24 +99,23 @@ namespace Statsify.Aggregator.Http
                 var metrics = new List<Core.Model.Metric>();
                 var scanner = new ExpressionScanner();
 
-                foreach(var target in model.Target)
-                {
-                    var tokens = scanner.Scan(target);
+                var tokens = scanner.Scan(model.Target);
 
-                    var parser = new ExpressionParser();
-                    var e = parser.Parse(new TokenStream(tokens));
+                var parser = new ExpressionParser();
+                var expressions = 
+                    parser.
+                        Parse(new TokenStream(tokens)).
+                            Select(e => 
+                                e is MetricSelectorExpression ? 
+                                    new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression) : 
+                                    e).
+                            ToList();
 
-                    if(e is MetricSelectorExpression)
-                    {
-                        e = new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression);
-                    } // if
+                log.Debug("started evaluating expression");
+                var r = expressions.SelectMany(e => (Core.Model.Metric[])e.Evaluate(environment, evalContext)).ToArray();
+                log.Debug("evaluated expression");
 
-                    log.Debug("started evaluating expression");
-                    var r = (Core.Model.Metric[]) e.Evaluate(environment, evalContext);
-                    log.Debug("evaluated expression");
-
-                    metrics.AddRange(r);
-                } // foreach
+                metrics.AddRange(r);
 
                 var seriesViewList = (from metric in metrics
                     let f = metric.Series.From.ToUnixTimestamp()
@@ -140,7 +141,7 @@ namespace Statsify.Aggregator.Http
         {
             public string From { get; set; }
             public string Until { get; set; }
-            public string[] Target { get; set; }
+            public string Target { get; set; }
         }
 
         public class QueryMetricsModel
