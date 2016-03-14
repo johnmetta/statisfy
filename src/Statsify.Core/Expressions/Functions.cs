@@ -8,6 +8,13 @@ namespace Statsify.Core.Expressions
 {
     public delegate double? DatapointAggregationFunction(IEnumerable<Datapoint> values);
 
+    public enum Order
+    {
+        Ascending,
+
+        Descending
+    }
+
     public static class Functions
     {
         [Function("timeshift")]
@@ -184,6 +191,24 @@ namespace Statsify.Core.Expressions
             return vs => fn(vs.Where(v => v.Value.HasValue).DefaultIfEmpty(@default));
         }
 
+        private static Order? ParseOrder(string order)
+        {
+            if(string.IsNullOrWhiteSpace(order)) return null;
+
+            switch(order.ToLowerInvariant())
+            {
+                case "asc":
+                case"ascending":
+                    return Order.Ascending;
+                case "des":
+                case "desc":
+                case "descending":
+                    return Order.Ascending;
+            } // switch
+
+            return null;
+        }
+
         private static TimeSpan? ParseTimeSpan(string bucket)
         {
             var i = 0;
@@ -227,6 +252,30 @@ namespace Statsify.Core.Expressions
                     return fragment;
                 }).
                 ToArray();
+        }
+
+        [Function("sort_by_aggregated")]
+        public static Metric[] SortByAggregated(EvalContext context, Metric[] metrics, string aggregationFunction, string order)
+        {
+            var fn = ParseAggregationFunction(aggregationFunction);
+            if(fn == null) return metrics;
+
+            var o = ParseOrder(order);
+            if(o == null) return metrics;
+
+            var aggregated =
+                metrics.
+                    Select(m => {
+                        var value = fn(m.Series.Datapoints);
+                        return new { metric = m, value };
+                    });
+
+            aggregated = 
+                o.Value == Order.Ascending ? 
+                    aggregated.OrderBy(m => m.value) : 
+                    aggregated.OrderByDescending(m => m.value);
+
+            return aggregated.Select(m => m.metric).ToArray();
         }
 
         [Function("random_metrics")]
