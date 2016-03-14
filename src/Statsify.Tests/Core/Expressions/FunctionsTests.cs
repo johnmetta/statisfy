@@ -10,6 +10,28 @@ namespace Statsify.Tests.Core.Expressions
     public class FunctionsTests
     {
         [Test]
+        public void SortByAggregated()
+        {
+            var from = DateTime.UtcNow.AddMinutes(-1);
+            var to = DateTime.UtcNow;
+
+            var metrics = new [] {
+                new Metric(
+                    "values.1", 
+                    new Series(@from, to, TimeSpan.FromSeconds(1), new[] {
+                        new Datapoint(DateTime.UtcNow, 1), 
+                        new Datapoint(DateTime.UtcNow, 2), 
+                        new Datapoint(DateTime.UtcNow, 3), 
+                        new Datapoint(DateTime.UtcNow, null),
+                        new Datapoint(DateTime.UtcNow, 4), 
+                        new Datapoint(DateTime.UtcNow, 5), 
+                    } ))
+            };
+
+            var result = Functions.SortByAggregated(new EvalContext(@from, to), metrics, "avg", "asc");
+        }
+
+        [Test]
         public void Derivative()
         {
             var from = DateTime.UtcNow.AddMinutes(-1);
