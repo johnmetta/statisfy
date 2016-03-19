@@ -36,12 +36,12 @@ namespace Statsify.Agent.Impl
             }
         }
         
-        public IList<Outlier> GetOutliers(int minValues)
+        public IList<Outlier> GetOutliers(int minValues, double factor = 1)
         {
             var outliers = 
                 measurements.
                     Where(m => m.Value.Values >= minValues).
-                    Where(m => m.Value.LastValue > m.Value.AverageValue).
+                    Where(m => m.Value.LastValue > m.Value.AverageValue * factor).
                     Select(m => new Outlier(m.Key, m.Value.LastValue, m.Value.AverageValue)).
                     ToList();
 

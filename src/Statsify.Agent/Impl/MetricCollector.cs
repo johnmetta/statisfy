@@ -70,7 +70,7 @@ namespace Statsify.Agent.Impl
                 } // foreach
             } // foreach
 
-            var outliers = averager.GetOutliers(100);
+            var outliers = averager.GetOutliers(50, 5);
             foreach(var outlier in outliers)
                 log.Warn("last metric collection time for '{0}' was {1}, which has exceeded an average value of {2}", 
                     outlier.Name, TimeSpan.FromTicks((long)outlier.LastValue), TimeSpan.FromTicks((long)outlier.AverageValue));
