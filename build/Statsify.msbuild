@@ -1,0 +1,39 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <UsingTask AssemblyFile=".\tasks\semverstein\Semverstein.Tasks.dll" TaskName="Semverstein.Tasks.ReadSemanticVersion" />
+  <UsingTask AssemblyFile=".\tasks\semverstein\Semverstein.Tasks.dll" TaskName="Semverstein.Tasks.IncrementSemanticVersion" />
+  <UsingTask AssemblyFile=".\tasks\semverstein\Semverstein.Tasks.dll" TaskName="Semverstein.Tasks.FormatSemanticVersion" />
+
+  <PropertyGroup>
+    <Configuration>Release</Configuration>
+    <Component>Patch</Component>
+  </PropertyGroup>
+
+  <Target Name="Version">
+    <IncrementSemanticVersion SemverFilePath=".\..\.semver" Component="$(Component)">
+      <Output TaskParameter="SemanticVersion" PropertyName="SemanticVersion" />
+      <Output TaskParameter="Version" PropertyName="Version" />
+    </IncrementSemanticVersion>
+
+    <FormatSemanticVersion SemverFilePath=".\..\.semver" Format="${MAJOR}">
+      <Output TaskParameter="Result" PropertyName="MajorVersion" />
+    </FormatSemanticVersion>
+
+    <WriteLinesToFile File=".\..\src\AssemblyVersion.cs" Overwrite="True" Lines="[assembly:System.Reflection.AssemblyVersion(&quot;$(MajorVersion).0.0.0&quot;)];[assembly:System.Reflection.AssemblyFileVersion(&quot;$(SemanticVersion)&quot;)];[assembly:System.Reflection.AssemblyInformationalVersion(&quot;$(SemanticVersion)&quot;)]" />
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="Version">
+    <MSBuild Projects=".\..\src\Statsify.sln" Targets="Clean;Rebuild" Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="Package" DependsOnTargets="Build">
+    <Exec Command="nuget.exe pack .\Statsify.Client.nuspec -version $(SemanticVersion) -nodefaultexcludes -noninteractive -symbols" />
+    <Exec Command=".\..\tools\7za\7za.exe a -x!*.vshost.* -x!*.xml statsify.agent-$(SemanticVersion).zip .\..\src\Statsify.Agent\bin\Release\*.*" />
+    <Exec Command=".\..\tools\7za\7za.exe a -x!*.vshost.* -x!*.xml statsify.aggregator-$(SemanticVersion).zip .\..\src\Statsify.Aggregator\bin\Release\*.*" />
+  </Target>
+
+  <Target Name="Publish" DependsOnTargets="Package">
+    <Exec Command="hg commit -m v$(SemanticVersion)" />
+    <Exec Command="hg tag v$(SemanticVersion) --force" />
+    <Exec Command="nuget.exe push .\statsify.client.$(SemanticVersion).nupkg" />
+  </Target>
+</Project>
