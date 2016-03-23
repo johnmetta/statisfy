@@ -11,14 +11,14 @@ namespace Statsify.Agent.Impl
         private class Measurement
         {
             public int Values { get; private set; }
-            public double AverageValue { get; private set; }
             public double LastValue { get; private set; }
+            public double AverageValue { get; private set; }
 
             public void Record(double value)
             {
                 Values += 1;
-                AverageValue = AverageValue + (value - AverageValue) / Values;
                 LastValue = value;
+                AverageValue = AverageValue + (LastValue - AverageValue) / Values;
             }
         }
 

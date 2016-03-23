@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NLog;
 using Statsify.Agent.Configuration;
 
@@ -70,10 +71,10 @@ namespace Statsify.Agent.Impl
                 } // foreach
             } // foreach
 
-            var outliers = averager.GetOutliers(50, 5);
-            foreach(var outlier in outliers)
+            var outliers = averager.GetOutliers(50, 2);
+            foreach(var outlier in outliers.Where(o => o.AverageValue > 1))
                 log.Warn("last metric collection time for '{0}' was {1}, which has exceeded an average value of {2}", 
-                    outlier.Name, TimeSpan.FromTicks((long)outlier.LastValue), TimeSpan.FromTicks((long)outlier.AverageValue));
+                    outlier.Name, TimeSpan.FromMilliseconds(outlier.LastValue), TimeSpan.FromMilliseconds(outlier.AverageValue));
         }
     }
 }
