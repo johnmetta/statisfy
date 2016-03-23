@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NLog;
 using Statsify.Agent.Configuration;
@@ -8,6 +9,7 @@ namespace Statsify.Agent.Impl
 {
     public class MetricCollector
     {
+        private readonly Averager averager = new Averager();
         private readonly Logger log = LogManager.GetCurrentClassLogger();
         private readonly IList<IMetricSource> metricSources = new List<IMetricSource>();
 
@@ -35,6 +37,7 @@ namespace Statsify.Agent.Impl
 
         public IEnumerable<Metric> GetCollectedMetrics()
         {
+            var stopwatch = new Stopwatch();
             foreach(var metricSource in metricSources)
             {
                 foreach(var metricDefinition in metricSource.GetMetricDefinitions())
@@ -43,7 +46,10 @@ namespace Statsify.Agent.Impl
 
                     try
                     {
+                        stopwatch.Restart();
                         var value = metricDefinition.GetNextValue();
+                        averager.Record(metricDefinition.Name, stopwatch.ElapsedMilliseconds);
+
                         metric = new Metric(metricDefinition.Name, metricDefinition.AggregationStrategy, value);
                     } // try
                     catch(MetricInvalidatedException)
@@ -64,6 +70,11 @@ namespace Statsify.Agent.Impl
                         yield return metric;
                 } // foreach
             } // foreach
+
+            var outliers = averager.GetOutliers(50, 2);
+            foreach(var outlier in outliers.Where(o => o.AverageValue > 1))
+                log.Warn("last metric collection time for '{0}' was {1}, which has exceeded an average value of {2}", 
+                    outlier.Name, TimeSpan.FromMilliseconds(outlier.LastValue), TimeSpan.FromMilliseconds(outlier.AverageValue));
         }
     }
 }

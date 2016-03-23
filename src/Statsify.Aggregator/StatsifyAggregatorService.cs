@@ -30,7 +30,8 @@ namespace Statsify.Aggregator
         {
             stopEvent = new ManualResetEvent(false);
             configuration = configurationManager.Configuration;
-            metricAggregator = new MetricAggregator(configuration, stopEvent);
+            var datapointDatabaseResolver = new DatapointDatabaseResolverCachingWrapper(new DatapointDatabaseResolver(configuration));
+            metricAggregator = new MetricAggregator(configuration, datapointDatabaseResolver, stopEvent);
             annotationAggregator = new AnnotationAggregator(configuration);
             
             datagramParser = new DatagramParser(new MetricParser());
