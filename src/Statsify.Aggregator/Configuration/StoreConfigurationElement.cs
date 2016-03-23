@@ -18,6 +18,13 @@ namespace Statsify.Aggregator.Configuration
             set { this["pattern"] = value; }
         }
 
+        [ConfigurationProperty("ignore-pattern", IsRequired = false)]
+        public string IgnorePattern
+        {
+            get { return (string)this["ignore-pattern"]; }
+            set { this["ignore-pattern"] = value; }
+        }
+
         [ConfigurationProperty("retentions", IsRequired = true)]
         public RetentionConfigurationElementCollection Retentions
         {
