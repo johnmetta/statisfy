@@ -69,7 +69,7 @@
     <Compile Include="Impl\MetricSourceFactory.cs" />
     <Compile Include="Impl\Averager.cs" />
     <Compile Include="Impl\PerformanceCounterMetricDefinition.cs" />
-    <Compile Include="Impl\RabbitMqQueuesMetricSource.cs" />
+    <Compile Include="Impl\RabbitMqMetricSource.cs" />
     <Compile Include="Impl\RefreshableMetricSource.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
