@@ -29,7 +29,7 @@ namespace Statsify.Agent.Impl
 
         private IMetricSource CreateRabbitMqQueuesMetricSource(MetricConfigurationElement metric)
         {
-            return new RabbitMqQueuesMetricSource(metric);
+            return new RabbitMqMetricSource(metric);
         }
     }
 }

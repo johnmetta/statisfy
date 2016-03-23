@@ -10,7 +10,7 @@ using Statsify.Client;
 
 namespace Statsify.Agent.Impl
 {
-    public class RabbitMqQueuesMetricSource : IMetricSource
+    public class RabbitMqMetricSource : IMetricSource
     {
         private readonly AggregationStrategy aggregationStrategy;
         private readonly string @namespace;
@@ -18,7 +18,7 @@ namespace Statsify.Agent.Impl
         private readonly DataContractJsonSerializer jsonSerializer;
         private readonly Uri uri;
 
-        public RabbitMqQueuesMetricSource(MetricConfigurationElement metric)
+        public RabbitMqMetricSource(MetricConfigurationElement metric)
         {
             @namespace = metric.Name;
             aggregationStrategy = metric.AggregationStrategy;
