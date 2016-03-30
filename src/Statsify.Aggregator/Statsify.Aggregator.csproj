@@ -80,6 +80,7 @@
     <Compile Include="Http\GraphiteApiModule.cs" />
     <Compile Include="DatapointDatabaseResolver.cs" />
     <Compile Include="DatapointDatabaseResolverCachingWrapper.cs" />
+    <Compile Include="MetricDatapointQueue.cs" />
     <Compile Include="Http\Models\PurgeModel.cs" />
     <Compile Include="MetricsBuffer.cs" />
     <Compile Include="Http\ApiModule.cs" />

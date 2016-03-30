@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -24,7 +23,7 @@ namespace Statsify.Aggregator
         private readonly float flushInterval;
         
         private long metrics;
-        private volatile ConcurrentQueue<MetricDatapoint> flushQueue = new ConcurrentQueue<MetricDatapoint>();
+        private volatile MetricDatapointQueue metricDatapointQueue = new MetricDatapointQueue();
         private volatile MetricsBuffer metricsBuffer;
 
         public MetricAggregator(StatsifyAggregatorConfigurationSection configuration, IDatapointDatabaseResolver datapointDatabaseResolver, ManualResetEvent stopEvent)
@@ -60,7 +59,7 @@ namespace Statsify.Aggregator
             var n = 0;
             stopwatch.Restart();
 
-            var fq = Interlocked.CompareExchange(ref flushQueue, new ConcurrentQueue<MetricDatapoint>(), flushQueue);
+            var fq = Interlocked.CompareExchange(ref metricDatapointQueue, new MetricDatapointQueue(), metricDatapointQueue);
 
             foreach(var g in fq.GroupBy(m => m.Name))
             {
@@ -217,7 +216,7 @@ namespace Statsify.Aggregator
                 }*/
             }
 
-            var fq = Volatile.Read(ref flushQueue);
+            var fq = Volatile.Read(ref metricDatapointQueue);
             foreach(var pair in buffer.Counters)
             {
                 fq.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
@@ -244,12 +243,12 @@ namespace Statsify.Aggregator
 
         public int QueueBacklog
         {
-            get { return flushQueue.Count; }
+            get { return metricDatapointQueue.Count; }
         }
 
         public IEnumerable<MetricDatapoint> Queue
         {
-            get { return flushQueue; }
+            get { return metricDatapointQueue; }
         }
     }
 }
