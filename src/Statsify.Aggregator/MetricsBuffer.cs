@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Statsify.Aggregator
 {
@@ -9,6 +10,7 @@ namespace Statsify.Aggregator
         private readonly ConcurrentDictionary<string, float> timerCounters = new ConcurrentDictionary<string, float>();
         private readonly ConcurrentDictionary<string, float> gauges = new ConcurrentDictionary<string, float>();
         private readonly ConcurrentDictionary<string, float> counters = new ConcurrentDictionary<string, float>();
+        private readonly ConcurrentDictionary<string, ConcurrentBag<string>> sets = new ConcurrentDictionary<string, ConcurrentBag<string>>(); 
 
         public IEnumerable<KeyValuePair<string, IList<float>>>  Timers
         {
@@ -36,14 +38,17 @@ namespace Statsify.Aggregator
         public void Aggregate(Metric metric)
         {
             var key = metric.Name;
+            var value = TryParseFloat(metric.Value);
 
             switch(metric.Type)
             {
                 case MetricType.Timer:
-                    timers.AddOrUpdate(key, new List<float> { metric.Value },
+                    if(!value.HasValue) return;
+                    
+                    timers.AddOrUpdate(key, new List<float> { value.Value },
                         (k, v) =>
                         {
-                            v.Add(metric.Value);
+                            v.Add(value.Value);
                             return v;
                         });
 
@@ -51,17 +56,30 @@ namespace Statsify.Aggregator
                     break;
                 
                 case MetricType.Gauge:
+                    if(!value.HasValue) return;
+
                     var signed = metric.Signed;
-                    gauges.AddOrUpdate(key, metric.Value, (k, v) => (signed ? 0 : v) + metric.Value);
+                    gauges.AddOrUpdate(key, value.Value, (k, v) => (signed ? 0 : v) + value.Value);
                     break;
 
                 case MetricType.Set:
                     break;
 
                 case MetricType.Counter:
-                    counters.AddOrUpdate(key, metric.Value * (1 / metric.Sample), (k, v) => v + metric.Value * (1 / metric.Sample));
+                    if(!value.HasValue) return;
+
+                    counters.AddOrUpdate(key, value.Value * (1 / metric.Sample), (k, v) => v + value.Value * (1 / metric.Sample));
                     break;
             } // switch
+        }
+
+        private static float? TryParseFloat(string s)
+        {
+            float value = 0;
+            if(float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out value))
+                return value;
+
+            return null;
         }
     }
 }
