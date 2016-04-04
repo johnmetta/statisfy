@@ -63,6 +63,12 @@ namespace Statsify.Aggregator
                     break;
 
                 case MetricType.Set:
+                    sets.AddOrUpdate(key, new ConcurrentBag<string> { metric.Value },
+                        (k, v) =>
+                        {
+                            v.Add(k);
+                            return v;
+                        });
                     break;
 
                 case MetricType.Counter:
