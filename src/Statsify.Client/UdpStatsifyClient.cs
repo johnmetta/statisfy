@@ -75,18 +75,22 @@ namespace Statsify.Client
         {
             var cultureInfo = CultureInfo.InvariantCulture;
 
-            if(sample < 1 && sample < Sampler.NextDouble()) return;
-
-            var metricName = GetMetricName(metric);
-
             var metricValueFormat = explicitlySigned ? "{0:+#.####;-#.####;#}" : "{0}";
             var metricValue =
                 Math.Abs(value) < 0.00000001 ?
                     (explicitlySigned ? "+0" : "0") :
                     string.Format(cultureInfo, metricValueFormat, (float)value);
 
-            var datagram = string.Format(cultureInfo, "{0}:{1}|{2}", metricName, metricValue, type);
-                
+            PublishMetric(metric, type, metricValue, sample);
+        }
+
+        private void PublishMetric(string metric, string type, string value, double sample)
+        {
+            if(sample < 1 && sample < Sampler.NextDouble()) return;
+
+            var cultureInfo = CultureInfo.InvariantCulture;
+            var datagram = string.Format(cultureInfo, "{0}:{1}|{2}", GetMetricName(metric), value, type);
+
             if(sample < 1)
                 datagram += string.Format(cultureInfo, "|@{0:N3}", (float)sample);
 
