@@ -67,6 +67,16 @@ namespace Statsify.Tests.Client
         }
 
         [Test]
+        public void Set()
+        {
+            using(var stats = new UdpStatsifyClient("127.0.0.1", Port, "Telemetry.tests."))
+            {
+                AssertDatagram(Port, "Telemetry.tests.sample_timer:a|s", () => stats.Set("sample_timer", "a"));
+                AssertDatagram(Port, "Telemetry.tests.sample_timer:b|s", () => stats.Set("sample_timer", "b"));
+            } // using
+        }
+
+        [Test]
         public void Annotation()
         {
             using(var stats = new UdpStatsifyClient(port: Port))
