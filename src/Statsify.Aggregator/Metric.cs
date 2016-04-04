@@ -6,7 +6,7 @@ namespace Statsify.Aggregator
     {
         public string Name { get; set; }
 
-        public float Value { get; set; }
+        public string Value { get; set; }
 
         public MetricType Type { get; set; }
 
@@ -18,7 +18,7 @@ namespace Statsify.Aggregator
         {
         }
 
-        public Metric(string name, float value, MetricType type, float sample, bool signed)
+        public Metric(string name, string value, MetricType type, float sample, bool signed)
         {
             Name = name;
             Value = value;

@@ -34,21 +34,18 @@ namespace Statsify.Aggregator
 
             var bits = metric.Split(':');
 
-            var name = bits[0].RegexReplace(@"\s+", "_").RegexReplace(@"\/", "-").RegexReplace(@"\\", "-").RegexReplace(@"[^a-zA-Z_\-0-9\.]", String.Empty).Trim('.');
+            var name = 
+                bits[0].
+                    RegexReplace(@"\s+", "_").
+                    RegexReplace(@"\/", "-").
+                    RegexReplace(@"\\", "-").
+                    RegexReplace(@"[^a-zA-Z_\-0-9\.]", String.Empty).
+                    Trim('.');
 
             var fields = bits[1].Split('|');
 
-            float value;
-
-            if(!float.TryParse(fields[0], NumberStyles.Any, CultureInfo.InvariantCulture, out value))
-            {
-                log.Trace("couldn't parse '{0}'", metric);                                         
-
-                return null;
-            }
-            
+            var value = fields[0];
             var type = GetMetricType(fields[1]);
-
             var signed = fields[0].StartsWith("-") || fields[0].StartsWith("+");
 
             float sample = 1;
