@@ -51,6 +51,11 @@ namespace Statsify.Client
             PublishMetric(metric, "ms", value, sample);
         }
 
+        public void Set(string metric, string value, double sample = 1)
+        {
+            PublishMetric(metric, "s", value, sample);
+        }
+
         public void Annotation(string title, string message)
         {
             PublishAnnotation(title, message);

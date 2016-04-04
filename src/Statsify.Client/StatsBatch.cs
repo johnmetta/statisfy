@@ -30,6 +30,11 @@ namespace Statsify.Client
             actions.Add(sc => sc.Time(metric, value, sample));
         }
 
+        public void Set(string metric, string value, double sample = 1)
+        {
+            actions.Add(sc => sc.Set(metric, value, sample));
+        }
+
         public void Annotation(string title, string message)
         {
             actions.Add(sc => sc.Annotation(title, message));

@@ -46,7 +46,15 @@
         /// <param name="value"></param>
         /// <param name="sample"></param>
         void Time(string metric, double value, double sample = 1);
-        
+
+        /// <summary>
+        /// Records a unique occurence of <paramref name="value"/>.
+        /// </summary>
+        /// <param name="metric"></param>
+        /// <param name="value"></param>
+        /// <param name="sample"></param>
+        void Set(string metric, string value, double sample = 1);
+
         /// <summary>
         /// Records an annotation with <paramref name="title"/> and <paramref name="message"/>.
         /// </summary>
