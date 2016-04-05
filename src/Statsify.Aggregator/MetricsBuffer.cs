@@ -58,8 +58,8 @@ namespace Statsify.Aggregator
                 case MetricType.Gauge:
                     if(!value.HasValue) return;
 
-                    var signed = metric.Signed;
-                    gauges.AddOrUpdate(key, value.Value, (k, v) => (signed ? 0 : v) + value.Value);
+                    var signed = metric.Value.StartsWith("-") || metric.Value.StartsWith("+");
+                    gauges.AddOrUpdate(key, value.Value, (k, v) => (signed ? v : 0) + value.Value);
                     break;
 
                 case MetricType.Set:
