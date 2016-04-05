@@ -53,7 +53,7 @@ namespace Statsify.Aggregator
             if(fields.Length == 3)
                 sample = float.Parse(fields[2].Substring(1), CultureInfo.InvariantCulture);
 
-            return new Metric { Name = name, Type = type, Value = value, Sample = sample, Signed = signed };
+            return new Metric { Name = name, Type = type, Value = value, Sample = sample };
         }
 
         private static MetricType GetMetricType(string metricType)

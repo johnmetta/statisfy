@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Statsify.Aggregator
 {
@@ -12,24 +13,21 @@ namespace Statsify.Aggregator
 
         public float Sample { get; set; }
 
-        public bool Signed { get; set; }
-
         public Metric()
         {
         }
 
-        public Metric(string name, string value, MetricType type, float sample, bool signed)
+        public Metric(string name, string value, MetricType type, float sample)
         {
             Name = name;
             Value = value;
             Type = type;
             Sample = sample;
-            Signed = signed;
         }
 
         public override string ToString()
         {
-            return string.Format("Name: {0}, Value: {1}, Type: {2}, Sample: {3}, Signed: {4}", Name, Value, Type, Sample, Signed);
+            return string.Format("Name: {0}, Value: {1}, Type: {2}, Sample: {3}", Name, Value, Type, Sample);
         }
 
         public bool Equals(Metric other)
@@ -38,7 +36,7 @@ namespace Statsify.Aggregator
             if(ReferenceEquals(this, other)) return true;
 
             return string.Equals(Name, other.Name) && Value.Equals(other.Value) && string.Equals(Type, other.Type) && 
-                Sample.Equals(other.Sample) && Signed.Equals(other.Signed);
+                Sample.Equals(other.Sample);
         }
 
         public override bool Equals(object obj)
@@ -57,7 +55,6 @@ namespace Statsify.Aggregator
                 hashCode = (hashCode * 397) ^ Value.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Type.GetHashCode());
                 hashCode = (hashCode * 397) ^ Sample.GetHashCode();
-                hashCode = (hashCode * 397) ^ Signed.GetHashCode();
 
                 return hashCode;
             }
@@ -71,6 +68,16 @@ namespace Statsify.Aggregator
         public static bool operator !=(Metric left, Metric right)
         {
             return !Equals(left, right);
+        }
+
+        public static Metric Timer(string name, float value, float sample = 1)
+        {
+            return new Metric(name, value.ToString(CultureInfo.InvariantCulture), MetricType.Timer, sample);
+        }
+
+        public static Metric Gauge(string name, string value, float sample = 1)
+        {
+            return new Metric(name, value, MetricType.Gauge, sample);
         }
     }
 }
