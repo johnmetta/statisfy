@@ -129,7 +129,7 @@ namespace Statsify.Aggregator
                 var sum = min;
                 var mean = min;
                 var thresholdBoundary = max;
-                var pctThreshold = new[] { 85.0, 90, 95, 99 };
+                var pctThreshold = new[] { /*85.0, 90, */95.0, 99 };
 
                 foreach(var pct in pctThreshold)
                 {                        
@@ -224,6 +224,11 @@ namespace Statsify.Aggregator
             }
 
             foreach(var pair in buffer.Gauges)
+            {
+                fq.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
+            }
+
+            foreach(var pair in buffer.Sets)
             {
                 fq.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
             }

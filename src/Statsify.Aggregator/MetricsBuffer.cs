@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace Statsify.Aggregator
 {
@@ -9,6 +11,7 @@ namespace Statsify.Aggregator
         private readonly ConcurrentDictionary<string, float> timerCounters = new ConcurrentDictionary<string, float>();
         private readonly ConcurrentDictionary<string, float> gauges = new ConcurrentDictionary<string, float>();
         private readonly ConcurrentDictionary<string, float> counters = new ConcurrentDictionary<string, float>();
+        private readonly ConcurrentDictionary<string, ConcurrentBag<string>> sets = new ConcurrentDictionary<string, ConcurrentBag<string>>(); 
 
         public IEnumerable<KeyValuePair<string, IList<float>>>  Timers
         {
@@ -25,6 +28,11 @@ namespace Statsify.Aggregator
             get { return gauges; }
         }
 
+        public IEnumerable<KeyValuePair<string, int>>  Sets
+        {
+            get { return sets.Select(kvp => new KeyValuePair<string, int>(kvp.Key, kvp.Value.Count)); }
+        }
+
         public float? GetTimerCounter(string name)
         {
             float value;
@@ -36,14 +44,17 @@ namespace Statsify.Aggregator
         public void Aggregate(Metric metric)
         {
             var key = metric.Name;
+            var value = TryParseFloat(metric.Value);
 
             switch(metric.Type)
             {
                 case MetricType.Timer:
-                    timers.AddOrUpdate(key, new List<float> { metric.Value },
+                    if(!value.HasValue) return;
+                    
+                    timers.AddOrUpdate(key, new List<float> { value.Value },
                         (k, v) =>
                         {
-                            v.Add(metric.Value);
+                            v.Add(value.Value);
                             return v;
                         });
 
@@ -51,17 +62,36 @@ namespace Statsify.Aggregator
                     break;
                 
                 case MetricType.Gauge:
-                    var signed = metric.Signed;
-                    gauges.AddOrUpdate(key, metric.Value, (k, v) => (signed ? 0 : v) + metric.Value);
+                    if(!value.HasValue) return;
+
+                    var signed = metric.Value.StartsWith("-") || metric.Value.StartsWith("+");
+                    gauges.AddOrUpdate(key, value.Value, (k, v) => (signed ? v : 0) + value.Value);
                     break;
 
                 case MetricType.Set:
+                    sets.AddOrUpdate(key, new ConcurrentBag<string> { metric.Value },
+                        (k, v) =>
+                        {
+                            v.Add(k);
+                            return v;
+                        });
                     break;
 
                 case MetricType.Counter:
-                    counters.AddOrUpdate(key, metric.Value * (1 / metric.Sample), (k, v) => v + metric.Value * (1 / metric.Sample));
+                    if(!value.HasValue) return;
+
+                    counters.AddOrUpdate(key, value.Value * (1 / metric.Sample), (k, v) => v + value.Value * (1 / metric.Sample));
                     break;
             } // switch
+        }
+
+        private static float? TryParseFloat(string s)
+        {
+            float value = 0;
+            if(float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out value))
+                return value;
+
+            return null;
         }
     }
 }
