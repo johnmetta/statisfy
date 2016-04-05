@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace Statsify.Aggregator
 {
@@ -25,6 +26,11 @@ namespace Statsify.Aggregator
         public IEnumerable<KeyValuePair<string, float>>  Gauges
         {
             get { return gauges; }
+        }
+
+        public IEnumerable<KeyValuePair<string, int>>  Sets
+        {
+            get { return sets.Select(kvp => new KeyValuePair<string, int>(kvp.Key, kvp.Value.Count)); }
         }
 
         public float? GetTimerCounter(string name)

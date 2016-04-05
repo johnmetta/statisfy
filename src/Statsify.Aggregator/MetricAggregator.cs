@@ -228,6 +228,11 @@ namespace Statsify.Aggregator
                 fq.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
             }
 
+            foreach(var pair in buffer.Sets)
+            {
+                fq.Enqueue(new MetricDatapoint(pair.Key, ts, pair.Value));
+            }
+
             foreach(var t in timerData.Keys.ToList())
             {
                 foreach(var tt in timerData[t].Keys)

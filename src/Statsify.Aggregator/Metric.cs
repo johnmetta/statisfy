@@ -79,5 +79,10 @@ namespace Statsify.Aggregator
         {
             return new Metric(name, value, MetricType.Gauge, sample);
         }
+
+        public static Metric Counter(string name, float value, float sample = 1)
+        {
+            return new Metric(name, value.ToString(CultureInfo.InvariantCulture), MetricType.Counter, sample);
+        }
     }
 }
