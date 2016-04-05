@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent\Configuration\StatsifyAgentConfigurationSectionTests.cs" />
+    <Compile Include="Agent\Impl\AveragerTests.cs" />
     <Compile Include="Agent\Impl\MetricDefinitionFactoryTests.cs" />
     <Compile Include="Agent\Impl\NullMetricDefinition.cs" />
     <Compile Include="Agent\Impl\RefreshableMetricSourceTests.cs" />
