@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -30,7 +31,13 @@ namespace Statsify.Aggregator
 
         public IEnumerable<KeyValuePair<string, int>>  Sets
         {
-            get { return sets.Select(kvp => new KeyValuePair<string, int>(kvp.Key, kvp.Value.Count)); }
+            get 
+            { 
+                return sets.Select(kvp => {
+                    var value = kvp.Value.Distinct(StringComparer.InvariantCulture).Count();
+                    return new KeyValuePair<string, int>(kvp.Key, value);
+                }); 
+            }
         }
 
         public float? GetTimerCounter(string name)
@@ -72,7 +79,7 @@ namespace Statsify.Aggregator
                     sets.AddOrUpdate(key, new ConcurrentBag<string> { metric.Value },
                         (k, v) =>
                         {
-                            v.Add(k);
+                            v.Add(metric.Value);
                             return v;
                         });
                     break;
