@@ -111,6 +111,11 @@ namespace Statsify.Client
             return result;
         }
 
+        public static void Set(string metric, string value, double sample = 1)
+        {
+            Statsify.Set(metric, value, sample);
+        }
+
         internal static IStatsifyClient GetStatsifyClient()
         {
             var clientFactory = new StatsifyClientFactory();
