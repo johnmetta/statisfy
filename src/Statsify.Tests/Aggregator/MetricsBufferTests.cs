@@ -92,5 +92,31 @@ namespace Statsify.Tests.Aggregator
             Assert.AreEqual(-1, counter("b").Value);
             // ReSharper restore PossibleInvalidOperationException
         }
+
+        [Test]
+        public void AggregateSets()
+        {
+            var buffer = new MetricsBuffer();
+
+            Func<string, int?> set = s => {
+                var value = buffer.Sets.SingleOrDefault(kvp => kvp.Key == s);
+                return value.Equals(default(KeyValuePair<string, int>)) ? (int?)null : value.Value;
+            };
+
+            buffer.Aggregate(Metric.Set("a", "x"));
+            buffer.Aggregate(Metric.Set("b", "y"));
+
+            // ReSharper disable PossibleInvalidOperationException
+            Assert.AreEqual(1, set("a").Value);
+            Assert.AreEqual(1, set("b").Value);
+            Assert.IsFalse(set("c").HasValue);
+
+            buffer.Aggregate(Metric.Set("a", "y"));
+            buffer.Aggregate(Metric.Set("b", "y"));
+
+            Assert.AreEqual(2, set("a").Value);
+            Assert.AreEqual(1, set("b").Value);
+            // ReSharper restore PossibleInvalidOperationException
+        }
     }
 }
