@@ -22,6 +22,8 @@ namespace Statsify.Aggregator.Network
             this.ipEndpoint = ipEndpoint;
 
             udpClient = new UdpClient(ipEndpoint);
+            udpClient.Client.ReceiveBufferSize = 1024 * 1024 * 8;
+
             udpClient.BeginReceive(UdpClientBeginReceiveCallback, null);
         }
 
