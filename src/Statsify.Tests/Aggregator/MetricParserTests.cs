@@ -30,6 +30,10 @@ namespace Statsify.Tests.Aggregator
             Assert.AreEqual(
                 new Metric("glork", "frob", MetricType.Set, 5),
                 parser.ParseMetric("glork:frob|s|@5"));
+
+            Assert.AreEqual(
+                new Metric("online", "hello@example.com", MetricType.Set, 5),
+                parser.ParseMetric("online:hello@example.com|s|@5"));
         }
     }
 }
