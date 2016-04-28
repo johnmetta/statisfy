@@ -142,7 +142,7 @@ namespace Statsify
         public string Name { get; set; }
 
         [Parameter(Name = "value", Position = 1, Description = "Value of the Metric")]
-        public double Value { get; set; }
+        public string Value { get; set; }
 
         [Parameter(Name = "server", Position = 2, Description = "Endpoint of the Statsify Aggregator", Optional = true)]
         public Endpoint Server { get; set; }
@@ -161,18 +161,27 @@ namespace Statsify
 
             using(var statsifyClient = new UdpStatsifyClient(server.Address, server.Port))
             {
+                var value = TryParseFloat(Value);
+
                 switch(options.Type)
                 {
                     case MetricType.Counter:
-                        statsifyClient.Counter(Name, Value);
+                        if(!value.HasValue) return 1;
+
+                        statsifyClient.Counter(Name, value.Value);
                         break;
                     case MetricType.Timer:
-                        statsifyClient.Time(Name, Value);
+                        if(!value.HasValue) return 1;
+
+                        statsifyClient.Time(Name, value.Value);
                         break;
                     case MetricType.Gauge:
-                        statsifyClient.Gauge(Name, Value);
+                        if(!value.HasValue) return 1;
+
+                        statsifyClient.Gauge(Name, value.Value);
                         break;
                     case MetricType.Set:
+                        statsifyClient.Set(Name, Value);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -180,6 +189,15 @@ namespace Statsify
             } // using
 
             return 0;
+        }
+
+        private static float? TryParseFloat(string value)
+        {
+            var f = 0f;
+            if(float.TryParse(value, out f))
+                return f;
+
+            return null;
         }
     }
 
