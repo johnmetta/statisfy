@@ -52,6 +52,7 @@ namespace Statsify.Aggregator
         {
             var key = metric.Name;
             var value = TryParseFloat(metric.Value);
+            var factor = (1 / metric.Sample);
 
             switch(metric.Type)
             {
@@ -65,7 +66,7 @@ namespace Statsify.Aggregator
                             return v;
                         });
 
-                    timerCounters.AddOrUpdate(key, 1 / metric.Sample, (k, v) => v + (1 / metric.Sample));
+                    timerCounters.AddOrUpdate(key, 1 / metric.Sample, (k, v) => v + factor);
                     break;
                 
                 case MetricType.Gauge:
@@ -87,7 +88,7 @@ namespace Statsify.Aggregator
                 case MetricType.Counter:
                     if(!value.HasValue) return;
 
-                    counters.AddOrUpdate(key, value.Value * (1 / metric.Sample), (k, v) => v + value.Value * (1 / metric.Sample));
+                    counters.AddOrUpdate(key, value.Value * factor, (k, v) => v + value.Value * factor);
                     break;
             } // switch
         }
