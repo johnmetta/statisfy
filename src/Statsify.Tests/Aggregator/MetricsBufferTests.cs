@@ -25,16 +25,20 @@ namespace Statsify.Tests.Aggregator
             CollectionAssert.AreEquivalent(new[] { 1f }, timer("a"));
             CollectionAssert.AreEquivalent(new[] { 2f }, timer("b"));
             Assert.IsNull(timer("c"));
+            Assert.AreEqual(1f, buffer.GetTimerCounter("a"));
+            Assert.AreEqual(1f, buffer.GetTimerCounter("b"));
 
             buffer.Aggregate(Metric.Timer("a", 2));
             buffer.Aggregate(Metric.Timer("a", 2));
             buffer.Aggregate(Metric.Timer("a", 3));
 
             CollectionAssert.AreEquivalent(new[] { 1f, 2f, 2f, 3f }, timer("a"));
+            Assert.AreEqual(4f, buffer.GetTimerCounter("a"));
 
             buffer.Aggregate(Metric.Timer("b", -12));
 
             CollectionAssert.AreEquivalent(new[] { 2f, -12f }, timer("b"));
+            Assert.AreEqual(2f, buffer.GetTimerCounter("b"));
         }
 
         [Test]
@@ -103,19 +107,33 @@ namespace Statsify.Tests.Aggregator
                 return value.Equals(default(KeyValuePair<string, int>)) ? (int?)null : value.Value;
             };
 
-            buffer.Aggregate(Metric.Set("a", "x"));
-            buffer.Aggregate(Metric.Set("b", "y"));
+            buffer.Aggregate(Metric.Set("a", "1"));
+            buffer.Aggregate(Metric.Set("b", "1"));
+            buffer.Aggregate(Metric.Set("users_online", "1"));
+            buffer.Aggregate(Metric.Set("users_online", "1"));
+            buffer.Aggregate(Metric.Set("users_online", "1"));
+            buffer.Aggregate(Metric.Set("users_online", "2"));
+            buffer.Aggregate(Metric.Set("users_online", "1"));
+            buffer.Aggregate(Metric.Set("users_online", "3"));
 
             // ReSharper disable PossibleInvalidOperationException
             Assert.AreEqual(1, set("a").Value);
             Assert.AreEqual(1, set("b").Value);
             Assert.IsFalse(set("c").HasValue);
 
-            buffer.Aggregate(Metric.Set("a", "y"));
-            buffer.Aggregate(Metric.Set("b", "y"));
+            buffer.Aggregate(Metric.Set("a", "2"));
+            buffer.Aggregate(Metric.Set("b", "1"));
 
             Assert.AreEqual(2, set("a").Value);
             Assert.AreEqual(1, set("b").Value);
+
+            buffer.Aggregate(Metric.Set("a", "3"));
+            buffer.Aggregate(Metric.Set("a", "4"));
+            buffer.Aggregate(Metric.Set("a", "5"));
+            buffer.Aggregate(Metric.Set("b", "2"));
+
+            Assert.AreEqual(5, set("a").Value);
+            Assert.AreEqual(2, set("b").Value);
             // ReSharper restore PossibleInvalidOperationException
         }
     }
