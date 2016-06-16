@@ -21,6 +21,12 @@ namespace Statsify.Aggregator.Http
                     @default;
             } // else
 
+            //
+            // This one is to support Grafana
+            var seconds = 0L;
+            if(long.TryParse(value, out seconds))
+                return DateTime.MinValue.AddSeconds(seconds);
+
             DateTime result;
             return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result) ? 
                 result : 
