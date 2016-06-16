@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 
 namespace Statsify.Aggregator
 {
@@ -6,7 +8,20 @@ namespace Statsify.Aggregator
     {
         public static Version Version
         {
-            get { return typeof(Application).Assembly.GetName().Version;  }
+            get
+            {
+                var assemblyFileVersion =
+                    typeof(Application).Assembly.
+                        GetCustomAttributes(typeof(AssemblyFileVersionAttribute)).
+                        OfType<AssemblyFileVersionAttribute>().
+                        FirstOrDefault();
+                
+                Version version;
+                if(assemblyFileVersion != null && Version.TryParse(assemblyFileVersion.Version, out version))
+                    return version;
+                
+                return new Version(0, 0, 0);;
+            }
         }
     }
 }
