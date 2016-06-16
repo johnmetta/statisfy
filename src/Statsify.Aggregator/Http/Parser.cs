@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using Statsify.Core.Storage;
+using Statsify.Core.Util;
 
 namespace Statsify.Aggregator.Http
 {
@@ -23,9 +24,9 @@ namespace Statsify.Aggregator.Http
 
             //
             // This one is to support Grafana
-            var seconds = 0L;
-            if(long.TryParse(value, out seconds))
-                return DateTime.MinValue.AddSeconds(seconds);
+            var timestamp = 0L;
+            if(long.TryParse(value, out timestamp))
+                return DateTimeUtil.FromUnixTimestamp(timestamp);
 
             DateTime result;
             return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out result) ? 
