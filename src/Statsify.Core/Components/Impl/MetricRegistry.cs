@@ -20,18 +20,21 @@ namespace Statsify.Core.Components.Impl
             this.rootDirectory = rootDirectory;
         }
 
-        public IEnumerable<string> ResolveMetricNames(string metricNameSelector)
+        public ISet<string> ResolveMetricNames(string metricNameSelector)
         {
-            return GetDatabaseFiles(metricNameSelector).
-                Select(f => {
-                    var directoryName = Path.GetDirectoryName(f.FullName);
-                    Debug.Assert(directoryName != null, "directoryName != null");
-                    directoryName = directoryName.Substring(rootDirectory.Length + 1);
+            var metricNames = 
+                GetDatabaseFiles(metricNameSelector).
+                    Select(f => {
+                        var directoryName = Path.GetDirectoryName(f.FullName);
+                        Debug.Assert(directoryName != null, "directoryName != null");
+                        directoryName = directoryName.Substring(rootDirectory.Length + 1);
                     
-                    var fileName = Path.GetFileNameWithoutExtension(f.FullName);
+                        var fileName = Path.GetFileNameWithoutExtension(f.FullName);
                     
-                    return Path.Combine(directoryName, fileName).Replace(Path.DirectorySeparatorChar, '.');
+                        return Path.Combine(directoryName, fileName).Replace(Path.DirectorySeparatorChar, '.');
                 });
+
+            return new HashSet<string>(metricNames, StringComparer.InvariantCultureIgnoreCase);
         }
 
         public Metric ReadMetric(string metricName, DateTime @from, DateTime until, TimeSpan? precision = null)
