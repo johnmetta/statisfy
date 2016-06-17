@@ -14,15 +14,17 @@ namespace Statsify.Aggregator.Network
 
         public event UdpDatagramHandler DatagramHandler;
 
-        public UdpDatagramReader(IPAddress ipAddress, int port) :
-            this(new IPEndPoint(ipAddress, port)){}
+        public UdpDatagramReader(int udpReceiveBufferSize, IPAddress ipAddress, int port) :
+            this(udpReceiveBufferSize, new IPEndPoint(ipAddress, port))
+        {
+        }
 
-        public UdpDatagramReader(IPEndPoint ipEndpoint)
+        public UdpDatagramReader(int udpReceiveBufferSize, IPEndPoint ipEndpoint)
         {
             this.ipEndpoint = ipEndpoint;
 
             udpClient = new UdpClient(ipEndpoint);
-            udpClient.Client.ReceiveBufferSize = 1024 * 1024 * 128;
+            udpClient.Client.ReceiveBufferSize = 1024 * 1024 * udpReceiveBufferSize;
 
             udpClient.BeginReceive(UdpClientBeginReceiveCallback, null);
         }
