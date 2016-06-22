@@ -4,11 +4,9 @@ namespace Statsify.Aggregator.Extensions
 {
     public static class RegexExtensions
     {
-        public static string RegexReplace(this string s, string regex, string replacement)
+        public static string RegexReplace(this string s, Regex regex, string replacement)
         {
-            var r = new Regex(regex);
-
-            return r.Replace(s, replacement);
+            return regex.Replace(s, replacement);
         }
     }
 }
