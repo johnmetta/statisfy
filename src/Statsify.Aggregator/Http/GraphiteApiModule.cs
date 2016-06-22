@@ -24,13 +24,15 @@ namespace Statsify.Aggregator.Http
         private readonly IMetricService metricService;
         private readonly IMetricRegistry metricRegistry;
         private readonly IMetricAggregator metricAggregator;
+        private readonly ExpressionCompiler expressionCompiler;
 
-        public GraphiteApiModule(IMetricService metricService, IMetricRegistry metricRegistry, IMetricAggregator metricAggregator) :
+        public GraphiteApiModule(IMetricService metricService, IMetricRegistry metricRegistry, IMetricAggregator metricAggregator, ExpressionCompiler expressionCompiler) :
             base("/api/graphite/v1")
         {
             this.metricService = metricService;
             this.metricRegistry = metricRegistry;
             this.metricAggregator = metricAggregator;
+            this.expressionCompiler = expressionCompiler;
 
             Get["/metrics/find"] = Get["/metrics"] = Post["/metrics/find"] = Post["/metrics"] = QueryMetrics;
             Get["/render"] = Post["/render"] = RenderSeries;
@@ -95,27 +97,13 @@ namespace Statsify.Aggregator.Http
                 };
 
                 var evalContext = new EvalContext(@from, until);
-
-                var metrics = new List<Core.Model.Metric>();
-                var scanner = new ExpressionScanner();
-
-                var tokens = scanner.Scan(model.Target);
-
-                var parser = new ExpressionParser();
-                var expressions = 
-                    parser.
-                        Parse(new TokenStream(tokens)).
-                            Select(e => 
-                                e is MetricSelectorExpression ? 
-                                    new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression) : 
-                                    e).
-                            ToList();
+                var expressions = expressionCompiler.Parse(model.Target);
 
                 log.Debug("started evaluating expression");
                 var r = expressions.SelectMany(e => (Core.Model.Metric[])e.Evaluate(environment, evalContext)).ToArray();
                 log.Debug("evaluated expression");
 
-                metrics.AddRange(r);
+                var metrics = new List<Core.Model.Metric>(r);
 
                 var seriesViewList = (from metric in metrics
                     let f = metric.Series.From.ToUnixTimestamp()
