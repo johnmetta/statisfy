@@ -17,7 +17,8 @@ namespace Statsify.Aggregator.Http
 {
     public class ApiModule : NancyModule
     {
-        public ApiModule(IMetricService metricService, IAnnotationRegistry annotationRegistry, IMetricRegistry metricRegistry, IMetricAggregator metricAggregator) :
+        public ApiModule(IMetricService metricService, IAnnotationRegistry annotationRegistry, IMetricRegistry metricRegistry, IMetricAggregator metricAggregator,
+            ExpressionCompiler expressionCompiler) :
             base("/api/v1")
         {
             JsonSettings.MaxJsonLength = int.MaxValue;
@@ -57,7 +58,7 @@ namespace Statsify.Aggregator.Http
                 return Response.AsJson(new { Success = true });
             };
 
-            Get["series"] = x => GetSeries(metricRegistry, metricAggregator);
+            Get["series"] = x => GetSeries(metricRegistry, metricAggregator, expressionCompiler);
 
             Post["purge"] = x =>
             {
@@ -74,7 +75,7 @@ namespace Statsify.Aggregator.Http
             };
         }
 
-        private dynamic GetSeries(IMetricRegistry metricRegistry, IMetricAggregator metricAggregator)
+        private dynamic GetSeries(IMetricRegistry metricRegistry, IMetricAggregator metricAggregator, ExpressionCompiler expressionCompiler)
         {
             try
             {
@@ -96,11 +97,7 @@ namespace Statsify.Aggregator.Http
                 var metrics = new List<Core.Model.Metric>();
                 foreach(var expression in model.Expression.Select(HttpUtility.UrlDecode))
                 {
-                    var scanner = new ExpressionScanner();
-                    var tokens = scanner.Scan(expression);
-
-                    var parser = new ExpressionParser();
-                    var e = parser.Parse(new TokenStream(tokens)).Single();
+                    var e = expressionCompiler.Parse(expression).Single();
 
                     if(e is MetricSelectorExpression)
                     {
