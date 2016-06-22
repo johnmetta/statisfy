@@ -97,7 +97,13 @@ namespace Statsify.Aggregator.Http
                 };
 
                 var evalContext = new EvalContext(@from, until);
-                var expressions = expressionCompiler.Parse(model.Target);
+                var expressions = 
+                    expressionCompiler.Parse(model.Target).
+                        Select(e => 
+                            e is MetricSelectorExpression ? 
+                                new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression) : 
+                                e).
+                        ToList();
 
                 log.Debug("started evaluating expression");
                 var r = expressions.SelectMany(e => (Core.Model.Metric[])e.Evaluate(environment, evalContext)).ToArray();
