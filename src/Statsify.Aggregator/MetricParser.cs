@@ -26,11 +26,14 @@ namespace Statsify.Aggregator
 
         public IEnumerable<Metric> ParseMetrics(string datagram)
         {
-            var metrics = datagram.Contains("\n")
-                ? datagram.Split('\n')
-                : new[] { datagram };
+            if(!datagram.Contains("\n"))
+            {
+                yield return ParseMetric(datagram);
+                yield break;
+            } // if
 
-            return metrics.Select(ParseMetric).Where(m => m != null);
+            foreach(var metric in datagram.Split('\n').Select(ParseMetric).Where(m => m != null))
+                yield return metric;
         }
 
         public Metric ParseMetric(string metric)
