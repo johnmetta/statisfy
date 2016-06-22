@@ -52,6 +52,7 @@
     <Compile Include="Expressions\Environment.cs" />
     <Compile Include="Expressions\EvalContext.cs" />
     <Compile Include="Expressions\Expression.cs" />
+    <Compile Include="Expressions\ExpressionCompiler.cs" />
     <Compile Include="Expressions\ExpressionParser.cs" />
     <Compile Include="Expressions\ExpressionScanner.cs" />
     <Compile Include="Expressions\Function.cs" />

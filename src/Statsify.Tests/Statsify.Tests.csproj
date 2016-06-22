@@ -57,6 +57,7 @@
     <Compile Include="Client\StatsTests.cs" />
     <Compile Include="Client\UdpStatsifyClientTests.cs" />
     <Compile Include="Core\Components\Impl\MetricRegistryTests.cs" />
+    <Compile Include="Core\Expressions\ExpressionCompilerTests.cs" />
     <Compile Include="Core\Expressions\ExpressionParserTests.cs" />
     <Compile Include="Core\Expressions\ExpressionScannerTests.cs" />
     <Compile Include="Core\Expressions\FunctionsTests.cs" />
