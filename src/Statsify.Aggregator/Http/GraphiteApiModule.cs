@@ -50,8 +50,8 @@ namespace Statsify.Aggregator.Http
                 return new Response { StatusCode = HttpStatusCode.BadRequest, ReasonPhrase = "'treejson' format is not currently supported" };
 
             var now = DateTime.UtcNow;
-            var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
-            var until = Parser.ParseDateTime(model.Until, now, now);
+            var from = DateTimeParser.ParseDateTime(model.From, now, now.AddHours(-1));
+            var until = DateTimeParser.ParseDateTime(model.Until, now, now);
 
             log.Debug("started querying metrics using '{0}'", model.Query);
 
@@ -85,8 +85,8 @@ namespace Statsify.Aggregator.Http
                 var tgt = (string)Request.Form.target;
 
                 var now = DateTime.UtcNow;
-                var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
-                var until = Parser.ParseDateTime(model.Until, now, now);
+                var from = DateTimeParser.ParseDateTime(model.From, now, now.AddHours(-1));
+                var until = DateTimeParser.ParseDateTime(model.Until, now, now);
                 
                 var targets = string.Join("', '", model.Target);
                 log.Debug("started rendering metrics using '{0}' from {1:s} to {2:s} ({3})", targets, from, until, until - from);

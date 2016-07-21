@@ -36,8 +36,8 @@ namespace Statsify.Aggregator.Http
                 this.BindTo(model, new BindingConfig { BodyOnly = false });
                 
                 var now = DateTime.UtcNow;
-                var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
-                var until = Parser.ParseDateTime(model.Until, now, now);
+                var from = DateTimeParser.ParseDateTime(model.From, now, now.AddHours(-1));
+                var until = DateTimeParser.ParseDateTime(model.Until, now, now);
 
                 var annotations = 
                     annotationRegistry.
@@ -67,7 +67,7 @@ namespace Statsify.Aggregator.Http
                 this.BindTo(model, new BindingConfig { BodyOnly = false });
 
                 var now = DateTime.UtcNow;
-                var from = Parser.ParseDateTime(model.From, now, now.AddYears(-1));
+                var from = DateTimeParser.ParseDateTime(model.From, now, now.AddYears(-1));
 
                 metricRegistry.PurgeMetrics(from);
 
@@ -83,8 +83,8 @@ namespace Statsify.Aggregator.Http
                 this.BindTo(model, new BindingConfig { BodyOnly = false });
 
                 var now = DateTime.UtcNow;
-                var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
-                var until = Parser.ParseDateTime(model.Until, now, now);
+                var from = DateTimeParser.ParseDateTime(model.From, now, now.AddHours(-1));
+                var until = DateTimeParser.ParseDateTime(model.Until, now, now);
 
                 var environment = new Statsify.Core.Expressions.Environment
                 {
