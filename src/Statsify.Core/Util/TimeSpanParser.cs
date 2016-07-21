@@ -44,7 +44,11 @@ namespace Statsify.Core.Util
                 case 'w':
                     return TimeSpan.FromDays(value * 7);
                 case 'y':
-                    return TimeSpan.FromDays(365.25 * value);
+                    return now.HasValue ?
+                        (value > 0 ?
+                            now.Value.AddYears(value) - now.Value :
+                            now.Value - now.Value.AddYears(Math.Abs(value))) :
+                        TimeSpan.FromDays(365.25 * value);
                 default:
                     throw new ArgumentOutOfRangeException("suffix");
             } // switch
