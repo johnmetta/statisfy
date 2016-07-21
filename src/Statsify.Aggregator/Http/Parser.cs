@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using Statsify.Core.Storage;
 using Statsify.Core.Util;
 
 namespace Statsify.Aggregator.Http
@@ -16,7 +15,7 @@ namespace Statsify.Aggregator.Http
             
             if(value.StartsWith("-"))
             {
-                var offset = RetentionPolicy.ParseTimeSpan(value.Substring(1));
+                var offset = TimeSpanParser.ParseTimeSpan(value.Substring(1));
                 return offset.HasValue ? 
                     now.Subtract(offset.Value) : 
                     @default;
