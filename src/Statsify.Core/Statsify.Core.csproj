@@ -99,6 +99,7 @@
     <Compile Include="Util\NonClosingStreamWrapper.cs" />
     <Compile Include="Util\Range.cs" />
     <Compile Include="Util\StringUtil.cs" />
+    <Compile Include="Util\TimeSpanParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
