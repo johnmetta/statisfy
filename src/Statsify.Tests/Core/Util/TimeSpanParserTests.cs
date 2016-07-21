@@ -10,10 +10,10 @@ namespace Statsify.Tests.Core.Util
     {
         [Test]
         [TestCaseSource("GetTryParseTimeSpanTestCases")]
-        public TimeSpan TryParseTimeSpan(string text)
+        public TimeSpan TryParseTimeSpan(string text, DateTime? now)
         {
             TimeSpan timeSpan;
-            TimeSpanParser.TryParseTimeSpan(text, out timeSpan);
+            TimeSpanParser.TryParseTimeSpan(text, out timeSpan, now);
 
             return timeSpan;
         }
@@ -21,7 +21,7 @@ namespace Statsify.Tests.Core.Util
         private IEnumerable<TestCaseData> GetTryParseTimeSpanTestCases()
         {
             var testCases = new[] {
-                new TestCaseData("").Returns(TimeSpan.MinValue),
+                new TestCaseData("", null).Returns(TimeSpan.MinValue),
 
                 new TestCaseData("s").Returns(TimeSpan.MinValue),
                 new TestCaseData("m").Returns(TimeSpan.MinValue),
@@ -36,26 +36,26 @@ namespace Statsify.Tests.Core.Util
                 new TestCaseData("0s").Returns(TimeSpan.FromSeconds(0)),
                 new TestCaseData("-0s").Returns(TimeSpan.FromSeconds(-0)),
 
-                new TestCaseData("1s").Returns(TimeSpan.FromSeconds(1)),
-                new TestCaseData("-1s").Returns(TimeSpan.FromSeconds(-1)),
+                new TestCaseData("1s", null).Returns(TimeSpan.FromSeconds(1)),
+                new TestCaseData("-1s", null).Returns(TimeSpan.FromSeconds(-1)),
 
-                new TestCaseData("10s").Returns(TimeSpan.FromSeconds(10)),
-                new TestCaseData("-10s").Returns(TimeSpan.FromSeconds(-10)),
+                new TestCaseData("10s", null).Returns(TimeSpan.FromSeconds(10)),
+                new TestCaseData("-10s", null).Returns(TimeSpan.FromSeconds(-10)),
 
-                new TestCaseData("10m").Returns(TimeSpan.FromMinutes(10)),
-                new TestCaseData("-10m").Returns(TimeSpan.FromMinutes(-10)),
+                new TestCaseData("10m", null).Returns(TimeSpan.FromMinutes(10)),
+                new TestCaseData("-10m", null).Returns(TimeSpan.FromMinutes(-10)),
 
-                new TestCaseData("10h").Returns(TimeSpan.FromHours(10)),
-                new TestCaseData("-10h").Returns(TimeSpan.FromHours(-10)),
+                new TestCaseData("10h", null).Returns(TimeSpan.FromHours(10)),
+                new TestCaseData("-10h", null).Returns(TimeSpan.FromHours(-10)),
 
-                new TestCaseData("10d").Returns(TimeSpan.FromDays(10)),
-                new TestCaseData("-10d").Returns(TimeSpan.FromDays(-10)),
+                new TestCaseData("10d", null).Returns(TimeSpan.FromDays(10)),
+                new TestCaseData("-10d", null).Returns(TimeSpan.FromDays(-10)),
 
-                new TestCaseData("10w").Returns(TimeSpan.FromDays(70)),
-                new TestCaseData("-10w").Returns(TimeSpan.FromDays(-70)),
+                new TestCaseData("10w", null).Returns(TimeSpan.FromDays(70)),
+                new TestCaseData("-10w", null).Returns(TimeSpan.FromDays(-70)),
 
-                new TestCaseData("10y").Returns(TimeSpan.FromDays(3652.5)),
-                new TestCaseData("-10y").Returns(TimeSpan.FromDays(-3652.5))
+                new TestCaseData("10y", null).Returns(TimeSpan.FromDays(3652.5)),
+                new TestCaseData("-10y", null).Returns(TimeSpan.FromDays(-3652.5))
             };
 
             return testCases;

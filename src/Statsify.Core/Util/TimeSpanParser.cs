@@ -5,13 +5,13 @@ namespace Statsify.Core.Util
 {
     public static class TimeSpanParser
     {
-        public static TimeSpan? ParseTimeSpan(string text)
+        public static TimeSpan? ParseTimeSpan(string text, DateTime? now = null)
         {
             TimeSpan timeSpan;
-            return TryParseTimeSpan(text, out timeSpan) ? timeSpan : (TimeSpan?)null;
+            return TryParseTimeSpan(text, out timeSpan, now) ? timeSpan : (TimeSpan?)null;
         }
 
-        public static bool TryParseTimeSpan(string text, out TimeSpan timeSpan)
+        public static bool TryParseTimeSpan(string text, out TimeSpan timeSpan, DateTime? now = null)
         {
             timeSpan = TimeSpan.MinValue;
             if(string.IsNullOrWhiteSpace(text))
@@ -22,14 +22,14 @@ namespace Statsify.Core.Util
             int value;
             if(int.TryParse(text.Substring(0, text.Length - 1), out value))
             {
-                timeSpan = ParseTimeSpan(suffix, value);
+                timeSpan = ParseTimeSpan(suffix, value, now);
                 return true;
             } // if
             
             return false;
         }
 
-        private static TimeSpan ParseTimeSpan(char suffix, int value)
+        private static TimeSpan ParseTimeSpan(char suffix, int value, DateTime? now)
         {
             switch(Char.ToLower(suffix))
             {
