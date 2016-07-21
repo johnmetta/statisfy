@@ -31,7 +31,7 @@ namespace Statsify.Core.Util
 
         private static TimeSpan ParseTimeSpan(char suffix, int value, DateTime? now)
         {
-            switch(Char.ToLower(suffix))
+            switch(suffix)
             {
                 case 's':
                     return TimeSpan.FromSeconds(value);
@@ -43,6 +43,13 @@ namespace Statsify.Core.Util
                     return TimeSpan.FromDays(value);
                 case 'w':
                     return TimeSpan.FromDays(value * 7);
+                case 'M':
+                    return 
+                        now.HasValue ?
+                            (value > 0 ?
+                                now.Value.AddMonths(value) - now.Value :
+                                now.Value - now.Value.AddMonths(Math.Abs(value))) :
+                        TimeSpan.FromDays(value * 30.4375);
                 case 'y':
                     return now.HasValue ?
                         (value > 0 ?
