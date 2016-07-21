@@ -5,6 +5,10 @@ namespace Statsify.Core.Util
 {
     public static class TimeSpanParser
     {
+        internal const double DaysInWeek = 7;
+        internal const double AvgDaysInMonth = 7;
+        internal const double AvgDaysInYear = 7;
+
         public static TimeSpan? ParseTimeSpan(string text, DateTime? now = null)
         {
             TimeSpan timeSpan;
@@ -42,20 +46,20 @@ namespace Statsify.Core.Util
                 case 'd':
                     return TimeSpan.FromDays(value);
                 case 'w':
-                    return TimeSpan.FromDays(value * 7);
+                    return TimeSpan.FromDays(value * DaysInWeek);
                 case 'M':
                     return 
                         now.HasValue ?
                             (value > 0 ?
                                 now.Value.AddMonths(value) - now.Value :
                                 now.Value - now.Value.AddMonths(Math.Abs(value))) :
-                        TimeSpan.FromDays(value * 30.4375);
+                        TimeSpan.FromDays(value * AvgDaysInMonth);
                 case 'y':
                     return now.HasValue ?
                         (value > 0 ?
                             now.Value.AddYears(value) - now.Value :
                             now.Value - now.Value.AddYears(Math.Abs(value))) :
-                        TimeSpan.FromDays(365.25 * value);
+                        TimeSpan.FromDays(value * AvgDaysInYear);
                 default:
                     throw new ArgumentOutOfRangeException("suffix");
             } // switch
