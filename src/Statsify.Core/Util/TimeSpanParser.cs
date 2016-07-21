@@ -5,6 +5,12 @@ namespace Statsify.Core.Util
 {
     public static class TimeSpanParser
     {
+        public static TimeSpan? ParseTimeSpan(string text)
+        {
+            TimeSpan timeSpan;
+            return TryParseTimeSpan(text, out timeSpan) ? timeSpan : (TimeSpan?)null;
+        }
+
         public static bool TryParseTimeSpan(string text, out TimeSpan timeSpan)
         {
             timeSpan = TimeSpan.MinValue;
