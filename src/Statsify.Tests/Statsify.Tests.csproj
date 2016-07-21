@@ -47,7 +47,6 @@
     <Compile Include="Agent\Impl\MetricDefinitionFactoryTests.cs" />
     <Compile Include="Agent\Impl\NullMetricDefinition.cs" />
     <Compile Include="Agent\Impl\RefreshableMetricSourceTests.cs" />
-    <Compile Include="Aggregator\Api\ParserTests.cs" />
     <Compile Include="Aggregator\Configuration\ConfigurationManagerTests.cs" />
     <Compile Include="Aggregator\DatagramParserTests.cs" />
     <Compile Include="Aggregator\MetricParserTests.cs" />
