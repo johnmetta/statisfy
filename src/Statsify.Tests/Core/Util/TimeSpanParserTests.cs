@@ -20,6 +20,8 @@ namespace Statsify.Tests.Core.Util
 
         private IEnumerable<TestCaseData> GetTryParseTimeSpanTestCases()
         {
+            var now = new DateTime(2016, 7, 21, 15, 42, 15, DateTimeKind.Utc);
+
             var testCases = new[] {
                 new TestCaseData("", null).Returns(TimeSpan.MinValue),
 
@@ -53,6 +55,12 @@ namespace Statsify.Tests.Core.Util
 
                 new TestCaseData("10w", null).Returns(TimeSpan.FromDays(70)),
                 new TestCaseData("-10w", null).Returns(TimeSpan.FromDays(-70)),
+
+                new TestCaseData("3y", null).Returns(TimeSpan.FromDays(1095.75)),
+                new TestCaseData("-3y", null).Returns(TimeSpan.FromDays(-1095.75)),
+
+                new TestCaseData("3y", now).Returns(now.AddYears(3) - now),
+                new TestCaseData("-3y", now).Returns(now - now.AddYears(3)),
 
                 new TestCaseData("10y", null).Returns(TimeSpan.FromDays(3652.5)),
                 new TestCaseData("-10y", null).Returns(TimeSpan.FromDays(-3652.5))
