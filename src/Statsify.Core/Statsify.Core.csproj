@@ -93,6 +93,7 @@
     <Compile Include="Storage\Timestamp.cs" />
     <Compile Include="Util\BinaryReader.cs" />
     <Compile Include="Util\BinaryWriter.cs" />
+    <Compile Include="Util\DateTimeParser.cs" />
     <Compile Include="Util\DateTimeUtil.cs" />
     <Compile Include="Util\EnumerableExtensions.cs" />
     <Compile Include="Util\EnumerableUtil.cs" />
