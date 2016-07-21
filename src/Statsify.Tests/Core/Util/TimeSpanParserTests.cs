@@ -56,20 +56,20 @@ namespace Statsify.Tests.Core.Util
                 new TestCaseData("10w", null).Returns(TimeSpan.FromDays(70)),
                 new TestCaseData("-10w", null).Returns(TimeSpan.FromDays(-70)),
 
-                new TestCaseData("10M", null).Returns(TimeSpan.FromDays(304.375)),
-                new TestCaseData("-10M", null).Returns(TimeSpan.FromDays(-304.375)),
+                new TestCaseData("10M", null).Returns(TimeSpan.FromDays(TimeSpanParser.AvgDaysInMonth * 10)),
+                new TestCaseData("-10M", null).Returns(TimeSpan.FromDays(TimeSpanParser.AvgDaysInMonth * -10)),
 
                 new TestCaseData("10M", now).Returns(now.AddMonths(10) - now),
                 new TestCaseData("-10M", now).Returns(now - now.AddMonths(10)),
 
-                new TestCaseData("3y", null).Returns(TimeSpan.FromDays(1095.75)),
-                new TestCaseData("-3y", null).Returns(TimeSpan.FromDays(-1095.75)),
+                new TestCaseData("3y", null).Returns(TimeSpan.FromDays(TimeSpanParser.AvgDaysInYear * 3)),
+                new TestCaseData("-3y", null).Returns(TimeSpan.FromDays(TimeSpanParser.AvgDaysInYear * -3)),
 
                 new TestCaseData("3y", now).Returns(now.AddYears(3) - now),
                 new TestCaseData("-3y", now).Returns(now - now.AddYears(3)),
 
-                new TestCaseData("10y", null).Returns(TimeSpan.FromDays(3652.5)),
-                new TestCaseData("-10y", null).Returns(TimeSpan.FromDays(-3652.5))
+                new TestCaseData("10y", null).Returns(TimeSpan.FromDays(TimeSpanParser.AvgDaysInYear * 10)),
+                new TestCaseData("-10y", null).Returns(TimeSpan.FromDays(TimeSpanParser.AvgDaysInYear * -10))
             };
 
             return testCases;
