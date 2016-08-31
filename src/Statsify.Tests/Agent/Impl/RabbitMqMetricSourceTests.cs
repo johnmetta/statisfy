@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using NUnit.Framework;
 using Statsify.Agent.Configuration;
@@ -10,6 +9,19 @@ namespace Statsify.Tests.Agent.Impl
     [TestFixture]
     public class RabbitMqMetricSourceTests
     {
+        [Test]
+        public void GetMetricDefinitions()
+        {
+            var path = Environment.GetEnvironmentVariable("STATSIFY_RABBITMQ_PATH");
+            if(string.IsNullOrWhiteSpace(path))
+                Assert.Fail("Missing %STATSIFY_RABBITMQ_PATH% environment variable");
+
+            var configuration = new MetricConfiguration("rabbit_mq", "rabbit-mq", path, AggregationStrategy.Counter, null);
+            var metricSource = new RabbitMqMetricSource(configuration);
+
+            CollectionAssert.IsNotEmpty(metricSource.GetMetricDefinitions());
+        }
+
         [Test]
         public void RewriteUrl()
         {
