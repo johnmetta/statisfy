@@ -4,7 +4,7 @@ using System.Configuration;
 
 namespace Statsify.Agent.Configuration
 {
-    public class MetricConfigurationElement : ConfigurationElement
+    public class MetricConfigurationElement : ConfigurationElement, IMetricConfiguration
     {
         [ConfigurationProperty("name", IsRequired = true)]
         public string Name

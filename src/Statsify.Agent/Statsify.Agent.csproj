@@ -54,6 +54,7 @@
     <Compile Include="Configuration\AggregationStrategy.cs" />
     <Compile Include="Configuration\ConfigurationManager.cs" />
     <Compile Include="Configuration\EnumConfigurationConverter.cs" />
+    <Compile Include="Configuration\IMetricConfiguration.cs" />
     <Compile Include="Configuration\MetricConfigurationElement.cs" />
     <Compile Include="Configuration\MetricsConfigurationElementCollection.cs" />
     <Compile Include="Configuration\StatsifyAgentConfigurationSection.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="Impl\IMetricDefinition.cs" />
     <Compile Include="Impl\IMetricSource.cs" />
     <Compile Include="Impl\Metric.cs" />
+    <Compile Include="Impl\MetricConfiguration.cs" />
     <Compile Include="Impl\MetricDefinition.cs" />
     <Compile Include="Impl\MetricCollector.cs" />
     <Compile Include="Impl\MetricDefinitionFactory.cs" />
