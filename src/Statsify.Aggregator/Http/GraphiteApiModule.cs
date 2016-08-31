@@ -24,13 +24,15 @@ namespace Statsify.Aggregator.Http
         private readonly IMetricService metricService;
         private readonly IMetricRegistry metricRegistry;
         private readonly IMetricAggregator metricAggregator;
+        private readonly ExpressionCompiler expressionCompiler;
 
-        public GraphiteApiModule(IMetricService metricService, IMetricRegistry metricRegistry, IMetricAggregator metricAggregator) :
+        public GraphiteApiModule(IMetricService metricService, IMetricRegistry metricRegistry, IMetricAggregator metricAggregator, ExpressionCompiler expressionCompiler) :
             base("/api/graphite/v1")
         {
             this.metricService = metricService;
             this.metricRegistry = metricRegistry;
             this.metricAggregator = metricAggregator;
+            this.expressionCompiler = expressionCompiler;
 
             Get["/metrics/find"] = Get["/metrics"] = Post["/metrics/find"] = Post["/metrics"] = QueryMetrics;
             Get["/render"] = Post["/render"] = RenderSeries;
@@ -48,8 +50,8 @@ namespace Statsify.Aggregator.Http
                 return new Response { StatusCode = HttpStatusCode.BadRequest, ReasonPhrase = "'treejson' format is not currently supported" };
 
             var now = DateTime.UtcNow;
-            var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
-            var until = Parser.ParseDateTime(model.Until, now, now);
+            var from = DateTimeParser.ParseDateTime(model.From, now, now.AddHours(-1));
+            var until = DateTimeParser.ParseDateTime(model.Until, now, now);
 
             log.Debug("started querying metrics using '{0}'", model.Query);
 
@@ -83,8 +85,8 @@ namespace Statsify.Aggregator.Http
                 var tgt = (string)Request.Form.target;
 
                 var now = DateTime.UtcNow;
-                var from = Parser.ParseDateTime(model.From, now, now.AddHours(-1));
-                var until = Parser.ParseDateTime(model.Until, now, now);
+                var from = DateTimeParser.ParseDateTime(model.From, now, now.AddHours(-1));
+                var until = DateTimeParser.ParseDateTime(model.Until, now, now);
                 
                 var targets = string.Join("', '", model.Target);
                 log.Debug("started rendering metrics using '{0}' from {1:s} to {2:s} ({3})", targets, from, until, until - from);
@@ -95,27 +97,19 @@ namespace Statsify.Aggregator.Http
                 };
 
                 var evalContext = new EvalContext(@from, until);
-
-                var metrics = new List<Core.Model.Metric>();
-                var scanner = new ExpressionScanner();
-
-                var tokens = scanner.Scan(model.Target);
-
-                var parser = new ExpressionParser();
                 var expressions = 
-                    parser.
-                        Parse(new TokenStream(tokens)).
-                            Select(e => 
-                                e is MetricSelectorExpression ? 
-                                    new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression) : 
-                                    e).
-                            ToList();
+                    expressionCompiler.Parse(model.Target).
+                        Select(e => 
+                            e is MetricSelectorExpression ? 
+                                new EvaluatingMetricSelectorExpression(e as MetricSelectorExpression) : 
+                                e).
+                        ToList();
 
                 log.Debug("started evaluating expression");
                 var r = expressions.SelectMany(e => (Core.Model.Metric[])e.Evaluate(environment, evalContext)).ToArray();
                 log.Debug("evaluated expression");
 
-                metrics.AddRange(r);
+                var metrics = new List<Core.Model.Metric>(r);
 
                 var seriesViewList = (from metric in metrics
                     let f = metric.Series.From.ToUnixTimestamp()

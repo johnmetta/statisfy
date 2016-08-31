@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Linq;
 
 namespace Statsify.Core.Expressions
 {
@@ -32,7 +31,7 @@ namespace Statsify.Core.Expressions
         {
             var from = context.From;
             var until = context.Until;
-            var metricNames = environment.MetricRegistry.ResolveMetricNames(Expression.Selector).ToArray();
+            var metricNames = environment.MetricRegistry.ResolveMetricNames(Expression.Selector);
 
             var metrics = MetricReader.ReadMetrics(environment, metricNames, from, until);
             return metrics.ToArray();

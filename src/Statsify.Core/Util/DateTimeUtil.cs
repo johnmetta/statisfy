@@ -31,5 +31,10 @@ namespace Statsify.Core.Util
         {
             return ToUnixTimestamp(new TimeSpan?(value)).GetValueOrDefault();
         }
+
+        public static DateTime FromUnixTimestamp(long timestamp)
+        {
+            return Epoch.AddSeconds(timestamp);
+        }
     }
 }

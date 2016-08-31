@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Caching;
 using NLog;
 using Statsify.Core.Model;
 using Statsify.Core.Storage;
@@ -11,6 +12,8 @@ namespace Statsify.Core.Components.Impl
 {
     public class MetricRegistry : IMetricRegistry
     {
+        private static readonly ObjectCache MetricNamesCache = MemoryCache.Default;
+
         private readonly Logger log = LogManager.GetCurrentClassLogger();
 
         private readonly string rootDirectory;
@@ -20,18 +23,34 @@ namespace Statsify.Core.Components.Impl
             this.rootDirectory = rootDirectory;
         }
 
-        public IEnumerable<string> ResolveMetricNames(string metricNameSelector)
+        public ISet<string> ResolveMetricNames(string metricNameSelector)
         {
-            return GetDatabaseFiles(metricNameSelector).
-                Select(f => {
-                    var directoryName = Path.GetDirectoryName(f.FullName);
-                    Debug.Assert(directoryName != null, "directoryName != null");
-                    directoryName = directoryName.Substring(rootDirectory.Length + 1);
+            var key = string.Format("metric-names:{0}", metricNameSelector);
+
+            var metricNames = MetricNamesCache.Get(key) as IList<string>;
+            if(metricNames == null)
+            {
+                metricNames =
+                    GetDatabaseFiles(metricNameSelector).
+                    Select(f => {
+                        var directoryName = Path.GetDirectoryName(f.FullName);
+                        Debug.Assert(directoryName != null, "directoryName != null");
+                        directoryName = directoryName.Substring(rootDirectory.Length + 1);
                     
-                    var fileName = Path.GetFileNameWithoutExtension(f.FullName);
+                        var fileName = Path.GetFileNameWithoutExtension(f.FullName);
                     
-                    return Path.Combine(directoryName, fileName).Replace(Path.DirectorySeparatorChar, '.');
-                });
+                        return Path.Combine(directoryName, fileName).Replace(Path.DirectorySeparatorChar, '.');
+                    }).
+                    ToList();
+
+                MetricNamesCache.Set(
+                    new CacheItem(key, metricNames), 
+                    new CacheItemPolicy {
+                        AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(10)
+                    });
+            } // if
+
+            return new HashSet<string>(metricNames, StringComparer.InvariantCultureIgnoreCase);
         }
 
         public Metric ReadMetric(string metricName, DateTime @from, DateTime until, TimeSpan? precision = null)

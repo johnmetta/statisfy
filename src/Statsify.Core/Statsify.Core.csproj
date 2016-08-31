@@ -37,6 +37,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\AssemblyVersion.cs">
@@ -51,6 +52,7 @@
     <Compile Include="Expressions\Environment.cs" />
     <Compile Include="Expressions\EvalContext.cs" />
     <Compile Include="Expressions\Expression.cs" />
+    <Compile Include="Expressions\ExpressionCompiler.cs" />
     <Compile Include="Expressions\ExpressionParser.cs" />
     <Compile Include="Expressions\ExpressionScanner.cs" />
     <Compile Include="Expressions\Function.cs" />
@@ -91,12 +93,14 @@
     <Compile Include="Storage\Timestamp.cs" />
     <Compile Include="Util\BinaryReader.cs" />
     <Compile Include="Util\BinaryWriter.cs" />
+    <Compile Include="Util\DateTimeParser.cs" />
     <Compile Include="Util\DateTimeUtil.cs" />
     <Compile Include="Util\EnumerableExtensions.cs" />
     <Compile Include="Util\EnumerableUtil.cs" />
     <Compile Include="Util\NonClosingStreamWrapper.cs" />
     <Compile Include="Util\Range.cs" />
     <Compile Include="Util\StringUtil.cs" />
+    <Compile Include="Util\TimeSpanParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
