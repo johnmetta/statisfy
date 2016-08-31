@@ -54,8 +54,13 @@ namespace Statsify.Agent.Impl
                 (s, vp) => new MetricDefinition(MetricNameBuilder.BuildMetricName(name, s), vp, aggregationStrategy);
                 
             yield return metricDefinition("message_stats.ack", () => overview.MessageStats.Ack);
+            yield return metricDefinition("message_stats.ack_details.rate", () => overview.MessageStats.AckDetails.Rate);
+            
             yield return metricDefinition("message_stats.deliver", () => overview.MessageStats.Deliver);
+            yield return metricDefinition("message_stats.deliver_details.rate", () => overview.MessageStats.DeliverDetails.Rate);
+
             yield return metricDefinition("message_stats.redeliver", () => overview.MessageStats.Redeliver);
+            yield return metricDefinition("message_stats.redeliver_details.rate", () => overview.MessageStats.RedeliverDetails.Rate);
 
             yield return metricDefinition("queue_totals.messages", () => overview.QueueTotals.Messages);
             yield return metricDefinition("queue_totals.messages_ready", () => overview.QueueTotals.MessagesReady);
