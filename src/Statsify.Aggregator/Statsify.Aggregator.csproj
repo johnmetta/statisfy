@@ -92,7 +92,6 @@
     <Compile Include="Http\Models\Series.cs" />
     <Compile Include="Http\Models\SeriesQueryModel.cs" />
     <Compile Include="Http\Models\SeriesView.cs" />
-    <Compile Include="Http\Parser.cs" />
     <Compile Include="Http\Services\IAnnotationService.cs" />
     <Compile Include="Http\Services\IMetricService.cs" />
     <Compile Include="Http\Services\Impl\AnnotationService.cs" />

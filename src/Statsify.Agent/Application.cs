@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
-namespace Statsify.Aggregator
+namespace Statsify.Agent
 {
     public static class Application
     {
@@ -12,7 +12,7 @@ namespace Statsify.Aggregator
             {
                 var assemblyFileVersion =
                     typeof(Application).Assembly.
-                        GetCustomAttributes(typeof(AssemblyFileVersionAttribute)).
+                        GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false).
                         OfType<AssemblyFileVersionAttribute>().
                         FirstOrDefault();
                 

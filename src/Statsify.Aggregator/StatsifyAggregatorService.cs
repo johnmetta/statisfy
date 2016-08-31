@@ -54,7 +54,10 @@ namespace Statsify.Aggregator
 
             var ipAddress = IPAddress.Parse(configuration.UdpEndpoint.Address);
 
-            udpDatagramReader = new UdpDatagramReader(ipAddress, configuration.UdpEndpoint.Port);
+            var udpReceiveBufferSize = 
+                int.Parse(System.Configuration.ConfigurationManager.AppSettings["udpReceiveBufferSize"]);
+
+            udpDatagramReader = new UdpDatagramReader(udpReceiveBufferSize, ipAddress, configuration.UdpEndpoint.Port);
             udpDatagramReader.DatagramHandler += UdpDatagramReaderHandler;                        
 
             publisherTimer = new Timer(PublisherTimerCallback, null, configuration.Storage.FlushInterval, configuration.Storage.FlushInterval);                       

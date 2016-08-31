@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using NLog;
 using Statsify.Agent.Configuration;
 using Topshelf;
@@ -14,8 +13,7 @@ namespace Statsify.Agent
         {
             AppDomain.CurrentDomain.UnhandledException += AppDomainUnhandledExceptionHandler;
 
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            var serviceDisplayName = "Statsify Agent v" + version.ToString(3);
+            var serviceDisplayName = "Statsify Agent v" + Application.Version.ToString(3);
 
             Log.Info("starting up " + serviceDisplayName);
 

@@ -13,6 +13,7 @@ using Statsify.Aggregator.Configuration;
 using Statsify.Aggregator.Http.Services;
 using Statsify.Aggregator.Http.Services.Impl;
 using Statsify.Core.Components.Impl;
+using Statsify.Core.Expressions;
 
 namespace Statsify.Aggregator.Http
 {
@@ -36,6 +37,8 @@ namespace Statsify.Aggregator.Http
             builder.Register(c => new AnnotationRegistry(c.Resolve<StatsifyAggregatorConfigurationSection>().Storage.Path)).AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterInstance(MetricAggregator).As<IMetricAggregator>();
+
+            builder.RegisterInstance(new ExpressionCompiler()).As<ExpressionCompiler>();
 
             builder.Update(container.ComponentRegistry);            
         }
