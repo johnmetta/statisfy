@@ -112,11 +112,20 @@ namespace Statsify.Agent.Impl
             [DataMember(Name = "ack")]
             public int Ack { get; set; }
 
+            [DataMember(Name = "ack_details")]
+            public MessageStatsDetails AckDetails { get; set; }
+
             [DataMember(Name = "deliver")]
             public int Deliver { get; set; }
 
+            [DataMember(Name = "deliver_details")]
+            public MessageStatsDetails DeliverDetails { get; set; }
+
             [DataMember(Name = "redeliver")]
             public int Redeliver { get; set; }
+
+            [DataMember(Name = "redeliver_details")]
+            public MessageStatsDetails RedeliverDetails { get; set; }
         }
 
         [DataContract]
@@ -129,7 +138,7 @@ namespace Statsify.Agent.Impl
             public float Interval { get; set; } // FIXME: Or is it int?
 
             [DataMember(Name = "last_event")]
-            public int LastEvent { get; set; }
+            public long LastEvent { get; set; }
         }
 
         [DataContract]
