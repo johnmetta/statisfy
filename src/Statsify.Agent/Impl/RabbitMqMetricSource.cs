@@ -63,8 +63,13 @@ namespace Statsify.Agent.Impl
             yield return metricDefinition("message_stats.redeliver_details.rate", () => overview.MessageStats.RedeliverDetails.Rate);
 
             yield return metricDefinition("queue_totals.messages", () => overview.QueueTotals.Messages);
+            yield return metricDefinition("queue_totals.messages_details.rate", () => overview.QueueTotals.MessagesDetails.Rate);
+
             yield return metricDefinition("queue_totals.messages_ready", () => overview.QueueTotals.MessagesReady);
+            yield return metricDefinition("queue_totals.messages_ready_details.rate", () => overview.QueueTotals.MessagesReadyDetails.Rate);
+
             yield return metricDefinition("queue_totals.messages_unacknowledged", () => overview.QueueTotals.MessagesUnacknowledged);
+            yield return metricDefinition("queue_totals.messages_unacknowledged_details.rate", () => overview.QueueTotals.MessagesUnacknowledgedDetails.Rate);
 
             yield return metricDefinition("object_totals.consumers", () => overview.ObjectTotals.Consumers);
             yield return metricDefinition("object_totals.queues", () => overview.ObjectTotals.Queues);
