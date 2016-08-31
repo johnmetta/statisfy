@@ -13,7 +13,7 @@ namespace Statsify.Agent.Impl
 
         public IMetricSource CreateMetricSource(MetricConfigurationElement metric)
         {
-            if(metric.Type.StartsWith("rabbitmq-"))
+            if(metric.Type == "rabbit-mq")
             {
                 var metricSource = new RabbitMqMetricSource(metric);
                 return metricSource;
