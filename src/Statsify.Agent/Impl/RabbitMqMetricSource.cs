@@ -118,23 +118,23 @@ namespace Statsify.Agent.Impl
             public int Ack { get; set; }
 
             [DataMember(Name = "ack_details")]
-            public MessageStatsDetails AckDetails { get; set; }
+            public StatsDetails AckDetails { get; set; }
 
             [DataMember(Name = "deliver")]
             public int Deliver { get; set; }
 
             [DataMember(Name = "deliver_details")]
-            public MessageStatsDetails DeliverDetails { get; set; }
+            public StatsDetails DeliverDetails { get; set; }
 
             [DataMember(Name = "redeliver")]
             public int Redeliver { get; set; }
 
             [DataMember(Name = "redeliver_details")]
-            public MessageStatsDetails RedeliverDetails { get; set; }
+            public StatsDetails RedeliverDetails { get; set; }
         }
 
         [DataContract]
-        public class MessageStatsDetails
+        public class StatsDetails
         {
             [DataMember(Name = "rate")]
             public float Rate { get; set; }
@@ -152,11 +152,20 @@ namespace Statsify.Agent.Impl
             [DataMember(Name = "messages")]
             public int Messages { get; set; }
 
+            [DataMember(Name =  "messages_details")]
+            public StatsDetails MessagesDetails { get; set; }
+
             [DataMember(Name = "messages_ready")]
             public int MessagesReady { get; set; }
 
+            [DataMember(Name =  "messages_ready_details")]
+            public StatsDetails MessagesReadyDetails { get; set; }
+
             [DataMember(Name = "messages_unacknowledged")]
             public int MessagesUnacknowledged { get; set; }
+
+            [DataMember(Name =  "messages_unacknowledged_details")]
+            public StatsDetails MessagesUnacknowledgedDetails { get; set; }
         }
 
         [DataContract]
