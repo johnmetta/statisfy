@@ -104,11 +104,10 @@ namespace Statsify.Aggregator
 
         public void Flush()
         {
-            Thread.MemoryBarrier();
 #pragma warning disable 420
             //
             // See above.
-            var buffer = Interlocked.CompareExchange(ref metricsBuffer, new MetricsBuffer(), metricsBuffer);
+            var buffer = Interlocked.Exchange(ref metricsBuffer, new MetricsBuffer());
 #pragma warning restore 420
             
             var ts = DateTime.UtcNow;
