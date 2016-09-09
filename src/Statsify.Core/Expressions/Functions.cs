@@ -492,5 +492,21 @@ namespace Statsify.Core.Expressions
                     Select(m => m.metric).
                     ToArray();
         }
+
+        [Function("offset_to_zero")]
+        [Function("offsetToZero")]
+        public static Metric[] OffsetToZero(EvalContext context, Metric[] metrics)
+        {
+            var min = 
+                metrics.
+                    Where(m => m.Series.Datapoints.Count > 0 && m.Series.Datapoints.Any(d => d.Value.HasValue)).
+                    DefaultIfEmpty().
+                    Min(m => m.Series.Datapoints.Where(d => d.Value.HasValue).Min(d => d.Value));
+
+            return 
+                metrics.
+                    Select(m => Metric.Transform(m, d => d.HasValue ? d.Value - min : null)).
+                    ToArray();
+        }
     }
 }
