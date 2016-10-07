@@ -208,8 +208,8 @@ namespace Statsify.Core.Storage
                 } // if
                 else
                 {
-                    var fromOffset = GetReadOffset(archive, fromInterval, baseInterval);
-                    var untilOffset = GetReadOffset(archive, untilInterval, baseInterval);
+                    var fromOffset = GetTimestampOffset(archive, fromInterval, baseInterval);
+                    var untilOffset = GetTimestampOffset(archive, untilInterval, baseInterval);
 
                     var buffer = ReadBuffer(binaryReader, fromOffset, untilOffset, archive);
 
@@ -340,12 +340,12 @@ namespace Statsify.Core.Storage
             } // using
         }
 
-        private static long GetReadOffset(Archive archive, Timestamp lowerIntervalStart, Timestamp higerBaseInterval)
+        private static long GetTimestampOffset(Archive archive, Timestamp timestamp, Timestamp baseTimestamp)
         {
-            if(higerBaseInterval == 0)
+            if(baseTimestamp == 0)
                 return archive.Offset;
 
-            var timeDistance = lowerIntervalStart - higerBaseInterval;
+            var timeDistance = timestamp - baseTimestamp;
             var pointDistance = timeDistance / archive.Retention.Precision;
             var byteDistance = (pointDistance * DatapointSize) % archive.Size;
             
@@ -359,27 +359,12 @@ namespace Statsify.Core.Storage
             return offset;
         }
 
-        private static long GetWriteOffset(Archive archive, Timestamp baseTimestamp, Timestamp timestamp)
-        {
-            return GetReadOffset(archive, timestamp, baseTimestamp);
-            if(baseTimestamp == 0)
-                return archive.Offset;
-            
-            Timestamp timeDistance = timestamp - baseTimestamp;
-            var pointDistance = timeDistance / archive.Retention.Precision;
-            var byteDistance = pointDistance * DatapointSize;
-
-            var offset = archive.Offset + (byteDistance % archive.Size);
-
-            return offset;
-        }
-
         private bool Downsample(BinaryReader binaryReader, BinaryWriter binaryWriter, Timestamp timestamp, Archive higher, Archive lower)
         {
-            Timestamp higherBaseInterval = binaryReader.ReadInt64(higher.Offset);
+            Timestamp baseTimestamp = binaryReader.ReadInt64(higher.Offset);
 
             Timestamp lowerIntervalStart = (timestamp - (timestamp % lower.Retention.Precision));
-            var higherFirstOffset = GetReadOffset(higher, lowerIntervalStart, higherBaseInterval);
+            var higherFirstOffset = GetTimestampOffset(higher, lowerIntervalStart, baseTimestamp);
 
             var higherPoints = lower.Retention.Precision / higher.Retention.Precision;
             var higherSize = higherPoints * DatapointSize;
@@ -450,16 +435,16 @@ namespace Statsify.Core.Storage
 
             // TODO
 
-            Timestamp baseInterval = binaryReader.ReadInt64(archive.Offset);
-            if(baseInterval == 0)
-                baseInterval = packedStrings[0].Item1;
+            Timestamp baseTimestamp = binaryReader.ReadInt64(archive.Offset);
+            if(baseTimestamp == 0)
+                baseTimestamp = packedStrings[0].Item1;
 
             foreach(var t in packedStrings)
             {
                 var interval = t.Item1;
                 var packedString = t.Item2;
 
-                var myOffset = GetWriteOffset(archive, baseInterval, interval);
+                var myOffset = GetTimestampOffset(archive, interval, baseTimestamp);
                 binaryWriter.BaseStream.Seek(myOffset, SeekOrigin.Begin);
 
                 var archiveEnd = archive.Offset + archive.Size;
@@ -512,12 +497,12 @@ namespace Statsify.Core.Storage
             } // foreach
         }
 
-        private static void WriteDatapoint(BinaryReader binaryReader, BinaryWriter binaryWriter, Archive archive, Timestamp myInterval, double value)
+        private static void WriteDatapoint(BinaryReader binaryReader, BinaryWriter binaryWriter, Archive archive, Timestamp timestamp, double value)
         {
-            Timestamp baseInterval = binaryReader.ReadInt64(archive.Offset);
+            Timestamp baseTimestamp = binaryReader.ReadInt64(archive.Offset);
 
-            var offset = GetWriteOffset(archive, baseInterval, myInterval);
-            WriteDatapoint(binaryWriter, offset, myInterval, value);
+            var offset = GetTimestampOffset(archive, timestamp, baseTimestamp);
+            WriteDatapoint(binaryWriter, offset, timestamp, value);
         }
 
         private static int UnpackDatapoints(Archive archive, byte[] buffer, Timestamp startInterval, out double?[] values, out int knownValues)
