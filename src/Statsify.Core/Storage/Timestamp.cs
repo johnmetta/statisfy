@@ -91,5 +91,17 @@ namespace Statsify.Core.Storage
         {
             return l.ticks > r.ticks;
         }
+
+        public Timestamp RoundDownModulo(int modulo)
+        {
+            var roundedTicks = (ticks - (ticks % modulo));
+            return new Timestamp(roundedTicks);
+        }
+
+        public Timestamp RoundUpModulo(int modulo)
+        {
+            var roundedTicks = (ticks - (ticks % modulo)) + modulo;
+            return new Timestamp(roundedTicks);
+        }
     }
 }
