@@ -191,8 +191,8 @@ namespace Statsify.Core.Storage
 
             var archive = archives.First(a => ((TimeSpan)a.Retention.History).TotalSeconds >= diff && (precision == null || a.Retention.Precision >= precision.Value));
 
-            Timestamp fromInterval = (fromTimestamp - (fromTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
-            Timestamp untilInterval = (untilTimestamp - (untilTimestamp % archive.Retention.Precision)) + archive.Retention.Precision;
+            var fromInterval = fromTimestamp.RoundUpModulo(archive.Retention.Precision);
+            var untilInterval = untilTimestamp.RoundUpModulo(archive.Retention.Precision);
             var step = archive.Retention.Precision;
 
             double?[] values = null;
@@ -319,18 +319,18 @@ namespace Statsify.Core.Storage
 
             var lowerArchives = archives.Skip(archives.IndexOf(archive) + 1);
 
-            Timestamp myInterval = timestamp - (timestamp % archive.Retention.Precision);
+            timestamp = timestamp.RoundDownModulo(archive.Retention.Precision);
 
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
             using(var binaryWriter = new Util.BinaryWriter(fileStream, Encoding.UTF8, true))
             using(var binaryReader = new Util.BinaryReader(fileStream, Encoding.UTF8, true))
             {
-                WriteDatapoint(binaryReader, binaryWriter, archive, myInterval, value);
+                WriteDatapoint(binaryReader, binaryWriter, archive, timestamp, value);
                 
                 var higher = archive;
                 foreach(var lower in lowerArchives)
                 {
-                    if(!Downsample(binaryReader, binaryWriter, myInterval, higher, lower))
+                    if(!Downsample(binaryReader, binaryWriter, timestamp, higher, lower))
                         break;
 
                     higher = lower;
@@ -363,7 +363,7 @@ namespace Statsify.Core.Storage
         {
             Timestamp baseTimestamp = binaryReader.ReadInt64(higher.Offset);
 
-            Timestamp lowerIntervalStart = (timestamp - (timestamp % lower.Retention.Precision));
+            var lowerIntervalStart = timestamp.RoundDownModulo(lower.Retention.Precision);
             var higherFirstOffset = GetTimestampOffset(higher, lowerIntervalStart, baseTimestamp);
 
             var higherPoints = lower.Retention.Precision / higher.Retention.Precision;
