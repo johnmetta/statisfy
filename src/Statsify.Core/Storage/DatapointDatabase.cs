@@ -200,7 +200,7 @@ namespace Statsify.Core.Storage
             using(var fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using(var binaryReader = new Util.BinaryReader(fileStream, Encoding.UTF8, true))
             {
-                var baseInterval = binaryReader.ReadInt64(archive.Offset);
+                Timestamp baseInterval = binaryReader.ReadInt64(archive.Offset);
                 if(baseInterval == 0)
                 {
                     var points = (untilInterval - fromInterval) / step;
@@ -393,7 +393,7 @@ namespace Statsify.Core.Storage
             var step = (int)archive.Retention.Precision;
             var alignedPoints = datapoints.Select(d => {
                 Timestamp ts = d.Timestamp;
-                return Tuple.Create(new Timestamp(ts - (ts % step)), d.Value);
+                return Tuple.Create(ts.RoundDownModulo(step), d.Value);
             }).ToList();
 
             Timestamp? previousInterval = null;
@@ -520,7 +520,7 @@ namespace Statsify.Core.Storage
             {
                 for(var i = 0; i < points; ++i)
                 {
-                    var timestamp = binaryReader.ReadInt64();
+                    Timestamp timestamp = binaryReader.ReadInt64();
                     var value = binaryReader.ReadDouble();
 
                     if(timestamp == currentTimestamp)
