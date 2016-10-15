@@ -21,40 +21,42 @@ namespace Statsify.Core.Util
             if(string.IsNullOrWhiteSpace(text))
                 return false;
 
-            var suffix = text.Last();
-            
+            var suffix = new string(text.SkipWhile(c => char.IsDigit(c) || c == '-' || c == '+').ToArray());
+            if(string.IsNullOrWhiteSpace(suffix))
+                return false;
+
             int value;
-            if(int.TryParse(text.Substring(0, text.Length - 1), out value))
+            if(int.TryParse(text.Substring(0, text.Length - suffix.Length), out value))
             {
                 timeSpan = ParseTimeSpan(suffix, value, now);
                 return true;
             } // if
-            
+
             return false;
         }
 
-        private static TimeSpan ParseTimeSpan(char suffix, int value, DateTime? now)
+        private static TimeSpan ParseTimeSpan(string suffix, int value, DateTime? now)
         {
             switch(suffix)
             {
-                case 's':
+                case "s":
                     return TimeSpan.FromSeconds(value);
-                case 'm':
+                case "m":
                     return TimeSpan.FromMinutes(value);
-                case 'h':
+                case "h":
                     return TimeSpan.FromHours(value);
-                case 'd':
+                case "d":
                     return TimeSpan.FromDays(value);
-                case 'w':
+                case "w":
                     return TimeSpan.FromDays(value * DaysInWeek);
-                case 'M':
+                case "M":
                     return 
                         now.HasValue ?
                             (value > 0 ?
                                 now.Value.AddMonths(value) - now.Value :
                                 now.Value - now.Value.AddMonths(Math.Abs(value))) :
                         TimeSpan.FromDays(value * AvgDaysInMonth);
-                case 'y':
+                case "y":
                     return now.HasValue ?
                         (value > 0 ?
                             now.Value.AddYears(value) - now.Value :
