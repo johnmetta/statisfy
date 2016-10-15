@@ -6,8 +6,8 @@ namespace Statsify.Core.Util
     public static class TimeSpanParser
     {
         internal const double DaysInWeek = 7;
-        internal const double AvgDaysInMonth = 7;
-        internal const double AvgDaysInYear = 7;
+        internal const double AvgDaysInMonth = 30;
+        internal const double AvgDaysInYear = 365.25;
 
         public static TimeSpan? ParseTimeSpan(string text, DateTime? now = null)
         {
