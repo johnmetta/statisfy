@@ -47,6 +47,9 @@ namespace Statsify.Tests.Core.Util
                 new TestCaseData("10m", null).Returns(TimeSpan.FromMinutes(10)),
                 new TestCaseData("-10m", null).Returns(TimeSpan.FromMinutes(-10)),
 
+                new TestCaseData("10min", null).Returns(TimeSpan.FromMinutes(10)),
+                new TestCaseData("-10min", null).Returns(TimeSpan.FromMinutes(-10)),
+
                 new TestCaseData("10h", null).Returns(TimeSpan.FromHours(10)),
                 new TestCaseData("-10h", null).Returns(TimeSpan.FromHours(-10)),
 
