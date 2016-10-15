@@ -42,6 +42,7 @@ namespace Statsify.Core.Util
                 case "s":
                     return TimeSpan.FromSeconds(value);
                 case "m":
+                case "min":
                     return TimeSpan.FromMinutes(value);
                 case "h":
                     return TimeSpan.FromHours(value);
