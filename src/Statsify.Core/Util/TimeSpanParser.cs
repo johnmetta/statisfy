@@ -50,6 +50,7 @@ namespace Statsify.Core.Util
                 case "w":
                     return TimeSpan.FromDays(value * DaysInWeek);
                 case "M":
+                case "mon":
                     return 
                         now.HasValue ?
                             (value > 0 ?

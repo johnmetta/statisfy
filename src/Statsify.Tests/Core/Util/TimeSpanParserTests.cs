@@ -62,6 +62,9 @@ namespace Statsify.Tests.Core.Util
                 new TestCaseData("10M", now).Returns(now.AddMonths(10) - now),
                 new TestCaseData("-10M", now).Returns(now - now.AddMonths(10)),
 
+                new TestCaseData("10mon", now).Returns(now.AddMonths(10) - now),
+                new TestCaseData("-10mon", now).Returns(now - now.AddMonths(10)),
+
                 new TestCaseData("3y", null).Returns(TimeSpan.FromDays(TimeSpanParser.AvgDaysInYear * 3)),
                 new TestCaseData("-3y", null).Returns(TimeSpan.FromDays(TimeSpanParser.AvgDaysInYear * -3)),
 
