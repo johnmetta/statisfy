@@ -25,18 +25,18 @@ namespace Statsify.Tests.Core.Util
             var testCases = new[] {
                 new TestCaseData("", null).Returns(TimeSpan.MinValue),
 
-                new TestCaseData("s").Returns(TimeSpan.MinValue),
-                new TestCaseData("m").Returns(TimeSpan.MinValue),
-                new TestCaseData("h").Returns(TimeSpan.MinValue),
-                new TestCaseData("d").Returns(TimeSpan.MinValue),
-                new TestCaseData("w").Returns(TimeSpan.MinValue),
-                new TestCaseData("y").Returns(TimeSpan.MinValue),
+                new TestCaseData("s", null).Returns(TimeSpan.MinValue),
+                new TestCaseData("m", null).Returns(TimeSpan.MinValue),
+                new TestCaseData("h", null).Returns(TimeSpan.MinValue),
+                new TestCaseData("d", null).Returns(TimeSpan.MinValue),
+                new TestCaseData("w", null).Returns(TimeSpan.MinValue),
+                new TestCaseData("y", null).Returns(TimeSpan.MinValue),
 
-                new TestCaseData("1").Returns(TimeSpan.MinValue),
-                new TestCaseData("-1").Returns(TimeSpan.MinValue),
+                new TestCaseData("1", null).Returns(TimeSpan.MinValue),
+                new TestCaseData("-1", null).Returns(TimeSpan.MinValue),
 
-                new TestCaseData("0s").Returns(TimeSpan.FromSeconds(0)),
-                new TestCaseData("-0s").Returns(TimeSpan.FromSeconds(-0)),
+                new TestCaseData("0s", null).Returns(TimeSpan.FromSeconds(0)),
+                new TestCaseData("-0s", null).Returns(TimeSpan.FromSeconds(-0)),
 
                 new TestCaseData("1s", null).Returns(TimeSpan.FromSeconds(1)),
                 new TestCaseData("-1s", null).Returns(TimeSpan.FromSeconds(-1)),
