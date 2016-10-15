@@ -187,9 +187,9 @@ namespace Statsify.Core.Storage
             if(untilTimestamp > nowTimestamp)
                 untilTimestamp = nowTimestamp;
 
-            Timestamp diff = nowTimestamp - fromTimestamp;
+            TimeSpan diff = TimeSpan.FromSeconds(nowTimestamp - fromTimestamp);
 
-            var archive = archives.First(a => ((TimeSpan)a.Retention.History).TotalSeconds >= diff && (precision == null || a.Retention.Precision >= precision.Value));
+            var archive = archives.First(a => (TimeSpan)a.Retention.History >= diff && (precision == null || a.Retention.Precision >= precision.Value));
 
             var fromInterval = fromTimestamp.RoundUpModulo(archive.Retention.Precision);
             var untilInterval = untilTimestamp.RoundUpModulo(archive.Retention.Precision);
