@@ -27,9 +27,9 @@ namespace Statsify.Client
 
         public static string BuildMetricName(string @namespace, string name)
         {
-            var metric = name.Trim('.');
+            var metric = name.Trim('.').Trim(' ');
             if(!string.IsNullOrWhiteSpace(@namespace))
-                metric = string.Format("{0}.{1}", @namespace.Trim('.'), metric);
+                metric = string.Format("{0}.{1}", @namespace.Trim('.').Trim(' '), metric);
 
             metric = SanitizeMetricName(metric);
 

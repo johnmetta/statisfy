@@ -7,11 +7,13 @@ namespace Statsify.Tests.Client
     public class MetricNameBuilderTests
     {
         [Test]
-        public void BuildMetricName()
+        [TestCase("namespace", "metric_name", Result = "namespace.metric_name")]
+        [TestCase("namespace..", ".metric_name", Result = "namespace.metric_name")]
+        [TestCase(".name\\space..", ".metr|c_n@:e .", Result = "name_space.metr_c_n__e")]
+        [TestCase(" namespace  ", "  metric_name ", Result = "namespace.metric_name")]
+        public string BuildMetricName(string @namespace, string name)
         {
-            Assert.AreEqual("namespace.metric_name", MetricNameBuilder.BuildMetricName("namespace", "metric_name"));
-            Assert.AreEqual("namespace.metric_name", MetricNameBuilder.BuildMetricName("namespace..", ".metric_name"));
-            Assert.AreEqual("name_space.metr_c_n__e_", MetricNameBuilder.BuildMetricName(".name\\space..", ".metr|c_n@:e ."));
+            return MetricNameBuilder.BuildMetricName(@namespace, name);
         }
     }
 }
