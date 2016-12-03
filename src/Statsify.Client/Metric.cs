@@ -35,7 +35,7 @@
 
         public static Metric Time(string name, double value, double sample = 1)
         {
-            return new Metric(name, MetricType.Time, new MetricValue.DoubleMetricValue(value, true), sample);
+            return new Metric(name, MetricType.Time, new MetricValue.DoubleMetricValue(value), sample);
         }
 
         public static Metric Set(string name, string value, double sample = 1)
