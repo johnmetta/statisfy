@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Nancy;
 using Nancy.Helpers;
 using Nancy.Json;
 using Nancy.ModelBinding;
 using Statsify.Aggregator.ComponentModel;
+using Statsify.Aggregator.Datagrams;
 using Statsify.Aggregator.Http.Models;
 using Statsify.Aggregator.Http.Services;
 using Statsify.Core.Components;
@@ -73,6 +75,26 @@ namespace Statsify.Aggregator.Http
 
                 return 204;
             };
+
+            Post["metrics"] = x => PostMetrics(metricAggregator);
+        }
+
+        private object PostMetrics(IMetricAggregator metricAggregator)
+        {
+            byte[] buffer;
+            using(var memoryStream = new MemoryStream())
+            {
+                Request.Body.CopyTo(memoryStream);
+                buffer = memoryStream.ToArray();
+            } // using
+
+            var datagramParser = new DatagramParser(new MetricParser());
+            var metrics = (MetricDatagram)datagramParser.ParseDatagram(buffer);
+
+            foreach(var metric in metrics.Metrics)
+                metricAggregator.Aggregate(metric);
+
+            return 204;
         }
 
         private dynamic GetSeries(IMetricRegistry metricRegistry, IMetricAggregator metricAggregator, ExpressionCompiler expressionCompiler)
