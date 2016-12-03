@@ -45,7 +45,11 @@
     <Compile Include="HttpStatsifyChannel.cs" />
     <Compile Include="IStatsifyChannel.cs" />
     <Compile Include="IStatsifyClient.cs" />
+    <Compile Include="Metric.cs" />
     <Compile Include="MetricNameBuilder.cs" />
+    <Compile Include="MetricSerializer.cs" />
+    <Compile Include="MetricType.cs" />
+    <Compile Include="MetricValue.cs" />
     <Compile Include="NullStatsifyClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stats.cs" />
