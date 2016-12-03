@@ -27,7 +27,14 @@ namespace Statsify.Client
             using(var requestStream = httpWebRequest.GetRequestStream())
                 requestStream.Write(buffer, 0, buffer.Length);
 
-            using(httpWebRequest.GetResponse()) { } // using
+            try
+            {
+                using(httpWebRequest.GetResponse()) { } // using
+            } // try
+            catch
+            {
+                // FIXME: Requires sane exception handling
+            } // catch
         }
 
         public void Dispose()
