@@ -16,6 +16,11 @@ namespace Statsify.Client
             udpClient = CreateUdpClient(uri);
         }
 
+        public bool SupportsBatchedWrites
+        {
+            get { return false; }
+        }
+
         public void WriteBuffer(byte[] buffer)
         {
             udpClient.Send(buffer, buffer.Length);
