@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
@@ -59,6 +60,11 @@ namespace Statsify.Client
         public void Annotation(string title, string message)
         {
             PublishAnnotation(title, message);
+        }
+
+        public void Batch(IEnumerable<Metric> metrics)
+        {
+            throw new NotImplementedException();
         }
 
         string IStatsifyClientConfiguration.Host

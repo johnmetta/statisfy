@@ -1,4 +1,6 @@
-﻿namespace Statsify.Client
+﻿using System.Collections.Generic;
+
+namespace Statsify.Client
 {
     public class NullStatsifyClient : IStatsifyClient
     {
@@ -23,6 +25,10 @@
         }
 
         public void Annotation(string title, string message)
+        {
+        }
+
+        public void Batch(IEnumerable<Metric> metrics)
         {
         }
     }

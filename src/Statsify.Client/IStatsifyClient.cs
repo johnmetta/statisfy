@@ -1,4 +1,6 @@
-﻿namespace Statsify.Client
+﻿using System.Collections.Generic;
+
+namespace Statsify.Client
 {
     /// <summary>
     /// 
@@ -61,5 +63,11 @@
         /// <param name="title"></param>
         /// <param name="message"></param>
         void Annotation(string title, string message);
+
+        /// <summary>
+        /// Records multiple <paramref name="metrics"/> in the most optimal way possible.
+        /// </summary>
+        /// <param name="metrics"></param>
+        void Batch(IEnumerable<Metric> metrics);
     }
 }
