@@ -52,6 +52,7 @@
     <Compile Include="Aggregator\DatagramParserTests.cs" />
     <Compile Include="Aggregator\MetricParserTests.cs" />
     <Compile Include="Aggregator\MetricsBufferTests.cs" />
+    <Compile Include="Client\HttpStatsifyChannelTests.cs" />
     <Compile Include="Client\MetricNameBuilderTests.cs" />
     <Compile Include="Client\StatsifyClientFactoryTests.cs" />
     <Compile Include="Client\StatsTests.cs" />
