@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using NLog;
@@ -67,32 +68,30 @@ namespace Statsify.Agent.Impl
             } // if
 
             log.Trace("starting publishing metrics");
-            var metrics = 0;
 
             var stopwatch = Stopwatch.StartNew();
+            var metrics = new List<Client.Metric>();
             foreach(var metric in metricCollector.GetCollectedMetrics())
             {
-                metrics++;
                 log.Trace("publishing metric '{0}' with value '{1}'", metric.Name, metric.Value);
                 
                 switch(metric.AggregationStrategy)
                 {
                     case AggregationStrategy.Gauge:
-                        statsifyClient.Gauge(metric.Name, metric.Value);
+                        metrics.Add(Client.Metric.Gauge(metric.Name, metric.Value));
                         break;
-
                     case AggregationStrategy.Counter:
-                        statsifyClient.Counter(metric.Name, metric.Value);
+                        metrics.Add(Client.Metric.Counter(metric.Name, metric.Value));
                         break;
-
                     default:
                         throw new ArgumentOutOfRangeException();
                 } // switch
             } // foreach
 
             stopwatch.Stop();
-            
-            statsifyClient.Time("statsify.metric_collection_duration", stopwatch.ElapsedMilliseconds);
+            metrics.Add(Client.Metric.Time("statsify.metric_collection_duration", stopwatch.ElapsedMilliseconds));
+
+            statsifyClient.Batch(metrics);
 
             log.Trace("completed publishing {0:N0} metrics in {1}", metrics, stopwatch.Elapsed);
         }
