@@ -35,8 +35,17 @@ namespace Statsify.Agent
             log.Trace("configuring StatsifyClient with host: {0}, port: {1}, namespace: '{2}', collection interval: '{3}' ", 
                 configuration.Statsify.Host, configuration.Statsify.Port, @namespace, configuration.Metrics.CollectionInterval);
 
-            statsifyClient = new UdpStatsifyClient(configuration.Statsify.Host, configuration.Statsify.Port, @namespace);
-            
+            var uri = configuration.Statsify.Uri;
+            if(uri != null && !string.IsNullOrWhiteSpace(uri.OriginalString))
+            {
+                var statsifyChannelFactory = new StatsifyChannelFactory();
+                var statsifyChannel = statsifyChannelFactory.CreateChannel(uri);
+
+                statsifyClient = new StatsifyClient(@namespace, statsifyChannel);
+            } // if
+            else
+                statsifyClient = new UdpStatsifyClient(configuration.Statsify.Host, configuration.Statsify.Port, @namespace);
+
             metricCollector = new MetricCollector(configuration.Metrics);
             
             metricPublisher = new MetricPublisher(metricCollector, statsifyClient, configuration.Metrics.CollectionInterval);
