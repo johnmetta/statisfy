@@ -144,7 +144,12 @@ namespace Statsify.Client
 
             var @namespace = EnvironmentVariableResolver("STATSIFY_NAMESPACE");
 
-            return new StatsifyClientConfiguration(host, port, @namespace);
+            var uriValue = EnvironmentVariableResolver("STATSIFY_URI");
+
+            Uri uri;
+            Uri.TryCreate(uriValue, UriKind.Absolute, out uri);
+
+            return new StatsifyClientConfiguration(host, port, @namespace, uri);
         }
     }
 }

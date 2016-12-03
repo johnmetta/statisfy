@@ -82,6 +82,11 @@ namespace Statsify.Client
             get { return @namespace; }
         }
 
+        Uri IStatsifyClientConfiguration.Uri
+        {
+            get { throw new NotSupportedException(); }
+        }
+
         private void PublishMetric(string metric, string type, double value, double sample, bool explicitlySigned = false)
         {
             var cultureInfo = CultureInfo.InvariantCulture;
