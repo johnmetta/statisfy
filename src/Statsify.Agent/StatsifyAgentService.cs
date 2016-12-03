@@ -14,7 +14,7 @@ namespace Statsify.Agent
 
         private MetricCollector metricCollector;
         private MetricPublisher metricPublisher;
-        private IStatsifyClient statsifyClient;        
+        private IStatsifyClient statsifyClient;
 
         public StatsifyAgentService(ConfigurationManager configurationManager)
         {
@@ -25,32 +25,38 @@ namespace Statsify.Agent
         {
             log.Info("starting up");
 
-            var @namespace = configuration.Statsify.Namespace;
+            var statsify = configuration.Statsify;
 
+            var @namespace = statsify.Namespace;
             if(!string.IsNullOrWhiteSpace(@namespace))
                 @namespace += ".";
 
             @namespace += Environment.MachineName.ToLowerInvariant();
 
-            log.Trace("configuring StatsifyClient with host: {0}, port: {1}, namespace: '{2}', collection interval: '{3}' ", 
-                configuration.Statsify.Host, configuration.Statsify.Port, @namespace, configuration.Metrics.CollectionInterval);
-
-            var uri = configuration.Statsify.Uri;
+            var uri = statsify.Uri;
             if(uri != null && !string.IsNullOrWhiteSpace(uri.OriginalString))
             {
+                log.Trace("configuring StatsifyClient with uri: {0}, namespace: '{1}', collection interval: '{2}' ",
+                    statsify.Uri, @namespace, configuration.Metrics.CollectionInterval);
+
                 var statsifyChannelFactory = new StatsifyChannelFactory();
                 var statsifyChannel = statsifyChannelFactory.CreateChannel(uri);
 
                 statsifyClient = new StatsifyClient(@namespace, statsifyChannel);
             } // if
             else
-                statsifyClient = new UdpStatsifyClient(configuration.Statsify.Host, configuration.Statsify.Port, @namespace);
+            {
+                log.Trace("configuring StatsifyClient with host: {0}, port: {1}, namespace: '{2}', collection interval: '{3}' ", 
+                    configuration.Statsify.Host, configuration.Statsify.Port, @namespace, configuration.Metrics.CollectionInterval);
+
+                statsifyClient = new UdpStatsifyClient(statsify.Host, statsify.Port, @namespace);
+            } // else
 
             metricCollector = new MetricCollector(configuration.Metrics);
             
             metricPublisher = new MetricPublisher(metricCollector, statsifyClient, configuration.Metrics.CollectionInterval);
             metricPublisher.Start();
-            
+
             return true;
         }
 
