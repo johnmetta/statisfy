@@ -49,7 +49,6 @@
     <Compile Include="NullStatsifyClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stats.cs" />
-    <Compile Include="StatsBatch.cs" />
     <Compile Include="StatsifyChannelFactory.cs" />
     <Compile Include="StatsifyClientConfiguration.cs" />
     <Compile Include="StatsifyClientExtensions.cs" />
