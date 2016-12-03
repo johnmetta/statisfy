@@ -13,6 +13,11 @@ namespace Statsify.Client
             this.uri = GetPostUri(uri);
         }
 
+        public bool SupportsBatchedWrites
+        {
+            get { return true; }
+        }
+
         public void WriteBuffer(byte[] buffer)
         {
             var httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
