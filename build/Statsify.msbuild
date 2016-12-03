@@ -26,7 +26,7 @@
   </Target>
 
   <Target Name="Package" DependsOnTargets="Build">
-    <Exec Command="nuget.exe pack .\Statsify.Client.nuspec -version $(SemanticVersion) -nodefaultexcludes -noninteractive -symbols" />
+    <Exec Command="nuget.exe pack .\Statsify.Client.nuspec -version $(Version) -nodefaultexcludes -noninteractive -symbols" />
     <Exec Command=".\..\tools\7za\7za.exe a -x!*.vshost.* -x!*.xml statsify.agent-$(SemanticVersion).zip .\..\src\Statsify.Agent\bin\Release\*.*" />
     <Exec Command=".\..\tools\7za\7za.exe a -x!*.vshost.* -x!*.xml statsify.aggregator-$(SemanticVersion).zip .\..\src\Statsify.Aggregator\bin\Release\*.*" />
   </Target>
