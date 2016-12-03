@@ -93,7 +93,7 @@ namespace Statsify.Agent.Impl
 
             statsifyClient.Batch(metrics);
 
-            log.Trace("completed publishing {0:N0} metrics in {1}", metrics, stopwatch.Elapsed);
+            log.Trace("completed publishing {0:N0} metrics in {1}", metrics.Count, stopwatch.Elapsed);
         }
     }
 }
