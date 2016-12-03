@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 
 namespace Statsify.Client.Configuration
 {
@@ -23,6 +24,13 @@ namespace Statsify.Client.Configuration
         {
             get { return (string)this["namespace"]; }
             set { this["namespace"] = value; }
+        }
+
+        [ConfigurationProperty("uri", IsRequired = false, DefaultValue = "")]
+        public Uri Uri
+        {
+            get { return (Uri)this["uri"]; }
+            set { this["uri"] = value; }
         }
     }
 }
