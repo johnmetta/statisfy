@@ -8,5 +8,7 @@ namespace Statsify.Aggregator.ComponentModel
         int QueueBacklog { get; }
 
         IEnumerable<MetricDatapoint> Queue { get; }
+
+        void Aggregate(Metric metric);
     }
 }
