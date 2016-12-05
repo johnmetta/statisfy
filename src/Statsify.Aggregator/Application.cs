@@ -6,21 +6,22 @@ namespace Statsify.Aggregator
 {
     public static class Application
     {
-        public static Version Version
+        public static string Version
         {
             get
             {
-                var assemblyFileVersion =
-                    typeof(Application).Assembly.
-                        GetCustomAttributes(typeof(AssemblyFileVersionAttribute)).
-                        OfType<AssemblyFileVersionAttribute>().
+                var assembly = typeof(Application).Assembly;
+                var assemblyInformationalVersion =
+                    assembly.
+                        GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute)).
+                        OfType<AssemblyInformationalVersionAttribute>().
                         FirstOrDefault();
-                
-                Version version;
-                if(assemblyFileVersion != null && Version.TryParse(assemblyFileVersion.Version, out version))
-                    return version;
-                
-                return new Version(0, 0, 0);;
+
+                if(assemblyInformationalVersion == null)
+                    return new Version(0, 0, 0).ToString(3);
+
+                var version = assemblyInformationalVersion.InformationalVersion;
+                return version;
             }
         }
     }

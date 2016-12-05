@@ -18,7 +18,7 @@ namespace Statsify.Aggregator.Http
         private object GetIndex(dynamic r)
         {
             var model = new IndexModel();
-            model.Version = Application.Version.ToString(3);
+            model.Version = Application.Version;
             
             this.BindTo(model, new BindingConfig { BodyOnly = false });
 
