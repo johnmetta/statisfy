@@ -61,6 +61,7 @@
     <Compile Include="Configuration\StatsifyConfigurationElement.cs" />
     <Compile Include="Impl\IMetricDefinition.cs" />
     <Compile Include="Impl\IMetricSource.cs" />
+    <Compile Include="Impl\MemcachedMetricSource.cs" />
     <Compile Include="Impl\Metric.cs" />
     <Compile Include="Impl\MetricConfiguration.cs" />
     <Compile Include="Impl\MetricDefinition.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Impl\MetricSource.cs" />
     <Compile Include="Impl\MetricSourceFactory.cs" />
     <Compile Include="Impl\Averager.cs" />
+    <Compile Include="Impl\NonCloseableStreamWrapper.cs" />
     <Compile Include="Impl\PerformanceCounterMetricDefinition.cs" />
     <Compile Include="Impl\RabbitMqMetricSource.cs" />
     <Compile Include="Impl\RefreshableMetricSource.cs" />
