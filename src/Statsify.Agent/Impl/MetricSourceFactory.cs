@@ -19,6 +19,12 @@ namespace Statsify.Agent.Impl
                 return metricSource;
             } // if
 
+            if(metric.Type == "memcached")
+            {
+                var metricSource = new MemcachedMetricSource(metric);
+                return metricSource;
+            } // if
+
             var metricDefinitions = metricDefinitionFactory.CreateMetricDefinitions(metric);
             
             if(metric.RefreshEvery.HasValue)
