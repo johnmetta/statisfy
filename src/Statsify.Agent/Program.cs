@@ -13,7 +13,7 @@ namespace Statsify.Agent
         {
             AppDomain.CurrentDomain.UnhandledException += AppDomainUnhandledExceptionHandler;
 
-            var serviceDisplayName = "Statsify Agent v" + Application.Version.ToString(3);
+            var serviceDisplayName = "Statsify Agent v" + Application.Version;
 
             Log.Info("starting up " + serviceDisplayName);
 
