@@ -5,14 +5,14 @@ namespace Statsify.Agent.Configuration
 {
     public class StatsifyConfigurationElement : ConfigurationElement
     {
-        [ConfigurationProperty("host", IsRequired = true)]
+        [ConfigurationProperty("host", IsRequired = false)]
         public string Host
         {
             get { return (string)this["host"]; }
             set { this["host"] = value; }
         }
 
-        [ConfigurationProperty("port", IsRequired = true)]
+        [ConfigurationProperty("port", IsRequired = false)]
         public int Port
         {
             get { return (int)this["port"]; }
