@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
+using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Hosting.Self;
 using NLog;
@@ -63,6 +64,7 @@ namespace Statsify.Aggregator
             publisherTimer = new Timer(PublisherTimerCallback, null, configuration.Storage.FlushInterval, configuration.Storage.FlushInterval);                       
 
             NancyBootstrapperLocator.Bootstrapper = new Bootstrapper(/*configuration*/) { MetricAggregator = metricAggregator };
+            StaticConfiguration.DisableRequestStreamSwitching = true;
 
             var hostConfiguration = new HostConfiguration();
             hostConfiguration.UrlReservations.CreateAutomatically = true;
