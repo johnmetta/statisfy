@@ -9,11 +9,6 @@
   </PropertyGroup>
 
   <Target Name="Version">
-    <IncrementSemanticVersion SemverFilePath=".\..\.semver" Component="$(Component)">
-      <Output TaskParameter="SemanticVersion" PropertyName="SemanticVersion" />
-      <Output TaskParameter="Version" PropertyName="Version" />
-    </IncrementSemanticVersion>
-
     <FormatSemanticVersion SemverFilePath=".\..\.semver" Format="${MAJOR}">
       <Output TaskParameter="Result" PropertyName="MajorVersion" />
     </FormatSemanticVersion>
