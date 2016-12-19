@@ -13,6 +13,14 @@
       <Output TaskParameter="Result" PropertyName="MajorVersion" />
     </FormatSemanticVersion>
 
+    <FormatSemanticVersion SemverFilePath=".\..\.semver" Format="${VERSION}">
+      <Output TaskParameter="Result" PropertyName="Version" />
+    </FormatSemanticVersion>
+
+    <FormatSemanticVersion SemverFilePath=".\..\.semver" Format="${SEMANTICVERSION}">
+      <Output TaskParameter="Result" PropertyName="SemanticVersion" />
+    </FormatSemanticVersion>
+
     <WriteLinesToFile File=".\..\src\AssemblyVersion.cs" Overwrite="True" Lines="[assembly:System.Reflection.AssemblyVersion(&quot;$(MajorVersion).0.0.0&quot;)];[assembly:System.Reflection.AssemblyFileVersion(&quot;$(Version)&quot;)];[assembly:System.Reflection.AssemblyInformationalVersion(&quot;$(SemanticVersion)&quot;)]" />
   </Target>
 
