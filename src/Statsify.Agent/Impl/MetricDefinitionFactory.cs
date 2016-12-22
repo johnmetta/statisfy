@@ -28,7 +28,12 @@ namespace Statsify.Agent.Impl
             switch(type)
             {
                 case "performance-counter":
-                    return CreatePerformanceCounterMetricDefinition(metric);
+                    return CreatePerformanceCounterMetricDefinition(metric, s => s);
+                case "iis-performance-counter":
+                    //
+                    // IIS performance counters are prefixed with "PID_", which
+                    // we need to get rid of
+                    return CreatePerformanceCounterMetricDefinition(metric, s => s.SubstringAfter("_"));
                 case "number-of-files":
                     return CreateNumberOfFilesDefinition(metric);
                 default:
@@ -49,14 +54,15 @@ namespace Statsify.Agent.Impl
                 }, metric.AggregationStrategy);
         }
 
-        private IEnumerable<IMetricDefinition> CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric)
+        private IEnumerable<IMetricDefinition> CreatePerformanceCounterMetricDefinition(MetricConfigurationElement metric, 
+            Func<string, string> metricNameProcessor)
         {
             return ParsePerformanceCounters(metric.Path).Select(pc => {
                 var name = metric.Name;
 
                 if(!string.IsNullOrWhiteSpace(pc.Item1) && name.Contains("**"))
                 {
-                    var fragment = MetricNameBuilder.SanitizeMetricName(pc.Item1).ToLowerInvariant();
+                    var fragment = MetricNameBuilder.SanitizeMetricName(metricNameProcessor(pc.Item1)).ToLowerInvariant();
                     
                     fragment = fragment.Trim('_');
                     while(fragment.Contains("__"))
