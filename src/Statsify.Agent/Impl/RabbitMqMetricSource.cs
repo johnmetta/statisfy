@@ -20,9 +20,9 @@ namespace Statsify.Agent.Impl
     {
         private readonly AggregationStrategy aggregationStrategy;
         private readonly string name;
-        private readonly WebClient webClient;
         private readonly DataContractJsonSerializer jsonSerializer;
         private readonly Uri uri;
+        private readonly NetworkCredential credentials;
 
         public RabbitMqMetricSource(IMetricConfiguration metric)
         {
@@ -30,20 +30,21 @@ namespace Statsify.Agent.Impl
             aggregationStrategy = metric.AggregationStrategy;
 
             uri = new Uri(Environment.ExpandEnvironmentVariables(metric.Path));
-            NetworkCredential credentials;
             RewriteUrl(ref uri, out credentials);
-
-            webClient = new WebClient();
-
-            if(credentials != null)
-                webClient.Credentials = credentials;
 
             jsonSerializer = new DataContractJsonSerializer(typeof(Overview));
         }
 
         public IEnumerable<IMetricDefinition> GetMetricDefinitions()
         {
-            var buffer = webClient.DownloadData(uri);
+            byte[] buffer;
+            using(var webClient = new WebClient())
+            {
+                if(credentials != null)
+                    webClient.Credentials = credentials;
+
+                buffer = webClient.DownloadData(uri);
+            } // using
 
             Overview overview;
 
