@@ -114,7 +114,7 @@ namespace Statsify.Aggregator.Http
                     QueuedMetricDatapoints = metricAggregator.Queue
                 };
 
-                var evalContext = new EvalContext(@from, until);
+                var evalContext = new EvalContext(@from, until, metricRegistry);
 
                 var metrics = new List<Core.Model.Metric>();
                 foreach(var expression in model.Expression.Select(HttpUtility.UrlDecode))
