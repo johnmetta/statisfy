@@ -518,7 +518,7 @@ namespace Statsify.Core.Expressions
             DatapointAggregationFunction sum = vs => vs.Sum(v => v.Value);
 
             var satisfiedMetricName = string.Format("apdex.{0}.satisfied", selector.Selector);
-            var toleratingMetricName = string.Format("apdex.{0}.tolerated", selector.Selector);
+            var toleratingMetricName = string.Format("apdex.{0}.tolerating", selector.Selector);
             var totalMetricName = string.Format("apdex.{0}.total", selector.Selector);
 
             var from = selector.From;
