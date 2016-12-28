@@ -87,7 +87,7 @@ namespace Statsify.Aggregator
                                 "satisfied" : 
                                 value > threshold * 4 ?
                                     "frustrated" :
-                                    "tolerated";
+                                    "tolerating";
 
                         var bucket = string.Format("apdex.{0}.{1}", key, level);
                         counters.AddOrUpdate(bucket, 1, (k, v) => v + 1);
