@@ -98,6 +98,7 @@
     <Compile Include="Util\EnumerableExtensions.cs" />
     <Compile Include="Util\EnumerableUtil.cs" />
     <Compile Include="Util\NonClosingStreamWrapper.cs" />
+    <Compile Include="Util\QueueExtensions.cs" />
     <Compile Include="Util\Range.cs" />
     <Compile Include="Util\StringUtil.cs" />
     <Compile Include="Util\TimeSpanParser.cs" />
