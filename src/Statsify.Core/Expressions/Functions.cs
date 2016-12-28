@@ -508,5 +508,54 @@ namespace Statsify.Core.Expressions
                     Select(m => Metric.Transform(m, d => d.HasValue ? d.Value - min : null)).
                     ToArray();
         }
+
+        [Function("apdex")]
+        public static Metric[] Apdex(EvalContext context, MetricSelector selector, string bucket)
+        {
+            var bucketDuration = ParseTimeSpan(bucket);
+            if(!bucketDuration.HasValue) return null;
+
+            DatapointAggregationFunction sum = vs => vs.Sum(v => v.Value);
+
+            var satisfiedMetricName = string.Format("apdex.{0}.satisfied", selector.Selector);
+            var toleratingMetricName = string.Format("apdex.{0}.tolerated", selector.Selector);
+            var totalMetricName = string.Format("apdex.{0}.total", selector.Selector);
+
+            var from = selector.From;
+            var until = selector.Until;
+
+            Func<string, Queue<Datapoint>> readMetric = 
+                s => {
+                    var metric = context.MetricRegistry.ReadMetric(s, from, until);
+                    return new Queue<Datapoint>(metric.Series.Datapoints.OrderByDescending(d => d.Timestamp));
+                };
+
+            var satisfiedMetrics = readMetric(satisfiedMetricName);
+            var toleratingMetrics = readMetric(toleratingMetricName);
+            var totalMetrics = readMetric(totalMetricName);
+
+            var apdexDatapoints = new List<Datapoint>();
+
+            var timestamp = until.Subtract(bucketDuration.Value);
+            while(timestamp > from)
+            {
+                var satisfied = sum(satisfiedMetrics.DequeueWhile(d => d.Timestamp >= timestamp));
+                var tolerating = sum(toleratingMetrics.DequeueWhile(d => d.Timestamp >= timestamp));
+                var total = sum(totalMetrics.DequeueWhile(d => d.Timestamp >= timestamp));
+
+                var apdex = 0d;
+                if(total.HasValue && total >= 1)
+                    apdex = ((satisfied ?? 0) + (tolerating ?? 0) / 2) / total.Value;
+
+                apdexDatapoints.Add(new Datapoint(timestamp.Add(bucketDuration.Value), apdex));
+
+                timestamp = timestamp.Subtract(bucketDuration.Value);
+            } // while
+
+            var apdexSeries = new Series(from, until, bucketDuration.Value, apdexDatapoints.OrderBy(d => d.Timestamp));
+            var apdexMetric = new Metric(selector.Selector, apdexSeries);
+
+            return new [] { apdexMetric };
+        }
     }
 }
