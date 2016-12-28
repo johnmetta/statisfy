@@ -515,8 +515,6 @@ namespace Statsify.Core.Expressions
             var bucketDuration = ParseTimeSpan(bucket);
             if(!bucketDuration.HasValue) return null;
 
-            DatapointAggregationFunction sum = vs => vs.Sum(v => v.Value);
-
             var satisfiedMetricName = string.Format("apdex.{0}.satisfied", selector.Selector);
             var toleratingMetricName = string.Format("apdex.{0}.tolerating", selector.Selector);
             var totalMetricName = string.Format("apdex.{0}.total", selector.Selector);
@@ -539,9 +537,9 @@ namespace Statsify.Core.Expressions
             var timestamp = until.Subtract(bucketDuration.Value);
             while(timestamp > from)
             {
-                var satisfied = sum(satisfiedMetrics.DequeueWhile(d => d.Timestamp >= timestamp));
-                var tolerating = sum(toleratingMetrics.DequeueWhile(d => d.Timestamp >= timestamp));
-                var total = sum(totalMetrics.DequeueWhile(d => d.Timestamp >= timestamp));
+                var satisfied = satisfiedMetrics.DequeueWhile(d => d.Timestamp >= timestamp).Sum(d => d.Value);
+                var tolerating = toleratingMetrics.DequeueWhile(d => d.Timestamp >= timestamp).Sum(d => d.Value);
+                var total = totalMetrics.DequeueWhile(d => d.Timestamp >= timestamp).Sum(d => d.Value);
 
                 var apdex = 0d;
                 if(total.HasValue && total >= 1)
