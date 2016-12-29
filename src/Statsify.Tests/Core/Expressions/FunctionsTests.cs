@@ -28,7 +28,7 @@ namespace Statsify.Tests.Core.Expressions
                     } ))
             };
 
-            var result = Functions.SortByAggregated(new EvalContext(@from, to), metrics, "avg", "asc");
+            var result = Functions.SortByAggregated(new EvalContext(@from, to, null), metrics, "avg", "asc");
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace Statsify.Tests.Core.Expressions
                     } ))
             };
 
-            var result = Functions.Derivative(new EvalContext(@from, to), metrics);
+            var result = Functions.Derivative(new EvalContext(@from, to, null), metrics);
 
             foreach(var d in result[0].Series.Datapoints)
                 Console.WriteLine("* " + d.Value);
@@ -78,7 +78,7 @@ namespace Statsify.Tests.Core.Expressions
                     } ))
             };
 
-            var result = Functions.KeepLastValue(new EvalContext(@from, to), metrics);
+            var result = Functions.KeepLastValue(new EvalContext(@from, to, null), metrics);
 
             CollectionAssert.AreEqual(
                 new double?[] { null, 1, 2, 3, 3, 3, 4, 4, 5 },
