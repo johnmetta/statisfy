@@ -42,10 +42,14 @@ namespace Statsify.Aggregator
             }
         }
 
-        public MetricsBuffer(StatsifyAggregatorConfigurationSection configuration)
+        public MetricsBuffer()
         {
             apdexThresholds = new Dictionary<string, TimeSpan>(StringComparer.InvariantCultureIgnoreCase);
+        }
 
+        public MetricsBuffer(StatsifyAggregatorConfigurationSection configuration) :
+            this()
+        {
             foreach(ApdexConfigurationElement apdex in configuration.Apdex)
                 apdexThresholds[apdex.Metric] = apdex.Threshold;
         }
