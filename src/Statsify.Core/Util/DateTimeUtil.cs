@@ -36,5 +36,31 @@ namespace Statsify.Core.Util
         {
             return Epoch.AddSeconds(timestamp);
         }
+
+        public static DateTime RoundUp(this DateTime dateTime, TimeSpan timeSpan)
+        {
+            var delta = (timeSpan.Ticks - dateTime.Ticks % timeSpan.Ticks) % timeSpan.Ticks;
+            var result = new DateTime(dateTime.Ticks + delta);
+
+            return result;
+        }
+
+        public static DateTime RoundDown(this DateTime dateTime, TimeSpan timeSpan)
+        {
+            var delta = dateTime.Ticks % timeSpan.Ticks;
+            var result = new DateTime(dateTime.Ticks - delta);
+
+            return result;
+        }
+
+        public static DateTime RoundToNearest(this DateTime dateTime, TimeSpan timeSpan)
+        {
+            var delta = dateTime.Ticks % timeSpan.Ticks;
+            var roundUp = delta > timeSpan.Ticks / 2;
+
+            var result = roundUp ? dateTime.RoundUp(timeSpan) : dateTime.RoundDown(timeSpan);
+
+            return result;
+        }
     }
 }
