@@ -87,21 +87,28 @@ namespace Statsify.Core.Expressions
             var fn = ParseAggregationFunction(aggregationFunction) ?? ParseAggregationFunction(bucket);
             if(fn == null) return metrics;
 
-            var until = context.Until;
-            var from = context.From.Subtract(bucketDuration.Value);
-            var ranges = EnumerableUtil.Generate(until, dt => dt.Subtract(bucketDuration.Value), dt => from < dt).Reverse().ToRanges().ToArray();
+            var until = context.Until.RoundToNearest(bucketDuration.Value);
+            var from = context.From.RoundToNearest(bucketDuration.Value);
 
             return
                 metrics.Select(m => {
-                    var datapoints = 
-                        m.Series.Interval > bucketDuration ?
-                            m.Series.Datapoints.ToList() :
-                            ranges.Select(r => {
-                                var datapoint = fn(m.Series.Datapoints.Where(d => d.Timestamp > r.From && d.Timestamp <= r.Until));
-                                return new Datapoint(r.Until, datapoint);
-                            }).ToList();
+                    if(m.Series.Interval > bucketDuration)
+                        return m;
 
-                    return new Metric(m.Name, new Series(m.Series.From, m.Series.Until, bucketDuration.Value, datapoints));
+                    var series = new Queue<Datapoint>(m.Series.Datapoints.OrderByDescending(d => d.Timestamp));
+                    var datapoints = new List<Datapoint>();
+
+                    var timestamp = until.Subtract(bucketDuration.Value);
+                    while(timestamp > from)
+                    {
+                        var value = fn(series.DequeueWhile(d => d.Timestamp >= timestamp));
+                        var datapoint = new Datapoint(timestamp.Add(bucketDuration.Value), value);
+                        datapoints.Add(datapoint);
+
+                        timestamp = timestamp.Subtract(bucketDuration.Value);
+                    } // while
+
+                    return new Metric(m.Name, new Series(m.Series.From, m.Series.Until, bucketDuration.Value, datapoints.OrderBy(d => d.Timestamp)));
                 }).
                 ToArray();
         }
