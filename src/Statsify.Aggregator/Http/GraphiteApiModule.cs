@@ -111,15 +111,17 @@ namespace Statsify.Aggregator.Http
 
                 var metrics = new List<Core.Model.Metric>(r);
 
-                var seriesViewList = (from metric in metrics
-                    let f = metric.Series.From.ToUnixTimestamp()
-                    let interval = metric.Series.Interval.ToUnixTimestamp()
-                    select new SeriesView
-                    {
-                        Target = metric.Name,
-                        Datapoints = metric.Series.Datapoints.Select((v, i) => new[] {v.Value, f + i*interval}).ToArray()
-                    }
-                    ).OrderBy(s => s.Target).ToArray();
+                var seriesViewList = 
+                    metrics.
+                        Select(m => 
+                            new SeriesView {
+                                Target = m.Name,
+                                Datapoints = 
+                                    m.Series.Datapoints.
+                                        Select(d => new[] { d.Value, d.Timestamp.ToUnixTimestamp() }).
+                                        ToArray()
+                            }).
+                            ToArray();
 
                 log.Debug("rendered {0} metrics using '{1}' from {2:s} to {3:s}", seriesViewList.Length, targets, from, until);
 

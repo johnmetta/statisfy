@@ -131,15 +131,17 @@ namespace Statsify.Aggregator.Http
                     metrics.AddRange(r);
                 } // foreach
 
-                var seriesViewList = (from metric in metrics
-                    let f = metric.Series.From.ToUnixTimestamp()
-                    let interval = metric.Series.Interval.ToUnixTimestamp()
-                    select new SeriesView
-                    {
-                        Target = metric.Name,
-                        Datapoints = metric.Series.Datapoints.Select((v, i) => new[] {v.Value, f + i*interval}).ToArray()
-                    }
-                    ).OrderBy(s => s.Target).ToArray();
+                var seriesViewList = 
+                    metrics.
+                        Select(m => 
+                            new SeriesView {
+                                Target = m.Name,
+                                Datapoints = 
+                                    m.Series.Datapoints.
+                                        Select(d => new[] { d.Value, d.Timestamp.ToUnixTimestamp() }).
+                                        ToArray()
+                            }).
+                            ToArray();
 
                 return Response.AsJson(seriesViewList);
             }
