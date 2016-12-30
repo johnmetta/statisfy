@@ -28,12 +28,12 @@ namespace Statsify.Agent.Impl
             switch(type)
             {
                 case "performance-counter":
-                    return CreatePerformanceCounterMetricDefinition(metric, s => s);
+                    return CreatePerformanceCounterMetricDefinition(metric, NormalizePerformanceCounterName);
                 case "iis-performance-counter":
                     //
                     // IIS performance counters are prefixed with "PID_", which
                     // we need to get rid of
-                    return CreatePerformanceCounterMetricDefinition(metric, s => s.SubstringAfter("_"));
+                    return CreatePerformanceCounterMetricDefinition(metric, NormalizeIisPerformanceCounterName);
                 case "wcf-performance-counter":
                     //
                     // WCF performance counters are prefixed with "ServiceName@" and contain
@@ -72,8 +72,6 @@ namespace Statsify.Agent.Impl
                     fragment = fragment.Trim('_');
                     while(fragment.Contains("__"))
                         fragment = fragment.Replace("__", "_");
-
-                    fragment = fragment.Replace(".", "_");
 
                     name = name.Replace("**", fragment);
                 } // if
@@ -178,6 +176,16 @@ namespace Statsify.Agent.Impl
                 categoryName = categoryName.SubstringBefore("(");
 
             counterName = fragments.Dequeue();
+        }
+
+        private static string NormalizePerformanceCounterName(string counterName)
+        {
+            return counterName.Replace(".", "_");
+        }
+
+        private static string NormalizeIisPerformanceCounterName(string counterName)
+        {
+            return counterName.SubstringAfter("_");
         }
 
         internal static string NormalizeWcfPerformanceCounterName(string counterName)
