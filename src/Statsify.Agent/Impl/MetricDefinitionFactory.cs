@@ -34,6 +34,11 @@ namespace Statsify.Agent.Impl
                     // IIS performance counters are prefixed with "PID_", which
                     // we need to get rid of
                     return CreatePerformanceCounterMetricDefinition(metric, s => s.SubstringAfter("_"));
+                case "wcf-performance-counter":
+                    //
+                    // WCF performance counters are prefixed with "ServiceName@" and contain
+                    // pipe-delimited crap like Service@http:||foo:8080|bar
+                    return CreatePerformanceCounterMetricDefinition(metric, NormalizeWcfPerformanceCounterName);
                 case "number-of-files":
                     return CreateNumberOfFilesDefinition(metric);
                 default:
@@ -173,6 +178,26 @@ namespace Statsify.Agent.Impl
                 categoryName = categoryName.SubstringBefore("(");
 
             counterName = fragments.Dequeue();
+        }
+
+        internal static string NormalizeWcfPerformanceCounterName(string counterName)
+        {
+            //
+            // See this:
+            // * https://msdn.microsoft.com/en-us/library/ms731087(v=vs.110).aspx
+            // * https://msdn.microsoft.com/en-us/library/ms735098.aspx
+            // * http://stackoverflow.com/q/41393811/60188
+            var serviceName = counterName.SubstringBefore("@").Replace('.', '_');
+            var serviceBaseAddress = counterName.SubstringAfter("@").Trim('|').Replace('.', '_');
+
+            var normalizedCounterName = string.Format("{0}.{1}", 
+                MetricNameBuilder.SanitizeMetricName(serviceName).ToLowerInvariant(),
+                MetricNameBuilder.SanitizeMetricName(serviceBaseAddress).ToLowerInvariant());
+
+            while(normalizedCounterName.Contains("__"))
+                normalizedCounterName = normalizedCounterName.Replace("__", "_");
+
+            return normalizedCounterName;
         }
     }
 }

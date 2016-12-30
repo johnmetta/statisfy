@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
 using NUnit.Framework;
 using Statsify.Agent.Configuration;
 using Statsify.Agent.Impl;
@@ -59,6 +57,16 @@ namespace Statsify.Tests.Agent.Impl
             Assert.AreEqual("LogicalDisk", categoryName);
             Assert.AreEqual("C:", instanceName);
             Assert.AreEqual("Disk Read Bytes/sec", counterName);
+        }
+
+        [Test]
+        [TestCase("AllTickets@|sync1.0|AllTickets.svc", Result = "alltickets.sync1_0_alltickets_svc")]
+        [TestCase("AsiaService@|asiaservice|v5|AsiaService.svc", Result = "asiaservice.asiaservice_v5_asiaservice_svc")]
+        [TestCase("AsiaService@http:||asiaservice.aeroclub.int:8004|", Result = "asiaservice.http_asiaservice_aeroclub_int_8004")]
+        [TestCase("CompanyProfilesService@09.1|CompanyProfilesService.svc", Result = "companyprofilesservice.09_1_companyprofilesservice_svc")]
+        public string NormalizeWcfPerformanceCounterName(string counterName)
+        {
+            return MetricDefinitionFactory.NormalizeWcfPerformanceCounterName(counterName);
         }
     }
 }
