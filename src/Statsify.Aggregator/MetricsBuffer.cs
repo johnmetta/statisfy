@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Statsify.Aggregator.Configuration;
 
 namespace Statsify.Aggregator
 {
@@ -12,9 +13,10 @@ namespace Statsify.Aggregator
         private readonly ConcurrentDictionary<string, float> timerCounters = new ConcurrentDictionary<string, float>();
         private readonly ConcurrentDictionary<string, float> gauges = new ConcurrentDictionary<string, float>();
         private readonly ConcurrentDictionary<string, float> counters = new ConcurrentDictionary<string, float>();
-        private readonly ConcurrentDictionary<string, ConcurrentBag<string>> sets = new ConcurrentDictionary<string, ConcurrentBag<string>>(); 
+        private readonly ConcurrentDictionary<string, ConcurrentBag<string>> sets = new ConcurrentDictionary<string, ConcurrentBag<string>>();
+        private readonly IDictionary<string, TimeSpan> apdexThresholds;
 
-        public IEnumerable<KeyValuePair<string, IList<float>>>  Timers
+        public IEnumerable<KeyValuePair<string, IList<float>>> Timers
         {
             get { return timers; }
         }
@@ -38,6 +40,18 @@ namespace Statsify.Aggregator
                     return new KeyValuePair<string, int>(kvp.Key, value);
                 }); 
             }
+        }
+
+        public MetricsBuffer()
+        {
+            apdexThresholds = new Dictionary<string, TimeSpan>(StringComparer.InvariantCultureIgnoreCase);
+        }
+
+        public MetricsBuffer(StatsifyAggregatorConfigurationSection configuration) :
+            this()
+        {
+            foreach(ApdexConfigurationElement apdex in configuration.Apdex)
+                apdexThresholds[apdex.Metric] = apdex.Threshold;
         }
 
         public float? GetTimerCounter(string name)
@@ -67,6 +81,24 @@ namespace Statsify.Aggregator
                         });
 
                     timerCounters.AddOrUpdate(key, 1 / metric.Sample, (k, v) => v + factor);
+
+                    if(apdexThresholds.ContainsKey(key))
+                    {
+                        var threshold = (float)apdexThresholds[key].TotalMilliseconds;
+
+                        var level = 
+                            value <= threshold ? 
+                                "satisfied" : 
+                                value > threshold * 4 ?
+                                    "frustrated" :
+                                    "tolerating";
+
+                        var bucket = string.Format("apdex.{0}.{1}", key, level);
+                        counters.AddOrUpdate(bucket, 1, (k, v) => v + 1);
+
+                        bucket = string.Format("apdex.{0}.total", key);
+                        counters.AddOrUpdate(bucket, 1, (k, v) => v + 1);
+                    } // if
                     break;
                 
                 case MetricType.Gauge:

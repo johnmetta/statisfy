@@ -36,6 +36,13 @@ namespace Statsify.Aggregator.Configuration
             set { this["downsampling"] = value; }
         }
 
+        [ConfigurationProperty("apdex", IsRequired = false)]
+        public ApdexConfigurationElementCollection Apdex
+        {
+            get { return (ApdexConfigurationElementCollection)this["apdex"]; }
+            set { this["apdex"] = value; }
+        }
+
         /*[ConfigurationProperty("aggregation", IsRequired = true)]
         public AggregationConfigurationElementCollection Aggregation
         {

@@ -77,6 +77,9 @@
     <Compile Include="Application.cs" />
     <Compile Include="ComponentModel\IDatapointDatabaseResolver.cs" />
     <Compile Include="ComponentModel\IMetricAggregator.cs" />
+    <Compile Include="Configuration\ApdexConfigurationElement.cs" />
+    <Compile Include="Configuration\ApdexConfigurationElementCollection.cs" />
+    <Compile Include="Configuration\TimeSpanConfigurationConverter.cs" />
     <Compile Include="Http\GraphiteApiModule.cs" />
     <Compile Include="DatapointDatabaseResolver.cs" />
     <Compile Include="DatapointDatabaseResolverCachingWrapper.cs" />

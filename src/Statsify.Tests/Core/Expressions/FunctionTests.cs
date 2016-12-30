@@ -12,7 +12,7 @@ namespace Statsify.Tests.Core.Expressions
         public void Invoke()
         {
             var fn = new Function(typeof(FunctionTests).GetMethod("Fn"));
-            var result = fn.Invoke(new Environment(), new EvalContext(DateTime.UtcNow, DateTime.UtcNow), new [] { "1d" });
+            var result = fn.Invoke(new Environment(), new EvalContext(DateTime.UtcNow, DateTime.UtcNow, null), new [] { "1d" });
 
             Console.WriteLine(result);
         }
