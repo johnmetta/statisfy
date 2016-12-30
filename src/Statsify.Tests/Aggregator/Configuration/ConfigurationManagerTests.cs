@@ -27,6 +27,14 @@ namespace Statsify.Tests.Aggregator.Configuration
                 ((IRetentionDefinition)configuration.Configuration.Storage[0].Retentions[2]).Precision);
             Assert.AreEqual(TimeSpan.FromDays(365.25 * 5), 
                 ((IRetentionDefinition)configuration.Configuration.Storage[0].Retentions[2]).History);
+
+            var apdex = configuration.Configuration.Apdex;
+
+            Assert.AreEqual("one.minute", apdex[0].Metric);
+            Assert.AreEqual(TimeSpan.FromMinutes(1), apdex[0].Threshold);
+
+            Assert.AreEqual("two.seconds", apdex[1].Metric);
+            Assert.AreEqual(TimeSpan.FromSeconds(2), apdex[1].Threshold);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Statsify.Aggregator
             this.stopEvent = stopEvent;
             flushInterval = (float)configuration.Storage.FlushInterval.TotalMilliseconds;
 
-            metricsBuffer = new MetricsBuffer();
+            metricsBuffer = new MetricsBuffer(configuration);
 
             var flushThread = new Thread(FlushCallback);
             flushThread.Start();
@@ -107,7 +107,7 @@ namespace Statsify.Aggregator
 #pragma warning disable 420
             //
             // See above.
-            var buffer = Interlocked.Exchange(ref metricsBuffer, new MetricsBuffer());
+            var buffer = Interlocked.Exchange(ref metricsBuffer, new MetricsBuffer(configuration));
 #pragma warning restore 420
             
             var ts = DateTime.UtcNow;

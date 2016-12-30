@@ -1,4 +1,5 @@
 using System;
+using Statsify.Core.Components;
 
 namespace Statsify.Core.Expressions
 {
@@ -8,10 +9,13 @@ namespace Statsify.Core.Expressions
 
         public DateTime Until { get; private set; }
 
-        public EvalContext(DateTime @from, DateTime until)
+        public IMetricRegistry MetricRegistry { get; private set; }
+
+        public EvalContext(DateTime @from, DateTime until, IMetricRegistry metricRegistry)
         {
             From = @from;
             Until = until;
+            MetricRegistry = metricRegistry;
         }
     }
 }
