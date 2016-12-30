@@ -40,7 +40,7 @@ namespace Statsify.Core.Util
         public static DateTime RoundUp(this DateTime dateTime, TimeSpan timeSpan)
         {
             var delta = (timeSpan.Ticks - dateTime.Ticks % timeSpan.Ticks) % timeSpan.Ticks;
-            var result = new DateTime(dateTime.Ticks + delta);
+            var result = DateTime.SpecifyKind(new DateTime(dateTime.Ticks + delta), dateTime.Kind);
 
             return result;
         }
@@ -48,7 +48,7 @@ namespace Statsify.Core.Util
         public static DateTime RoundDown(this DateTime dateTime, TimeSpan timeSpan)
         {
             var delta = dateTime.Ticks % timeSpan.Ticks;
-            var result = new DateTime(dateTime.Ticks - delta);
+            var result = DateTime.SpecifyKind(new DateTime(dateTime.Ticks - delta), dateTime.Kind);
 
             return result;
         }
