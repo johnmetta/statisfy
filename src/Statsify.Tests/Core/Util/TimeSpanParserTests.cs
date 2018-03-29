@@ -18,7 +18,7 @@ namespace Statsify.Tests.Core.Util
             return timeSpan;
         }
 
-        private IEnumerable<TestCaseData> GetTryParseTimeSpanTestCases()
+        private static IEnumerable<TestCaseData> GetTryParseTimeSpanTestCases()
         {
             var now = new DateTime(2016, 7, 21, 15, 42, 15, DateTimeKind.Utc);
 

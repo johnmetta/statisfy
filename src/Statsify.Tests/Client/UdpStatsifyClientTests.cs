@@ -10,9 +10,16 @@ namespace Statsify.Tests.Client
 {
     // ReSharper disable AccessToDisposedClosure
     [TestFixture]
+    [SingleThreaded]
     public class UdpStatsifyClientTests
     {
         private const int Port = 8125;
+
+        [OneTimeSetUp]
+        public void init()
+        {
+
+        }
 
         [Test]
         public void Increment()

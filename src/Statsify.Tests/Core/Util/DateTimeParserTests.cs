@@ -16,7 +16,7 @@ namespace Statsify.Tests.Core.Util
             return DateTimeParser.ParseDateTime(text, now, @default);
         }
 
-        private IEnumerable<TestCaseData> GetParseDateTimeTestCases()
+        private static IEnumerable<TestCaseData> GetParseDateTimeTestCases()
         {
             var now = new DateTime(2016, 7, 21, 15, 42, 15, DateTimeKind.Utc);
             var @default = now.AddDays(-1);
