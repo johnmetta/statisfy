@@ -24,10 +24,9 @@ namespace Statsify.Tests.Core.Util
         }
 
         [Test]
-        [ExpectedException(typeof(InvalidOperationException))]
         public void AllEqualOnEmptyCollection()
         {
-            new int[]{ }.AllEqual(EqualityComparer<int>.Default);
+            Assert.That(() => new int[]{ }.AllEqual(EqualityComparer<int>.Default), Throws.TypeOf<InvalidOperationException>());
         }
 
         [Test]

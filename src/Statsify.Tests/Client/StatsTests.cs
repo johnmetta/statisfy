@@ -25,7 +25,8 @@ namespace Statsify.Tests.Client
 
             var host = "statsify.local";
             var port = "8081";
-            var @namespace = "stats";
+            var @namespace = "test_stats";
+            var uri = "statisfy.local:8081";
 
             Stats.EnvironmentVariableResolver = s => {
                 switch(s)
@@ -36,8 +37,10 @@ namespace Statsify.Tests.Client
                         return port;
                     case "STATSIFY_NAMESPACE":
                         return @namespace;
+                    case "STATSIFY_URI":
+                        return uri;
                     default:
-                        throw new ArgumentOutOfRangeException("s");
+                        throw new ArgumentOutOfRangeException(s);
                 } // switch
             };
 
@@ -45,7 +48,7 @@ namespace Statsify.Tests.Client
 
             Assert.AreEqual("statsify.local", configuration.Host);
             Assert.AreEqual(8081, configuration.Port);
-            Assert.AreEqual("stats", configuration.Namespace);
+            Assert.AreEqual("test_stats", configuration.Namespace);
 
             port = "port";
 
@@ -53,7 +56,7 @@ namespace Statsify.Tests.Client
 
             Assert.AreEqual("statsify.local", configuration.Host);
             Assert.AreEqual(UdpStatsifyClient.DefaultPort, configuration.Port);
-            Assert.AreEqual("stats", configuration.Namespace);
+            Assert.AreEqual("test_stats", configuration.Namespace);
         }
 
         [Test]

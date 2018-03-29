@@ -60,10 +60,10 @@ namespace Statsify.Tests.Agent.Impl
         }
 
         [Test]
-        [TestCase("AllTickets@|sync1.0|AllTickets.svc", Result = "alltickets.sync1_0_alltickets_svc")]
-        [TestCase("AsiaService@|asiaservice|v5|AsiaService.svc", Result = "asiaservice.asiaservice_v5_asiaservice_svc")]
-        [TestCase("AsiaService@http:||asiaservice.aeroclub.int:8004|", Result = "asiaservice.http_asiaservice_aeroclub_int_8004")]
-        [TestCase("CompanyProfilesService@09.1|CompanyProfilesService.svc", Result = "companyprofilesservice.09_1_companyprofilesservice_svc")]
+        [TestCase("AllTickets@|sync1.0|AllTickets.svc", ExpectedResult = "alltickets.sync1_0_alltickets_svc")]
+        [TestCase("AsiaService@|asiaservice|v5|AsiaService.svc", ExpectedResult = "asiaservice.asiaservice_v5_asiaservice_svc")]
+        [TestCase("AsiaService@http:||asiaservice.aeroclub.int:8004|", ExpectedResult = "asiaservice.http_asiaservice_aeroclub_int_8004")]
+        [TestCase("CompanyProfilesService@09.1|CompanyProfilesService.svc", ExpectedResult = "companyprofilesservice.09_1_companyprofilesservice_svc")]
         public string NormalizeWcfPerformanceCounterName(string counterName)
         {
             return MetricDefinitionFactory.NormalizeWcfPerformanceCounterName(counterName);
