@@ -1,0 +1,28 @@
+syntax: regexp
+src/*/bin/*
+src/*/obj/*
+src/.*
+lib/*
+
+syntax: glob
+~*.*
+*.obj
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+*.lib
+*.sbr
+*.scc
+*.nupkg
+*.zip
